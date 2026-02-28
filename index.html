@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Makro Signal</title>
+  <style>
+    :root {
+      --bg:       #08080f;
+      --surface:  #0e0e1a;
+      --border:   #1a1a2e;
+      --text:     #c8c8d8;
+      --muted:    #5a5a7a;
+      --green:    #00e87a;
+      --yellow:   #f5c518;
+      --red:      #ff3355;
+      --blue:     #4488ff;
+      --dim:      #2a2a3e;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', Courier, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 16px 40px;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 44px;
+    }
+    .logo-tag {
+      font-size: 10px;
+      letter-spacing: 5px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-size: clamp(24px, 6vw, 36px);
+      letter-spacing: 10px;
+      color: var(--green);
+      text-shadow: 0 0 30px rgba(0,232,122,.35);
+      font-weight: 700;
+    }
+    .subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      margin-top: 8px;
+    }
+
+    /* ── SIGNAL BOX ─────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      width: 100%;
+      max-width: 580px;
+      margin-bottom: 18px;
+      position: relative;
+    }
+    .card-top-bar {
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+      background: var(--dim);
+      transition: background .4s, box-shadow .4s;
+    }
+
+    #signal-card { padding: 44px 24px 40px; text-align: center; }
+    .signal-eyebrow {
+      font-size: 10px;
+      letter-spacing: 5px;
+      color: var(--muted);
+      margin-bottom: 18px;
+      text-transform: uppercase;
+    }
+    #signal-value {
+      font-size: clamp(64px, 18vw, 96px);
+      font-weight: 700;
+      letter-spacing: 12px;
+      line-height: 1;
+      color: var(--text);
+      transition: color .4s, text-shadow .4s;
+    }
+    #signal-level {
+      font-size: 12px;
+      letter-spacing: 4px;
+      color: var(--muted);
+      margin-top: 16px;
+      min-height: 18px;
+      text-transform: uppercase;
+    }
+
+    /* colour themes */
+    .theme-ja  { --sig: var(--green);  }
+    .theme-nej { --sig: var(--red);    }
+    .theme-vent{ --sig: var(--yellow); }
+
+    .theme-ja  .card-top-bar,
+    .theme-nej .card-top-bar,
+    .theme-vent .card-top-bar { background: var(--sig); box-shadow: 0 0 18px var(--sig); }
+
+    .theme-ja  #signal-value,
+    .theme-nej #signal-value,
+    .theme-vent #signal-value { color: var(--sig); text-shadow: 0 0 50px color-mix(in srgb, var(--sig) 50%, transparent); }
+
+    /* ── BULLETS ─────────────────────────────────────────────── */
+    #bullets-card { padding: 20px 24px; display: none; }
+    .bullet {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 9px 0;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      line-height: 1.5;
+    }
+    .bullet:last-child { border-bottom: none; }
+    .bull-arrow { color: var(--muted); flex-shrink: 0; width: 16px; }
+
+    /* ── DATA TABLE ──────────────────────────────────────────── */
+    #table-card { padding: 20px 24px; }
+    .section-label {
+      font-size: 9px;
+      letter-spacing: 4px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th {
+      text-align: left;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    th:last-child { text-align: right; }
+    td {
+      padding: 11px 0;
+      border-bottom: 1px solid rgba(26,26,46,.6);
+      vertical-align: middle;
+    }
+    td:last-child { text-align: right; }
+    .tname { color: var(--text); }
+    .tsub  { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .tval  { color: #7be8b8; font-weight: bold; }
+    .tval-alert { color: var(--red); }
+    .tval-ok    { color: var(--green); }
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 2px;
+      font-size: 9px;
+      letter-spacing: 2px;
+      font-weight: bold;
+    }
+    .badge-alert   { background: rgba(255,51,85,.12);  color: var(--red);    border: 1px solid rgba(255,51,85,.3); }
+    .badge-ok      { background: rgba(0,232,122,.10);  color: var(--green);  border: 1px solid rgba(0,232,122,.25); }
+    .badge-neutral { background: rgba(245,197,24,.08); color: var(--yellow); border: 1px solid rgba(245,197,24,.2); }
+    .badge-info    { background: rgba(68,136,255,.08); color: var(--blue);   border: 1px solid rgba(68,136,255,.2); }
+
+    /* ── CONTROLS ────────────────────────────────────────────── */
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 580px;
+      margin-top: 4px;
+      margin-bottom: 12px;
+    }
+    #timestamp { font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+    #refresh-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 10px;
+      letter-spacing: 3px;
+      padding: 8px 20px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: border-color .2s, color .2s;
+    }
+    #refresh-btn:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
+    #refresh-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    /* ── STATUS / ERRORS ─────────────────────────────────────── */
+    #status-bar { width: 100%; max-width: 580px; min-height: 28px; margin-bottom: 8px; }
+    .loading-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 11px; color: var(--muted); letter-spacing: 1px;
+    }
+    .spinner {
+      width: 12px; height: 12px;
+      border: 1px solid var(--dim);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error-row {
+      font-size: 10px;
+      color: var(--red);
+      background: rgba(255,51,85,.07);
+      border: 1px solid rgba(255,51,85,.25);
+      padding: 8px 14px;
+      border-radius: 2px;
+      letter-spacing: .5px;
+    }
+
+    /* ── FOOTER ──────────────────────────────────────────────── */
+    footer {
+      margin-top: 36px;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    @media (max-width: 420px) {
+      body { padding: 32px 12px; }
+      #signal-card { padding: 36px 16px 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-tag">▶ MAKRO ANALYSE SYSTEM</div>
+  <h1>MAKRO SIGNAL</h1>
+  <div class="subtitle">SKAL JEG KØBE EKSTRA IND I MARKEDET NU?</div>
+</header>
+
+<!-- Signal -->
+<div id="signal-card" class="card">
+  <div class="card-top-bar"></div>
+  <div style="padding:44px 24px 40px;text-align:center">
+    <div class="signal-eyebrow">SIGNAL</div>
+    <div id="signal-value">···</div>
+    <div id="signal-level"></div>
+  </div>
+</div>
+
+<!-- Bullets -->
+<div id="bullets-card" class="card">
+  <div class="card-top-bar"></div>
+  <div id="bullet-inner" style="padding:20px 24px"></div>
+</div>
+
+<!-- Data table -->
+<div id="table-card" class="card">
+  <div class="card-top-bar"></div>
+  <div style="padding:20px 24px">
+    <div class="section-label">▸ Datapunkter</div>
+    <table>
+      <thead>
+        <tr>
+          <th>INDIKATOR</th>
+          <th>SENESTE VÆRDI</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+      <tbody id="data-tbody">
+        <tr>
+          <td colspan="3" style="color:var(--muted);font-size:11px;padding:20px 0 8px">
+            Henter live data…
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <div id="timestamp"></div>
+  <button id="refresh-btn" onclick="refresh()">↻ OPDATER</button>
+</div>
+
+<div id="status-bar"></div>
+
+<footer>
+  MAKRO SIGNAL v1.0 &nbsp;·&nbsp; IKKE FINANSIEL RÅDGIVNING<br>
+  DATA: CNN FEAR &amp; GREED · STOOQ · FRED · YAHOO FINANCE
+</footer>
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   CONFIGURATION
+───────────────────────────────────────────────────────────── */
+const CACHE_KEY = 'makrosignal_v2';
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+/* ─────────────────────────────────────────────────────────────
+   API HELPERS
+───────────────────────────────────────────────────────────── */
+async function apiGet(source) {
+  const res = await fetch(`/api/fetch?source=${source}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.text();
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim() && !l.startsWith('#'));
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  return lines.slice(1).map(line => {
+    const vals = line.split(',');
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (vals[i] || '').trim().replace(/^"|"$/g, ''); });
+    return obj;
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DATA FETCHERS
+───────────────────────────────────────────────────────────── */
+async function fetchFearGreed() {
+  const text = await apiGet('feargreed');
+  const json = JSON.parse(text);
+  const score = parseFloat(json?.fear_and_greed?.score);
+  if (isNaN(score)) throw new Error('F&G: uventet dataformat');
+  return {
+    score,
+    rating: json?.fear_and_greed?.rating || '',
+    previousClose: parseFloat(json?.fear_and_greed?.previous_close || 0)
+  };
+}
+
+async function fetchSPX() {
+  const text = await apiGet('spx');
+  const rows = parseCSV(text);
+  if (!rows.length) throw new Error('SPX: ingen rækker');
+
+  // Use up to last 260 rows ≈ 1 trading year
+  const slice = rows.slice(-260);
+  const closes = slice.map(r => parseFloat(r['Close'])).filter(v => !isNaN(v) && v > 0);
+  if (closes.length < 5) throw new Error('SPX: ikke nok data');
+
+  const current = closes[closes.length - 1];
+  const high52w = Math.max(...closes);
+  const drawdown = ((current - high52w) / high52w) * 100;
+
+  return {
+    current: current.toFixed(2),
+    high52w: high52w.toFixed(2),
+    drawdown: drawdown.toFixed(2),
+    drawdownPct: drawdown,
+    date: slice[slice.length - 1]['Date'] || ''
+  };
+}
+
+async function fetchPMI() {
+  const text = await apiGet('pmi');
+  const rows = parseCSV(text);
+  if (!rows.length) throw new Error('PMI: ingen rækker');
+
+  const valid = rows.filter(r => r['NAPM'] && r['NAPM'] !== '.' && !isNaN(parseFloat(r['NAPM'])));
+  if (!valid.length) throw new Error('PMI: ingen gyldige værdier');
+
+  const last = valid[valid.length - 1];
+  return { value: parseFloat(last['NAPM']), date: last['DATE'] || '' };
+}
+
+async function fetchTreasury() {
+  const text = await apiGet('treasury');
+
+  // Try Yahoo Finance JSON
+  try {
+    const json = JSON.parse(text);
+    const closes = json?.chart?.result?.[0]?.indicators?.quote?.[0]?.close || [];
+    const valid = closes.filter(v => v !== null && !isNaN(v));
+    if (valid.length) {
+      return { value: parseFloat(valid[valid.length - 1]).toFixed(2), source: 'Yahoo Finance' };
+    }
+  } catch (_) { /* fall through to CSV */ }
+
+  // Try FRED CSV (fallback)
+  try {
+    const rows = parseCSV(text);
+    const valueKey = Object.keys(rows[0] || {}).find(k => k !== 'DATE');
+    if (!valueKey) throw new Error('CSV: no value column');
+    const valid = rows.filter(r => r[valueKey] && r[valueKey] !== '.' && !isNaN(parseFloat(r[valueKey])));
+    if (valid.length) {
+      const last = valid[valid.length - 1];
+      return { value: parseFloat(last[valueKey]).toFixed(2), source: 'FRED' };
+    }
+  } catch (_) {}
+
+  throw new Error('Treasury: parse fejl');
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DECISION ENGINE
+───────────────────────────────────────────────────────────── */
+function computeSignal(data) {
+  const { fearGreed, spx, pmi } = data;
+  const fg        = fearGreed?.score;
+  const drawdown  = spx?.drawdownPct;
+  const pmiVal    = pmi?.value;
+
+  // Trigger conditions → JA
+  const tSpx = drawdown !== undefined && drawdown <= -12;
+  const tFg  = fg       !== undefined && fg      <= 35;
+  const tPmi = pmiVal   !== undefined && pmiVal  <  48;
+
+  // All-clear conditions → NEJ
+  const okSpx = drawdown !== undefined && drawdown > -8;
+  const okFg  = fg       !== undefined && fg      > 45;
+  const okPmi = pmiVal   !== undefined && pmiVal  >= 50;
+
+  let signal = 'VENT';
+  if (tSpx || tFg || tPmi) {
+    signal = 'JA';
+  } else if (okSpx && okFg && okPmi) {
+    signal = 'NEJ';
+  }
+
+  // Investment level (only shown on JA)
+  let level = '12,5%';
+  if (drawdown !== undefined && drawdown <= -25) {
+    level = 'STORT OPKØB';
+  } else if ((drawdown !== undefined && drawdown <= -18) || (fg !== undefined && fg <= 25)) {
+    level = '25%';
+  }
+
+  // Bullets (max 3)
+  const bullets = [];
+  if (signal === 'JA') {
+    if (tSpx) bullets.push(`S&P 500 er ${Math.abs(drawdown).toFixed(1)}% under 52-ugers høj — under nedre grænse på −12%`);
+    if (tFg)  bullets.push(`Fear & Greed Index er ${fg.toFixed(0)}/100 (${fearGreed?.rating || ''}) — ekstrem frygt under grænsen 35`);
+    if (tPmi) bullets.push(`ISM Manufacturing PMI er ${pmiVal.toFixed(1)} — under ekspansionsgrænsen 48`);
+  } else if (signal === 'NEJ') {
+    if (drawdown !== undefined) bullets.push(`S&P 500 kun ${Math.abs(drawdown).toFixed(1)}% fra 52-ugers top — ingen væsentlig korrektion`);
+    if (fg      !== undefined) bullets.push(`Fear & Greed Index er ${fg.toFixed(0)}/100 — neutral til grådig stemning`);
+    if (pmiVal  !== undefined) bullets.push(`ISM PMI er ${pmiVal.toFixed(1)} — ekspanderende økonomi`);
+  } else {
+    // VENT
+    if (!tSpx && !okSpx && drawdown !== undefined)
+      bullets.push(`S&P 500 er ${Math.abs(drawdown).toFixed(1)}% under top — i mellemzonen (−8% til −12%)`);
+    if (!tFg && !okFg && fg !== undefined)
+      bullets.push(`Fear & Greed er ${fg.toFixed(0)}/100 — begrænset nervøsitet, ikke ekstremt endnu`);
+    if (!tPmi && !okPmi && pmiVal !== undefined)
+      bullets.push(`ISM PMI er ${pmiVal.toFixed(1)} — tæt på kontraktionsgrænsen 48`);
+    if (!bullets.length)
+      bullets.push('Ingen klare signaler — markedet befinder sig i neutral zone');
+  }
+
+  return { signal, level: signal === 'JA' ? level : '', bullets: bullets.slice(0, 3) };
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RENDERING
+───────────────────────────────────────────────────────────── */
+function renderSignal(result) {
+  const { signal, level, bullets } = result;
+  const card = document.getElementById('signal-card');
+  const val  = document.getElementById('signal-value');
+  const lvl  = document.getElementById('signal-level');
+
+  card.className = `card theme-${signal.toLowerCase()}`;
+  val.textContent = signal;
+  lvl.textContent = level ? `ANDEL: ${level}` : '';
+
+  const bulletCard  = document.getElementById('bullets-card');
+  const bulletInner = document.getElementById('bullet-inner');
+
+  if (bullets.length) {
+    bulletCard.style.display = 'block';
+    bulletInner.innerHTML = bullets.map(b => `
+      <div class="bullet">
+        <span class="bull-arrow">›</span>
+        <span>${b}</span>
+      </div>`).join('');
+  } else {
+    bulletCard.style.display = 'none';
+  }
+}
+
+function badge(text, type) {
+  return `<span class="badge badge-${type}">${text}</span>`;
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('data-tbody');
+  const { fearGreed, spx, pmi, treasury } = data;
+  const rows = [];
+
+  /* S&P 500 */
+  if (spx) {
+    const d = parseFloat(spx.drawdownPct);
+    const valClass = d <= -12 ? 'tval-alert' : d > -8 ? 'tval-ok' : 'tval';
+    const b = d <= -12 ? badge('SIGNAL', 'alert') : d > -8 ? badge('OK', 'ok') : badge('MELLEMZONE', 'neutral');
+    rows.push(`<tr>
+      <td><div class="tname">S&P 500</div><div class="tsub">Fra 52-ugers høj · ${spx.date}</div></td>
+      <td><span class="${valClass}">${d.toFixed(1)}%</span><div class="tsub">${parseFloat(spx.current).toLocaleString('da-DK', {minimumFractionDigits:0})} pt</div></td>
+      <td>${b}</td>
+    </tr>`);
+  } else {
+    rows.push(`<tr><td class="tname">S&P 500</td><td colspan="2" style="color:var(--muted);font-size:11px">Fejl ved hentning</td></tr>`);
+  }
+
+  /* Fear & Greed */
+  if (fearGreed) {
+    const fg = fearGreed.score;
+    const valClass = fg <= 35 ? 'tval-alert' : fg > 45 ? 'tval-ok' : 'tval';
+    const b = fg <= 35 ? badge('SIGNAL', 'alert') : fg > 45 ? badge('OK', 'ok') : badge('MELLEMZONE', 'neutral');
+    rows.push(`<tr>
+      <td><div class="tname">Fear &amp; Greed Index</div><div class="tsub">CNN Markets</div></td>
+      <td><span class="${valClass}">${fg.toFixed(0)} / 100</span><div class="tsub">${fearGreed.rating}</div></td>
+      <td>${b}</td>
+    </tr>`);
+  } else {
+    rows.push(`<tr><td class="tname">Fear &amp; Greed</td><td colspan="2" style="color:var(--muted);font-size:11px">Fejl ved hentning</td></tr>`);
+  }
+
+  /* ISM PMI */
+  if (pmi) {
+    const p = pmi.value;
+    const valClass = p < 48 ? 'tval-alert' : p >= 50 ? 'tval-ok' : 'tval';
+    const b = p < 48 ? badge('SIGNAL', 'alert') : p >= 50 ? badge('OK', 'ok') : badge('MELLEMZONE', 'neutral');
+    rows.push(`<tr>
+      <td><div class="tname">ISM Manufacturing PMI</div><div class="tsub">FRED · ${pmi.date}</div></td>
+      <td><span class="${valClass}">${p.toFixed(1)}</span></td>
+      <td>${b}</td>
+    </tr>`);
+  } else {
+    rows.push(`<tr><td class="tname">ISM PMI</td><td colspan="2" style="color:var(--muted);font-size:11px">Fejl ved hentning</td></tr>`);
+  }
+
+  /* Treasury */
+  if (treasury) {
+    rows.push(`<tr>
+      <td><div class="tname">US 10Y Treasury Rente</div><div class="tsub">${treasury.source}</div></td>
+      <td><span class="tval">${treasury.value}%</span></td>
+      <td>${badge('INFO', 'info')}</td>
+    </tr>`);
+  } else {
+    rows.push(`<tr><td class="tname">US 10Y Rente</td><td colspan="2" style="color:var(--muted);font-size:11px">Fejl ved hentning</td></tr>`);
+  }
+
+  tbody.innerHTML = rows.join('');
+}
+
+function setLoading(on) {
+  const btn = document.getElementById('refresh-btn');
+  const bar = document.getElementById('status-bar');
+  btn.disabled = on;
+  bar.innerHTML = on
+    ? `<div class="loading-row"><div class="spinner"></div>Henter live data fra 4 kilder…</div>`
+    : '';
+}
+
+function setError(msgs) {
+  if (!msgs.length) return;
+  document.getElementById('status-bar').innerHTML =
+    `<div class="error-row">⚠ Datafejl: ${msgs.join(' · ')}</div>`;
+}
+
+function setTimestamp(ts) {
+  const d = new Date(ts);
+  document.getElementById('timestamp').textContent =
+    'Senest opdateret: ' + d.toLocaleDateString('da-DK') + ' ' +
+    d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
+}
+
+/* ─────────────────────────────────────────────────────────────
+   LOAD / REFRESH
+───────────────────────────────────────────────────────────── */
+async function loadData(force = false) {
+  // Cache check
+  if (!force) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+      if (cached && (Date.now() - cached.ts) < CACHE_TTL) {
+        const result = computeSignal(cached.data);
+        renderSignal(result);
+        renderTable(cached.data);
+        setTimestamp(cached.ts);
+        return;
+      }
+    } catch (_) {}
+  }
+
+  setLoading(true);
+
+  const settled = await Promise.allSettled([
+    fetchFearGreed(),
+    fetchSPX(),
+    fetchPMI(),
+    fetchTreasury()
+  ]);
+
+  const [fg, spx, pmi, tsy] = settled;
+  const errors = [];
+  const data   = {};
+
+  if (fg.status  === 'fulfilled') data.fearGreed = fg.value;  else errors.push('Fear & Greed');
+  if (spx.status === 'fulfilled') data.spx       = spx.value; else errors.push('S&P 500');
+  if (pmi.status === 'fulfilled') data.pmi       = pmi.value; else errors.push('ISM PMI');
+  if (tsy.status === 'fulfilled') data.treasury  = tsy.value; else errors.push('10Y Rente');
+
+  // Cache result
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); } catch (_) {}
+
+  const result = computeSignal(data);
+  renderSignal(result);
+  renderTable(data);
+  setTimestamp(Date.now());
+  setLoading(false);
+  if (errors.length) setError(errors);
+}
+
+function refresh() { loadData(true); }
+
+// Boot
+loadData();
+</script>
+</body>
+</html>
