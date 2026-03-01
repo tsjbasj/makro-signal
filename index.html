@@ -389,34 +389,32 @@ async function fetchSP500() {
 }
 
 async function fetchISM() {
-  // Try FRED direct data file first (more reliable), then CSV endpoint
-  let text;
+  // Returns null if unavailable — app continues without ISM
   try {
     const res = await proxyFetch('https://fred.stlouisfed.org/data/NAPM.txt');
-    text = await res.text();
-    if (!text || text.includes('404') || text.trim().length < 50) throw new Error('Tom fil');
-  } catch (_) {
-    const res = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=NAPM');
-    text = await res.text();
-  }
-
-  // Parse both formats: "DATE VALUE" (txt) and "DATE,VALUE" (csv)
-  const rows = text.trim().split('\n').filter(r => {
-    const t = r.trim();
-    return t && !t.startsWith('DATE') && !t.startsWith('vintage') && /^\d{4}/.test(t);
-  });
-
-  if (rows.length === 0) throw new Error('Ingen ISM data');
-
-  // Find last row with a valid value (skip dots/missing)
-  for (let i = rows.length - 1; i >= 0; i--) {
-    const parts = rows[i].trim().split(/[\s,]+/);
-    const val = parseFloat(parts[1]);
-    if (!isNaN(val) && val > 0) {
-      return { value: val, date: parts[0] };
+    const text = await res.text();
+    const rows = text.trim().split('\n').filter(r => {
+      const t = r.trim();
+      return t && !t.startsWith('DATE') && !t.startsWith('vintage') && /^\d{4}/.test(t);
+    });
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const parts = rows[i].trim().split(/[\s,]+/);
+      const val = parseFloat(parts[1]);
+      if (!isNaN(val) && val > 0) return { value: val, date: parts[0] };
     }
-  }
-  throw new Error('Ingen gyldig ISM værdi fundet');
+  } catch (_) {}
+
+  try {
+    const res = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=NAPM');
+    const text = await res.text();
+    const rows = text.trim().split('\n').filter(r => r && !r.startsWith('DATE'));
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const val = parseFloat(rows[i].split(',')[1]);
+      if (!isNaN(val) && val > 0) return { value: val, date: rows[i].split(',')[0] };
+    }
+  } catch (_) {}
+
+  return null; // FRED utilgængelig — vises som N/A
 }
 
 async function fetchYield() {
@@ -429,32 +427,34 @@ async function fetchYield() {
     const val = closes.filter(v => v != null).pop();
     if (!val) throw new Error('Ingen yield data');
     return parseFloat(val.toFixed(3));
-  } catch (e) {
-    // Fallback: FRED DGS10
-    const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10');
+  } catch (_) {}
+  // Fallback: FRED DGS10
+  try {
+    const res  = await proxyFetch('https://fred.stlouisfed.org/data/DGS10.txt');
     const text = await res.text();
-    const rows = text.trim().split('\n').filter(r => r && !r.startsWith('DATE'));
+    const rows = text.trim().split('\n').filter(r => /^\d{4}/.test(r.trim()));
     for (let i = rows.length - 1; i >= 0; i--) {
-      const val = parseFloat(rows[i].split(',')[1]);
+      const val = parseFloat(rows[i].trim().split(/[\s,]+/)[1]);
       if (!isNaN(val)) return val;
     }
-    throw new Error('Ingen yield data fra FRED heller');
-  }
+  } catch (_) {}
+  return null; // Yield utilgængelig — vises som N/A
 }
 
 // ── Decision engine ───────────────────────────────────────────────────────
-function computeSignal({ fg, sp, ism, yld }) {
+function computeSignal({ fg, sp, ism }) {
   const spPct = sp.drawdown; // negative
 
+  // ISM may be null if FRED is unavailable — exclude from logic in that case
   const jaConditions = [
     spPct <= -12,
     fg    <= 35,
-    ism   <= 48,
+    ism != null && ism <= 48,
   ];
   const nejConditions = [
     spPct > -8,
     fg    > 45,
-    ism   >= 50,
+    ism == null || ism >= 50, // if unknown, don't block NEJ
   ];
 
   const isJA  = jaConditions.some(Boolean);
@@ -474,7 +474,7 @@ function computeSignal({ fg, sp, ism, yld }) {
     niveau = 'NIVEAU: 12,5%';
   }
 
-  // Bullets (max 3 most important facts)
+  // Bullets (max 3)
   const bullets = [];
   const spStr = spPct.toFixed(1);
 
@@ -498,7 +498,9 @@ function computeSignal({ fg, sp, ism, yld }) {
     bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Neutral/grådighed, ingen trigger`, type: 'ok' });
   }
 
-  if (ism <= 48) {
+  if (ism == null) {
+    bullets.push({ text: `ISM PMI: N/A — FRED utilgængelig, indikator ekskluderet`, type: 'mid' });
+  } else if (ism <= 48) {
     bullets.push({ text: `ISM PMI: ${ism.toFixed(1)} — Kontraktion (≤48, trigger aktiv)`, type: 'warn' });
   } else if (ism < 50) {
     bullets.push({ text: `ISM PMI: ${ism.toFixed(1)} — Svag vækst, under 50`, type: 'mid' });
@@ -563,20 +565,22 @@ function render({ fg, sp, ism, yld }, fromCache, cacheAge) {
     {
       name:    'ISM Manufacturing PMI',
       raw:     ism,
-      display: ism.toFixed(1),
+      display: ism != null ? ism.toFixed(1) : 'N/A',
       threshold: 48,
-      barPct:  Math.min(100, (60 - ism) / 15 * 100),
-      trigger: ism <= 48,
-      warn:    ism <= 45,
+      barPct:  ism != null ? Math.min(100, (60 - ism) / 15 * 100) : 0,
+      trigger: ism != null && ism <= 48,
+      warn:    ism != null && ism <= 45,
+      na:      ism == null,
     },
     {
       name:    'US 10Y Treasury Yield',
       raw:     yld,
-      display: `${yld.toFixed(3)}%`,
-      barPct:  Math.min(100, yld / 6 * 100),
+      display: yld != null ? `${yld.toFixed(3)}%` : 'N/A',
+      barPct:  yld != null ? Math.min(100, yld / 6 * 100) : 0,
       trigger: false,
-      warn:    yld > 5,
+      warn:    yld != null && yld > 5,
       info:    true,
+      na:      yld == null,
     },
   ];
 
@@ -584,9 +588,9 @@ function render({ fg, sp, ism, yld }, fromCache, cacheAge) {
   tbody.innerHTML = '';
   rows.forEach(r => {
     const barClass = r.warn ? 'warn' : r.trigger ? 'mid' : '';
-    const statusClass = r.info ? '' : r.warn ? 'status-warn' : r.trigger ? 'status-mid' : 'status-ok';
-    const statusText  = r.info ? 'INFO' : r.warn ? 'TRIGGER' : r.trigger ? 'TRIGGER' : 'OK';
-    const valClass    = r.warn ? 'status-warn' : r.trigger ? 'status-mid' : '';
+    const statusClass = r.na ? 'status-mid' : r.info ? '' : r.warn ? 'status-warn' : r.trigger ? 'status-mid' : 'status-ok';
+    const statusText  = r.na ? 'N/A' : r.info ? 'INFO' : r.warn ? 'TRIGGER' : r.trigger ? 'TRIGGER' : 'OK';
+    const valClass    = r.na ? 'status-mid' : r.warn ? 'status-warn' : r.trigger ? 'status-mid' : '';
 
     tbody.innerHTML += `
       <tr>
@@ -635,7 +639,7 @@ async function loadData(force = false) {
       fetchYield(),
     ]);
 
-    const data = { fg, sp, ism: ismData.value, yld };
+    const data = { fg, sp, ism: ismData ? ismData.value : null, yld };
     saveCache(data);
     render(data, false, 0);
   } catch (err) {
