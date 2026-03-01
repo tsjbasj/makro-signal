@@ -8,7 +8,9 @@ const ALLOWED = [
   'https://stooq.com/q/d/l/',
   'https://fred.stlouisfed.org/graph/fredgraph.csv',
   'https://fred.stlouisfed.org/data/',
+  'https://api.stlouisfed.org/fred/series/observations',
   'https://query1.finance.yahoo.com/v8/finance/chart/',
+  'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml',
 ];
 
 function isAllowed(url) {

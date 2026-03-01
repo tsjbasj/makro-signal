@@ -428,17 +428,20 @@ async function fetchYield() {
     if (!val) throw new Error('Ingen yield data');
     return parseFloat(val.toFixed(3));
   } catch (_) {}
-  // Fallback: FRED DGS10
+  // Fallback: US Treasury XML API (ingen auth nødvendig)
   try {
-    const res  = await proxyFetch('https://fred.stlouisfed.org/data/DGS10.txt');
-    const text = await res.text();
-    const rows = text.trim().split('\n').filter(r => /^\d{4}/.test(r.trim()));
-    for (let i = rows.length - 1; i >= 0; i--) {
-      const val = parseFloat(rows[i].trim().split(/[\s,]+/)[1]);
+    const now    = new Date();
+    const yyyymm = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const url    = `https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value_month=${yyyymm}`;
+    const res    = await proxyFetch(url);
+    const text   = await res.text();
+    const matches = [...text.matchAll(/<d:BC_10YEAR[^>]*>([0-9.]+)<\/d:BC_10YEAR>/g)];
+    if (matches.length > 0) {
+      const val = parseFloat(matches[matches.length - 1][1]);
       if (!isNaN(val)) return val;
     }
   } catch (_) {}
-  return null; // Yield utilgængelig — vises som N/A
+  return null; // Yield utilgængelig
 }
 
 // ── Decision engine ───────────────────────────────────────────────────────
