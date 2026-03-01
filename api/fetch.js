@@ -1,58 +1,17 @@
-const https = require('https');
+/**
+ * Vercel Serverless Proxy — /api/fetch
+ * Whitelists exactly 4 data sources for Makro Signal.
+ */
 
-const SOURCES = {
-  feargreed: {
-    url: 'https://production.dataviz.cnn.io/index/fearandgreed/graphdata',
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'application/json, text/plain, */*',
-      'Accept-Language': 'en-US,en;q=0.9',
-      'Origin': 'https://www.cnn.com',
-      'Referer': 'https://www.cnn.com/markets/fear-and-greed',
-    }
-  },
-  spx: {
-    url: 'https://stooq.com/q/d/l/?s=%5Espx&i=d',
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      'Accept': 'text/csv, text/plain, */*',
-    }
-  },
-  pmi: {
-    url: 'https://fred.stlouisfed.org/graph/fredgraph.csv?id=NAPM',
-    headers: {
-      'User-Agent': 'Mozilla/5.0',
-      'Accept': 'text/csv, text/plain, */*',
-    }
-  },
-  treasury: {
-    url: 'https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX?interval=1d&range=60d',
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      'Accept': 'application/json',
-    },
-    fallback: {
-      url: 'https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10',
-      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/csv, */*' }
-    }
-  }
-};
+const ALLOWED = [
+  'https://production.dataviz.cnn.io/index/fearandgreed/graphdata',
+  'https://stooq.com/q/d/l/',
+  'https://fred.stlouisfed.org/graph/fredgraph.csv',
+  'https://query1.finance.yahoo.com/v8/finance/chart/',
+];
 
-function fetchUrl(url, headers) {
-  return new Promise((resolve, reject) => {
-    const options = { headers, timeout: 12000 };
-    const req = https.get(url, options, (res) => {
-      // Follow redirects (up to 3)
-      if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location) {
-        return fetchUrl(res.headers.location, headers).then(resolve).catch(reject);
-      }
-      let data = '';
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => resolve({ status: res.statusCode, data, contentType: res.headers['content-type'] || '' }));
-    });
-    req.on('error', reject);
-    req.on('timeout', () => { req.destroy(); reject(new Error('Request timed out')); });
-  });
+function isAllowed(url) {
+  return ALLOWED.some(prefix => url.startsWith(prefix));
 }
 
 module.exports = async (req, res) => {
@@ -65,53 +24,41 @@ module.exports = async (req, res) => {
     return res.status(200).end();
   }
 
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  const { url } = req.query;
+
+  if (!url) {
+    return res.status(400).json({ error: 'Missing url parameter' });
   }
 
-  const source = req.query && req.query.source;
+  let decoded;
+  try {
+    decoded = decodeURIComponent(url);
+  } catch (_) {
+    return res.status(400).json({ error: 'Invalid url encoding' });
+  }
 
-  if (!source || !SOURCES[source]) {
-    return res.status(400).json({
-      error: 'Invalid source',
-      valid: Object.keys(SOURCES)
+  if (!isAllowed(decoded)) {
+    return res.status(403).json({
+      error: 'URL not in whitelist',
+      url: decoded,
     });
   }
 
-  const config = SOURCES[source];
-
   try {
-    const result = await fetchUrl(config.url, config.headers);
+    const upstream = await fetch(decoded, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; MakroSignal/1.0)',
+        Accept: '*/*',
+      },
+    });
 
-    if (result.status === 200) {
-      const isJson = result.data.trim().startsWith('{') || result.data.trim().startsWith('[');
-      res.setHeader('Content-Type', isJson ? 'application/json; charset=utf-8' : 'text/plain; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, s-maxage=1800, max-age=1800');
-      return res.status(200).send(result.data);
-    }
+    const contentType = upstream.headers.get('content-type') || 'application/octet-stream';
+    const body = await upstream.arrayBuffer();
 
-    // Non-200 — try fallback if available
-    if (config.fallback) {
-      const fb = await fetchUrl(config.fallback.url, config.fallback.headers);
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.setHeader('X-Fallback', 'true');
-      return res.status(200).send(fb.data);
-    }
-
-    return res.status(result.status).json({ error: `Upstream returned HTTP ${result.status}` });
-
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=7200');
+    res.status(upstream.status).send(Buffer.from(body));
   } catch (err) {
-    // Network/timeout error — try fallback
-    if (config.fallback) {
-      try {
-        const fb = await fetchUrl(config.fallback.url, config.fallback.headers);
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.setHeader('X-Fallback', 'true');
-        return res.status(200).send(fb.data);
-      } catch (fbErr) {
-        return res.status(502).json({ error: 'Primary and fallback both failed', details: fbErr.message });
-      }
-    }
-    return res.status(502).json({ error: 'Fetch failed', details: err.message });
+    res.status(502).json({ error: 'Upstream fetch failed', detail: err.message });
   }
 };

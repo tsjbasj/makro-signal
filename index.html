@@ -6,625 +6,636 @@
   <title>Makro Signal</title>
   <style>
     :root {
-      --bg:       #08080f;
-      --surface:  #0e0e1a;
-      --border:   #1a1a2e;
-      --text:     #c8c8d8;
-      --muted:    #5a5a7a;
-      --green:    #00e87a;
-      --yellow:   #f5c518;
-      --red:      #ff3355;
-      --blue:     #4488ff;
-      --dim:      #2a2a3e;
+      --bg: #0a0e1a;
+      --panel: #111827;
+      --border: #1e2d45;
+      --accent: #00ff88;
+      --red: #ff4455;
+      --yellow: #ffcc00;
+      --text: #c8d6e8;
+      --muted: #4a6080;
+      --font: 'Courier New', Courier, monospace;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'Courier New', Courier, monospace;
+      font-family: var(--font);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 48px 16px 40px;
+      padding: 24px 16px 48px;
     }
 
-    /* ── HEADER ─────────────────────────────────────────────── */
+    /* Header */
     header {
-      text-align: center;
-      margin-bottom: 44px;
-    }
-    .logo-tag {
-      font-size: 10px;
-      letter-spacing: 5px;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-    h1 {
-      font-size: clamp(24px, 6vw, 36px);
-      letter-spacing: 10px;
-      color: var(--green);
-      text-shadow: 0 0 30px rgba(0,232,122,.35);
-      font-weight: 700;
-    }
-    .subtitle {
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing: 2px;
-      margin-top: 8px;
-    }
-
-    /* ── SIGNAL BOX ─────────────────────────────────────────── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 3px;
       width: 100%;
-      max-width: 580px;
-      margin-bottom: 18px;
-      position: relative;
-    }
-    .card-top-bar {
-      height: 3px;
-      border-radius: 3px 3px 0 0;
-      background: var(--dim);
-      transition: background .4s, box-shadow .4s;
-    }
-
-    #signal-card { padding: 44px 24px 40px; text-align: center; }
-    .signal-eyebrow {
-      font-size: 10px;
-      letter-spacing: 5px;
-      color: var(--muted);
-      margin-bottom: 18px;
-      text-transform: uppercase;
-    }
-    #signal-value {
-      font-size: clamp(64px, 18vw, 96px);
-      font-weight: 700;
-      letter-spacing: 12px;
-      line-height: 1;
-      color: var(--text);
-      transition: color .4s, text-shadow .4s;
-    }
-    #signal-level {
-      font-size: 12px;
-      letter-spacing: 4px;
-      color: var(--muted);
-      margin-top: 16px;
-      min-height: 18px;
-      text-transform: uppercase;
-    }
-
-    /* colour themes */
-    .theme-ja  { --sig: var(--green);  }
-    .theme-nej { --sig: var(--red);    }
-    .theme-vent{ --sig: var(--yellow); }
-
-    .theme-ja  .card-top-bar,
-    .theme-nej .card-top-bar,
-    .theme-vent .card-top-bar { background: var(--sig); box-shadow: 0 0 18px var(--sig); }
-
-    .theme-ja  #signal-value,
-    .theme-nej #signal-value,
-    .theme-vent #signal-value { color: var(--sig); text-shadow: 0 0 50px color-mix(in srgb, var(--sig) 50%, transparent); }
-
-    /* ── BULLETS ─────────────────────────────────────────────── */
-    #bullets-card { padding: 20px 24px; display: none; }
-    .bullet {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      padding: 9px 0;
-      font-size: 13px;
-      border-bottom: 1px solid var(--border);
-      line-height: 1.5;
-    }
-    .bullet:last-child { border-bottom: none; }
-    .bull-arrow { color: var(--muted); flex-shrink: 0; width: 16px; }
-
-    /* ── DATA TABLE ──────────────────────────────────────────── */
-    #table-card { padding: 20px 24px; }
-    .section-label {
-      font-size: 9px;
-      letter-spacing: 4px;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th {
-      text-align: left;
-      font-size: 9px;
-      letter-spacing: 3px;
-      color: var(--muted);
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-    th:last-child { text-align: right; }
-    td {
-      padding: 11px 0;
-      border-bottom: 1px solid rgba(26,26,46,.6);
-      vertical-align: middle;
-    }
-    td:last-child { text-align: right; }
-    .tname { color: var(--text); }
-    .tsub  { font-size: 10px; color: var(--muted); margin-top: 2px; }
-    .tval  { color: #7be8b8; font-weight: bold; }
-    .tval-alert { color: var(--red); }
-    .tval-ok    { color: var(--green); }
-    .badge {
-      display: inline-block;
-      padding: 2px 9px;
-      border-radius: 2px;
-      font-size: 9px;
-      letter-spacing: 2px;
-      font-weight: bold;
-    }
-    .badge-alert   { background: rgba(255,51,85,.12);  color: var(--red);    border: 1px solid rgba(255,51,85,.3); }
-    .badge-ok      { background: rgba(0,232,122,.10);  color: var(--green);  border: 1px solid rgba(0,232,122,.25); }
-    .badge-neutral { background: rgba(245,197,24,.08); color: var(--yellow); border: 1px solid rgba(245,197,24,.2); }
-    .badge-info    { background: rgba(68,136,255,.08); color: var(--blue);   border: 1px solid rgba(68,136,255,.2); }
-
-    /* ── CONTROLS ────────────────────────────────────────────── */
-    .controls {
+      max-width: 780px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      font-size: 1.1rem;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .logo span { color: var(--muted); font-size: 0.75rem; }
+
+    #timestamp {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    /* Main container */
+    main {
       width: 100%;
-      max-width: 580px;
-      margin-top: 4px;
+      max-width: 780px;
+    }
+
+    /* Signal box */
+    #signal-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 36px 28px 28px;
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #signal-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent);
+      transition: background 0.5s;
+    }
+
+    #signal-box.signal-nej::before { background: var(--red); }
+    #signal-box.signal-vent::before { background: var(--yellow); }
+
+    .signal-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: var(--muted);
+      text-transform: uppercase;
       margin-bottom: 12px;
     }
-    #timestamp { font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+
+    #signal-text {
+      font-size: 5.5rem;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      line-height: 1;
+      text-shadow: 0 0 40px currentColor;
+      transition: color 0.4s;
+    }
+
+    .signal-ja   { color: var(--accent) !important; text-shadow: 0 0 40px var(--accent) !important; }
+    .signal-nej  { color: var(--red) !important;    text-shadow: 0 0 40px var(--red) !important; }
+    .signal-vent { color: var(--yellow) !important; text-shadow: 0 0 40px var(--yellow) !important; }
+
+    #niveau-text {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+    }
+
+    #niveau-text.active { color: var(--accent); }
+
+    /* Bullets */
+    #bullets {
+      list-style: none;
+      margin: 24px 0 0;
+      text-align: left;
+    }
+
+    #bullets li {
+      padding: 8px 0 8px 20px;
+      position: relative;
+      font-size: 0.88rem;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+
+    #bullets li:last-child { border-bottom: none; }
+
+    #bullets li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    #bullets li.warn::before { color: var(--red); }
+    #bullets li.caution::before { color: var(--yellow); }
+
+    /* Data table */
+    .section-title {
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin: 28px 0 10px;
+    }
+
+    #data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+    }
+
+    #data-table th {
+      text-align: left;
+      color: var(--muted);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #data-table td {
+      padding: 10px 10px;
+      border-bottom: 1px solid #0f1929;
+      vertical-align: middle;
+    }
+
+    #data-table tr:last-child td { border-bottom: none; }
+
+    .td-name { color: var(--text); }
+
+    .td-value {
+      font-size: 1rem;
+      font-weight: bold;
+      text-align: right;
+    }
+
+    .td-status {
+      text-align: right;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+    }
+
+    .status-ok   { color: var(--accent); }
+    .status-warn { color: var(--red); }
+    .status-mid  { color: var(--yellow); }
+
+    .td-bar { width: 120px; }
+
+    .bar-track {
+      background: var(--border);
+      border-radius: 2px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--accent);
+      transition: width 1s ease;
+    }
+
+    .bar-fill.warn { background: var(--red); }
+    .bar-fill.mid  { background: var(--yellow); }
+
+    /* Footer / refresh */
+    .footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 28px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    #cache-note {
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+
     #refresh-btn {
       background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: inherit;
-      font-size: 10px;
-      letter-spacing: 3px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: var(--font);
+      font-size: 0.78rem;
+      letter-spacing: 0.15em;
       padding: 8px 20px;
       cursor: pointer;
       text-transform: uppercase;
-      transition: border-color .2s, color .2s;
-    }
-    #refresh-btn:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
-    #refresh-btn:disabled { opacity: .35; cursor: not-allowed; }
-
-    /* ── STATUS / ERRORS ─────────────────────────────────────── */
-    #status-bar { width: 100%; max-width: 580px; min-height: 28px; margin-bottom: 8px; }
-    .loading-row {
-      display: flex; align-items: center; gap: 10px;
-      font-size: 11px; color: var(--muted); letter-spacing: 1px;
-    }
-    .spinner {
-      width: 12px; height: 12px;
-      border: 1px solid var(--dim);
-      border-top-color: var(--green);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      flex-shrink: 0;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .error-row {
-      font-size: 10px;
-      color: var(--red);
-      background: rgba(255,51,85,.07);
-      border: 1px solid rgba(255,51,85,.25);
-      padding: 8px 14px;
       border-radius: 2px;
-      letter-spacing: .5px;
+      transition: background 0.2s, color 0.2s;
     }
 
-    /* ── FOOTER ──────────────────────────────────────────────── */
-    footer {
-      margin-top: 36px;
-      font-size: 9px;
-      color: var(--muted);
-      letter-spacing: 2px;
+    #refresh-btn:hover { background: var(--accent); color: var(--bg); }
+    #refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Loading / error */
+    #loader {
       text-align: center;
-      line-height: 1.8;
+      padding: 60px 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
     }
 
-    @media (max-width: 420px) {
-      body { padding: 32px 12px; }
-      #signal-card { padding: 36px 16px 32px; }
+    #loader .dot { animation: blink 1.2s infinite; }
+    #loader .dot:nth-child(2) { animation-delay: 0.4s; }
+    #loader .dot:nth-child(3) { animation-delay: 0.8s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
+    }
+
+    #error-msg {
+      background: #1a0f0f;
+      border: 1px solid #4a1a1a;
+      color: var(--red);
+      padding: 14px 18px;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 540px) {
+      #signal-text { font-size: 4rem; }
+      .td-bar { display: none; }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="logo-tag">▶ MAKRO ANALYSE SYSTEM</div>
-  <h1>MAKRO SIGNAL</h1>
-  <div class="subtitle">SKAL JEG KØBE EKSTRA IND I MARKEDET NU?</div>
+  <div>
+    <div class="logo">Makro Signal <span>// v1.0</span></div>
+  </div>
+  <div id="timestamp">—</div>
 </header>
 
-<!-- Signal -->
-<div id="signal-card" class="card">
-  <div class="card-top-bar"></div>
-  <div style="padding:44px 24px 40px;text-align:center">
-    <div class="signal-eyebrow">SIGNAL</div>
-    <div id="signal-value">···</div>
-    <div id="signal-level"></div>
+<main>
+  <div id="loader">
+    HENTER DATA<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
   </div>
-</div>
 
-<!-- Bullets -->
-<div id="bullets-card" class="card">
-  <div class="card-top-bar"></div>
-  <div id="bullet-inner" style="padding:20px 24px"></div>
-</div>
+  <div id="error-msg"></div>
 
-<!-- Data table -->
-<div id="table-card" class="card">
-  <div class="card-top-bar"></div>
-  <div style="padding:20px 24px">
-    <div class="section-label">▸ Datapunkter</div>
-    <table>
+  <div id="content" class="hidden">
+
+    <div id="signal-box">
+      <div class="signal-label">Køb ekstra ind i markedet nu?</div>
+      <div id="signal-text">—</div>
+      <div id="niveau-text"></div>
+      <ul id="bullets"></ul>
+    </div>
+
+    <div class="section-title">Dataoversigt</div>
+    <table id="data-table">
       <thead>
         <tr>
-          <th>INDIKATOR</th>
-          <th>SENESTE VÆRDI</th>
-          <th>STATUS</th>
+          <th>Indikator</th>
+          <th style="text-align:right">Værdi</th>
+          <th style="text-align:right">Signal</th>
+          <th class="td-bar">Niveau</th>
         </tr>
       </thead>
-      <tbody id="data-tbody">
-        <tr>
-          <td colspan="3" style="color:var(--muted);font-size:11px;padding:20px 0 8px">
-            Henter live data…
-          </td>
-        </tr>
-      </tbody>
+      <tbody id="table-body"></tbody>
     </table>
+
+    <div class="footer-row">
+      <div id="cache-note"></div>
+      <button id="refresh-btn">⟳ Opdater</button>
+    </div>
+
   </div>
-</div>
-
-<!-- Controls -->
-<div class="controls">
-  <div id="timestamp"></div>
-  <button id="refresh-btn" onclick="refresh()">↻ OPDATER</button>
-</div>
-
-<div id="status-bar"></div>
-
-<footer>
-  MAKRO SIGNAL v1.0 &nbsp;·&nbsp; IKKE FINANSIEL RÅDGIVNING<br>
-  DATA: CNN FEAR &amp; GREED · STOOQ · FRED · YAHOO FINANCE
-</footer>
+</main>
 
 <script>
-/* ─────────────────────────────────────────────────────────────
-   CONFIGURATION
-───────────────────────────────────────────────────────────── */
-const CACHE_KEY = 'makrosignal_v2';
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_KEY   = 'makro_signal_data';
+const CACHE_TTL   = 24 * 60 * 60 * 1000; // 24 hours
 
-/* ─────────────────────────────────────────────────────────────
-   API HELPERS
-───────────────────────────────────────────────────────────── */
-async function apiGet(source) {
-  const res = await fetch(`/api/fetch?source=${source}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.text();
+// ── Helpers ──────────────────────────────────────────────────────────────
+function $(id) { return document.getElementById(id); }
+
+function saveCache(data) {
+  localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
 }
 
-function parseCSV(text) {
-  const lines = text.trim().split('\n').filter(l => l.trim() && !l.startsWith('#'));
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  return lines.slice(1).map(line => {
-    const vals = line.split(',');
-    const obj = {};
-    headers.forEach((h, i) => { obj[h] = (vals[i] || '').trim().replace(/^"|"$/g, ''); });
-    return obj;
-  });
-}
-
-/* ─────────────────────────────────────────────────────────────
-   DATA FETCHERS
-───────────────────────────────────────────────────────────── */
-async function fetchFearGreed() {
-  const text = await apiGet('feargreed');
-  const json = JSON.parse(text);
-  const score = parseFloat(json?.fear_and_greed?.score);
-  if (isNaN(score)) throw new Error('F&G: uventet dataformat');
-  return {
-    score,
-    rating: json?.fear_and_greed?.rating || '',
-    previousClose: parseFloat(json?.fear_and_greed?.previous_close || 0)
-  };
-}
-
-async function fetchSPX() {
-  const text = await apiGet('spx');
-  const rows = parseCSV(text);
-  if (!rows.length) throw new Error('SPX: ingen rækker');
-
-  // Use up to last 260 rows ≈ 1 trading year
-  const slice = rows.slice(-260);
-  const closes = slice.map(r => parseFloat(r['Close'])).filter(v => !isNaN(v) && v > 0);
-  if (closes.length < 5) throw new Error('SPX: ikke nok data');
-
-  const current = closes[closes.length - 1];
-  const high52w = Math.max(...closes);
-  const drawdown = ((current - high52w) / high52w) * 100;
-
-  return {
-    current: current.toFixed(2),
-    high52w: high52w.toFixed(2),
-    drawdown: drawdown.toFixed(2),
-    drawdownPct: drawdown,
-    date: slice[slice.length - 1]['Date'] || ''
-  };
-}
-
-async function fetchPMI() {
-  const text = await apiGet('pmi');
-  const rows = parseCSV(text);
-  if (!rows.length) throw new Error('PMI: ingen rækker');
-
-  const valid = rows.filter(r => r['NAPM'] && r['NAPM'] !== '.' && !isNaN(parseFloat(r['NAPM'])));
-  if (!valid.length) throw new Error('PMI: ingen gyldige værdier');
-
-  const last = valid[valid.length - 1];
-  return { value: parseFloat(last['NAPM']), date: last['DATE'] || '' };
-}
-
-async function fetchTreasury() {
-  const text = await apiGet('treasury');
-
-  // Try Yahoo Finance JSON
+function loadCache() {
   try {
-    const json = JSON.parse(text);
-    const closes = json?.chart?.result?.[0]?.indicators?.quote?.[0]?.close || [];
-    const valid = closes.filter(v => v !== null && !isNaN(v));
-    if (valid.length) {
-      return { value: parseFloat(valid[valid.length - 1]).toFixed(2), source: 'Yahoo Finance' };
-    }
-  } catch (_) { /* fall through to CSV */ }
-
-  // Try FRED CSV (fallback)
-  try {
-    const rows = parseCSV(text);
-    const valueKey = Object.keys(rows[0] || {}).find(k => k !== 'DATE');
-    if (!valueKey) throw new Error('CSV: no value column');
-    const valid = rows.filter(r => r[valueKey] && r[valueKey] !== '.' && !isNaN(parseFloat(r[valueKey])));
-    if (valid.length) {
-      const last = valid[valid.length - 1];
-      return { value: parseFloat(last[valueKey]).toFixed(2), source: 'FRED' };
-    }
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { ts, data } = JSON.parse(raw);
+    if (Date.now() - ts < CACHE_TTL) return { data, age: Date.now() - ts };
   } catch (_) {}
-
-  throw new Error('Treasury: parse fejl');
+  return null;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   DECISION ENGINE
-───────────────────────────────────────────────────────────── */
-function computeSignal(data) {
-  const { fearGreed, spx, pmi } = data;
-  const fg        = fearGreed?.score;
-  const drawdown  = spx?.drawdownPct;
-  const pmiVal    = pmi?.value;
+function fmtAge(ms) {
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  if (h > 0) return `Cache: ${h}t ${m}m gammel`;
+  return `Cache: ${m}m gammel`;
+}
 
-  // Trigger conditions → JA
-  const tSpx = drawdown !== undefined && drawdown <= -12;
-  const tFg  = fg       !== undefined && fg      <= 35;
-  const tPmi = pmiVal   !== undefined && pmiVal  <  48;
+// ── Fetch via proxy ───────────────────────────────────────────────────────
+async function proxyFetch(url) {
+  const res = await fetch(`/api/fetch?url=${encodeURIComponent(url)}`);
+  if (!res.ok) throw new Error(`Proxy fejl ${res.status} for ${url}`);
+  return res;
+}
 
-  // All-clear conditions → NEJ
-  const okSpx = drawdown !== undefined && drawdown > -8;
-  const okFg  = fg       !== undefined && fg      > 45;
-  const okPmi = pmiVal   !== undefined && pmiVal  >= 50;
+// ── Data fetchers ─────────────────────────────────────────────────────────
+async function fetchFearGreed() {
+  const res  = await proxyFetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata');
+  const json = await res.json();
+  const score = json?.fear_and_greed?.score;
+  if (score == null) throw new Error('Ingen F&G data');
+  return parseFloat(score);
+}
+
+async function fetchSP500() {
+  const res  = await proxyFetch('https://stooq.com/q/d/l/?s=%5Espx&i=d');
+  const text = await res.text();
+  const rows = text.trim().split('\n').filter(r => r && !r.startsWith('Date'));
+  if (rows.length < 252) throw new Error('For lidt S&P data');
+
+  const prices = rows.map(r => parseFloat(r.split(',')[4])); // Close
+  const latest  = prices[prices.length - 1];
+  // 52-week high = max of last ~252 trading days
+  const high52  = Math.max(...prices.slice(-252));
+  const drawdown = (latest / high52 - 1) * 100; // negative
+  return { latest, high52, drawdown };
+}
+
+async function fetchISM() {
+  const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=NAPM');
+  const text = await res.text();
+  const rows = text.trim().split('\n').filter(r => r && !r.startsWith('DATE'));
+  const last  = rows[rows.length - 1];
+  if (!last) throw new Error('Ingen ISM data');
+  const val = parseFloat(last.split(',')[1]);
+  if (isNaN(val)) throw new Error('Ugyldig ISM værdi');
+  return { value: val, date: last.split(',')[0] };
+}
+
+async function fetchYield() {
+  // Try Yahoo Finance first
+  try {
+    const res  = await proxyFetch('https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX?interval=1d&range=60d');
+    const json = await res.json();
+    const closes = json?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
+    if (!closes || closes.length === 0) throw new Error('Tom Yahoo data');
+    const val = closes.filter(v => v != null).pop();
+    if (!val) throw new Error('Ingen yield data');
+    return parseFloat(val.toFixed(3));
+  } catch (e) {
+    // Fallback: FRED DGS10
+    const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10');
+    const text = await res.text();
+    const rows = text.trim().split('\n').filter(r => r && !r.startsWith('DATE'));
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const val = parseFloat(rows[i].split(',')[1]);
+      if (!isNaN(val)) return val;
+    }
+    throw new Error('Ingen yield data fra FRED heller');
+  }
+}
+
+// ── Decision engine ───────────────────────────────────────────────────────
+function computeSignal({ fg, sp, ism, yld }) {
+  const spPct = sp.drawdown; // negative
+
+  const jaConditions = [
+    spPct <= -12,
+    fg    <= 35,
+    ism   <= 48,
+  ];
+  const nejConditions = [
+    spPct > -8,
+    fg    > 45,
+    ism   >= 50,
+  ];
+
+  const isJA  = jaConditions.some(Boolean);
+  const isNEJ = nejConditions.every(Boolean);
 
   let signal = 'VENT';
-  if (tSpx || tFg || tPmi) {
-    signal = 'JA';
-  } else if (okSpx && okFg && okPmi) {
-    signal = 'NEJ';
+  if (isJA)       signal = 'JA';
+  else if (isNEJ) signal = 'NEJ';
+
+  // Niveau
+  let niveau = '';
+  if (spPct <= -25) {
+    niveau = 'NIVEAU: STORT';
+  } else if (spPct <= -18 || fg <= 25) {
+    niveau = 'NIVEAU: 25%';
+  } else if (isJA) {
+    niveau = 'NIVEAU: 12,5%';
   }
 
-  // Investment level (only shown on JA)
-  let level = '12,5%';
-  if (drawdown !== undefined && drawdown <= -25) {
-    level = 'STORT OPKØB';
-  } else if ((drawdown !== undefined && drawdown <= -18) || (fg !== undefined && fg <= 25)) {
-    level = '25%';
-  }
-
-  // Bullets (max 3)
+  // Bullets (max 3 most important facts)
   const bullets = [];
-  if (signal === 'JA') {
-    if (tSpx) bullets.push(`S&P 500 er ${Math.abs(drawdown).toFixed(1)}% under 52-ugers høj — under nedre grænse på −12%`);
-    if (tFg)  bullets.push(`Fear & Greed Index er ${fg.toFixed(0)}/100 (${fearGreed?.rating || ''}) — ekstrem frygt under grænsen 35`);
-    if (tPmi) bullets.push(`ISM Manufacturing PMI er ${pmiVal.toFixed(1)} — under ekspansionsgrænsen 48`);
-  } else if (signal === 'NEJ') {
-    if (drawdown !== undefined) bullets.push(`S&P 500 kun ${Math.abs(drawdown).toFixed(1)}% fra 52-ugers top — ingen væsentlig korrektion`);
-    if (fg      !== undefined) bullets.push(`Fear & Greed Index er ${fg.toFixed(0)}/100 — neutral til grådig stemning`);
-    if (pmiVal  !== undefined) bullets.push(`ISM PMI er ${pmiVal.toFixed(1)} — ekspanderende økonomi`);
+  const spStr = spPct.toFixed(1);
+
+  if (spPct <= -25) {
+    bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — ekstremt niveau`, type: 'warn' });
+  } else if (spPct <= -18) {
+    bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — stort fald`, type: 'warn' });
+  } else if (spPct <= -12) {
+    bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — over tærskel (−12%)`, type: 'warn' });
   } else {
-    // VENT
-    if (!tSpx && !okSpx && drawdown !== undefined)
-      bullets.push(`S&P 500 er ${Math.abs(drawdown).toFixed(1)}% under top — i mellemzonen (−8% til −12%)`);
-    if (!tFg && !okFg && fg !== undefined)
-      bullets.push(`Fear & Greed er ${fg.toFixed(0)}/100 — begrænset nervøsitet, ikke ekstremt endnu`);
-    if (!tPmi && !okPmi && pmiVal !== undefined)
-      bullets.push(`ISM PMI er ${pmiVal.toFixed(1)} — tæt på kontraktionsgrænsen 48`);
-    if (!bullets.length)
-      bullets.push('Ingen klare signaler — markedet befinder sig i neutral zone');
+    bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — under tærskel`, type: 'ok' });
   }
 
-  return { signal, level: signal === 'JA' ? level : '', bullets: bullets.slice(0, 3) };
-}
-
-/* ─────────────────────────────────────────────────────────────
-   RENDERING
-───────────────────────────────────────────────────────────── */
-function renderSignal(result) {
-  const { signal, level, bullets } = result;
-  const card = document.getElementById('signal-card');
-  const val  = document.getElementById('signal-value');
-  const lvl  = document.getElementById('signal-level');
-
-  card.className = `card theme-${signal.toLowerCase()}`;
-  val.textContent = signal;
-  lvl.textContent = level ? `ANDEL: ${level}` : '';
-
-  const bulletCard  = document.getElementById('bullets-card');
-  const bulletInner = document.getElementById('bullet-inner');
-
-  if (bullets.length) {
-    bulletCard.style.display = 'block';
-    bulletInner.innerHTML = bullets.map(b => `
-      <div class="bullet">
-        <span class="bull-arrow">›</span>
-        <span>${b}</span>
-      </div>`).join('');
+  if (fg <= 25) {
+    bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Ekstrem frygt`, type: 'warn' });
+  } else if (fg <= 35) {
+    bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Frygt (≤35, trigger aktiv)`, type: 'warn' });
+  } else if (fg <= 45) {
+    bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Neutral/lav zone`, type: 'mid' });
   } else {
-    bulletCard.style.display = 'none';
-  }
-}
-
-function badge(text, type) {
-  return `<span class="badge badge-${type}">${text}</span>`;
-}
-
-function renderTable(data) {
-  const tbody = document.getElementById('data-tbody');
-  const { fearGreed, spx, pmi, treasury } = data;
-  const rows = [];
-
-  /* S&P 500 */
-  if (spx) {
-    const d = parseFloat(spx.drawdownPct);
-    const valClass = d <= -12 ? 'tval-alert' : d > -8 ? 'tval-ok' : 'tval';
-    const b = d <= -12 ? badge('SIGNAL', 'alert') : d > -8 ? badge('OK', 'ok') : badge('MELLEMZONE', 'neutral');
-    rows.push(`<tr>
-      <td><div class="tname">S&P 500</div><div class="tsub">Fra 52-ugers høj · ${spx.date}</div></td>
-      <td><span class="${valClass}">${d.toFixed(1)}%</span><div class="tsub">${parseFloat(spx.current).toLocaleString('da-DK', {minimumFractionDigits:0})} pt</div></td>
-      <td>${b}</td>
-    </tr>`);
-  } else {
-    rows.push(`<tr><td class="tname">S&P 500</td><td colspan="2" style="color:var(--muted);font-size:11px">Fejl ved hentning</td></tr>`);
+    bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Neutral/grådighed, ingen trigger`, type: 'ok' });
   }
 
-  /* Fear & Greed */
-  if (fearGreed) {
-    const fg = fearGreed.score;
-    const valClass = fg <= 35 ? 'tval-alert' : fg > 45 ? 'tval-ok' : 'tval';
-    const b = fg <= 35 ? badge('SIGNAL', 'alert') : fg > 45 ? badge('OK', 'ok') : badge('MELLEMZONE', 'neutral');
-    rows.push(`<tr>
-      <td><div class="tname">Fear &amp; Greed Index</div><div class="tsub">CNN Markets</div></td>
-      <td><span class="${valClass}">${fg.toFixed(0)} / 100</span><div class="tsub">${fearGreed.rating}</div></td>
-      <td>${b}</td>
-    </tr>`);
+  if (ism <= 48) {
+    bullets.push({ text: `ISM PMI: ${ism.toFixed(1)} — Kontraktion (≤48, trigger aktiv)`, type: 'warn' });
+  } else if (ism < 50) {
+    bullets.push({ text: `ISM PMI: ${ism.toFixed(1)} — Svag vækst, under 50`, type: 'mid' });
   } else {
-    rows.push(`<tr><td class="tname">Fear &amp; Greed</td><td colspan="2" style="color:var(--muted);font-size:11px">Fejl ved hentning</td></tr>`);
+    bullets.push({ text: `ISM PMI: ${ism.toFixed(1)} — Ekspansion, ingen trigger`, type: 'ok' });
   }
 
-  /* ISM PMI */
-  if (pmi) {
-    const p = pmi.value;
-    const valClass = p < 48 ? 'tval-alert' : p >= 50 ? 'tval-ok' : 'tval';
-    const b = p < 48 ? badge('SIGNAL', 'alert') : p >= 50 ? badge('OK', 'ok') : badge('MELLEMZONE', 'neutral');
-    rows.push(`<tr>
-      <td><div class="tname">ISM Manufacturing PMI</div><div class="tsub">FRED · ${pmi.date}</div></td>
-      <td><span class="${valClass}">${p.toFixed(1)}</span></td>
-      <td>${b}</td>
-    </tr>`);
+  return { signal, niveau, bullets };
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function render({ fg, sp, ism, yld }, fromCache, cacheAge) {
+  const { signal, niveau, bullets } = computeSignal({ fg, sp, ism });
+
+  // Signal
+  const sigEl = $('signal-text');
+  sigEl.textContent = signal;
+  sigEl.className   = `signal-${signal.toLowerCase()}`;
+
+  const box = $('signal-box');
+  box.className = `signal-${signal.toLowerCase()}`;
+
+  const niv = $('niveau-text');
+  if (niveau) {
+    niv.textContent = niveau;
+    niv.className   = 'active';
   } else {
-    rows.push(`<tr><td class="tname">ISM PMI</td><td colspan="2" style="color:var(--muted);font-size:11px">Fejl ved hentning</td></tr>`);
+    niv.textContent = '';
+    niv.className   = '';
   }
 
-  /* Treasury */
-  if (treasury) {
-    rows.push(`<tr>
-      <td><div class="tname">US 10Y Treasury Rente</div><div class="tsub">${treasury.source}</div></td>
-      <td><span class="tval">${treasury.value}%</span></td>
-      <td>${badge('INFO', 'info')}</td>
-    </tr>`);
-  } else {
-    rows.push(`<tr><td class="tname">US 10Y Rente</td><td colspan="2" style="color:var(--muted);font-size:11px">Fejl ved hentning</td></tr>`);
-  }
+  // Bullets
+  const bul = $('bullets');
+  bul.innerHTML = '';
+  bullets.forEach(b => {
+    const li = document.createElement('li');
+    li.textContent = b.text;
+    li.className   = b.type === 'warn' ? 'warn' : b.type === 'mid' ? 'caution' : '';
+    bul.appendChild(li);
+  });
 
-  tbody.innerHTML = rows.join('');
+  // Table rows
+  const rows = [
+    {
+      name:    'S&P 500 drawdown (52-ugers high)',
+      raw:     sp.drawdown,
+      display: `${sp.drawdown.toFixed(1)}%`,
+      threshold: -12,
+      barPct:  Math.min(100, Math.abs(sp.drawdown) / 30 * 100),
+      trigger: sp.drawdown <= -12,
+      warn:    sp.drawdown <= -18,
+    },
+    {
+      name:    'CNN Fear & Greed Index',
+      raw:     fg,
+      display: `${fg.toFixed(0)} / 100`,
+      threshold: 35,
+      barPct:  Math.min(100, (100 - fg) / 100 * 100),
+      trigger: fg <= 35,
+      warn:    fg <= 25,
+    },
+    {
+      name:    'ISM Manufacturing PMI',
+      raw:     ism,
+      display: ism.toFixed(1),
+      threshold: 48,
+      barPct:  Math.min(100, (60 - ism) / 15 * 100),
+      trigger: ism <= 48,
+      warn:    ism <= 45,
+    },
+    {
+      name:    'US 10Y Treasury Yield',
+      raw:     yld,
+      display: `${yld.toFixed(3)}%`,
+      barPct:  Math.min(100, yld / 6 * 100),
+      trigger: false,
+      warn:    yld > 5,
+      info:    true,
+    },
+  ];
+
+  const tbody = $('table-body');
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const barClass = r.warn ? 'warn' : r.trigger ? 'mid' : '';
+    const statusClass = r.info ? '' : r.warn ? 'status-warn' : r.trigger ? 'status-mid' : 'status-ok';
+    const statusText  = r.info ? 'INFO' : r.warn ? 'TRIGGER' : r.trigger ? 'TRIGGER' : 'OK';
+    const valClass    = r.warn ? 'status-warn' : r.trigger ? 'status-mid' : '';
+
+    tbody.innerHTML += `
+      <tr>
+        <td class="td-name">${r.name}</td>
+        <td class="td-value ${valClass}" style="text-align:right">${r.display}</td>
+        <td class="td-status ${statusClass}">${statusText}</td>
+        <td class="td-bar">
+          <div class="bar-track">
+            <div class="bar-fill ${barClass}" style="width:${Math.max(2, r.barPct)}%"></div>
+          </div>
+        </td>
+      </tr>`;
+  });
+
+  // Timestamp
+  const now = new Date();
+  $('timestamp').innerHTML = `Opdateret: ${now.toLocaleDateString('da-DK')} ${now.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`;
+  $('cache-note').textContent = fromCache ? fmtAge(cacheAge) : 'Live data — cache: 24 timer';
+
+  $('loader').classList.add('hidden');
+  $('content').classList.remove('hidden');
 }
 
-function setLoading(on) {
-  const btn = document.getElementById('refresh-btn');
-  const bar = document.getElementById('status-bar');
-  btn.disabled = on;
-  bar.innerHTML = on
-    ? `<div class="loading-row"><div class="spinner"></div>Henter live data fra 4 kilder…</div>`
-    : '';
-}
-
-function setError(msgs) {
-  if (!msgs.length) return;
-  document.getElementById('status-bar').innerHTML =
-    `<div class="error-row">⚠ Datafejl: ${msgs.join(' · ')}</div>`;
-}
-
-function setTimestamp(ts) {
-  const d = new Date(ts);
-  document.getElementById('timestamp').textContent =
-    'Senest opdateret: ' + d.toLocaleDateString('da-DK') + ' ' +
-    d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
-}
-
-/* ─────────────────────────────────────────────────────────────
-   LOAD / REFRESH
-───────────────────────────────────────────────────────────── */
+// ── Main load ─────────────────────────────────────────────────────────────
 async function loadData(force = false) {
-  // Cache check
+  $('refresh-btn').disabled = true;
+  $('error-msg').style.display = 'none';
+
   if (!force) {
-    try {
-      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-      if (cached && (Date.now() - cached.ts) < CACHE_TTL) {
-        const result = computeSignal(cached.data);
-        renderSignal(result);
-        renderTable(cached.data);
-        setTimestamp(cached.ts);
-        return;
-      }
-    } catch (_) {}
+    const cached = loadCache();
+    if (cached) {
+      render(cached.data, true, cached.age);
+      $('refresh-btn').disabled = false;
+      return;
+    }
   }
 
-  setLoading(true);
+  $('loader').classList.remove('hidden');
+  $('content').classList.add('hidden');
 
-  const settled = await Promise.allSettled([
-    fetchFearGreed(),
-    fetchSPX(),
-    fetchPMI(),
-    fetchTreasury()
-  ]);
+  try {
+    const [fg, sp, ismData, yld] = await Promise.all([
+      fetchFearGreed(),
+      fetchSP500(),
+      fetchISM(),
+      fetchYield(),
+    ]);
 
-  const [fg, spx, pmi, tsy] = settled;
-  const errors = [];
-  const data   = {};
+    const data = { fg, sp, ism: ismData.value, yld };
+    saveCache(data);
+    render(data, false, 0);
+  } catch (err) {
+    $('loader').classList.add('hidden');
+    const errEl = $('error-msg');
+    errEl.textContent = `Fejl ved datahentning: ${err.message}`;
+    errEl.style.display = 'block';
 
-  if (fg.status  === 'fulfilled') data.fearGreed = fg.value;  else errors.push('Fear & Greed');
-  if (spx.status === 'fulfilled') data.spx       = spx.value; else errors.push('S&P 500');
-  if (pmi.status === 'fulfilled') data.pmi       = pmi.value; else errors.push('ISM PMI');
-  if (tsy.status === 'fulfilled') data.treasury  = tsy.value; else errors.push('10Y Rente');
-
-  // Cache result
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); } catch (_) {}
-
-  const result = computeSignal(data);
-  renderSignal(result);
-  renderTable(data);
-  setTimestamp(Date.now());
-  setLoading(false);
-  if (errors.length) setError(errors);
+    // Try cache anyway
+    const cached = loadCache();
+    if (cached) {
+      render(cached.data, true, cached.age);
+      errEl.textContent += ' (viser gammel cache)';
+    }
+  } finally {
+    $('refresh-btn').disabled = false;
+  }
 }
 
-function refresh() { loadData(true); }
+$('refresh-btn').addEventListener('click', () => loadData(true));
 
 // Boot
 loadData();
