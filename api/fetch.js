@@ -7,6 +7,7 @@ const ALLOWED = [
   'https://production.dataviz.cnn.io/index/fearandgreed/graphdata',
   'https://stooq.com/q/d/l/',
   'https://fred.stlouisfed.org/graph/fredgraph.csv',
+  'https://fred.stlouisfed.org/data/',
   'https://query1.finance.yahoo.com/v8/finance/chart/',
 ];
 
@@ -44,12 +45,21 @@ module.exports = async (req, res) => {
     });
   }
 
+  // Build request headers — add Referer for FRED to avoid 404
+  const upstreamHeaders = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5',
+  };
+
+  if (decoded.includes('fred.stlouisfed.org')) {
+    upstreamHeaders['Referer'] = 'https://fred.stlouisfed.org/';
+  }
+
   try {
     const upstream = await fetch(decoded, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MakroSignal/1.0)',
-        Accept: '*/*',
-      },
+      headers: upstreamHeaders,
+      redirect: 'follow',
     });
 
     const contentType = upstream.headers.get('content-type') || 'application/octet-stream';

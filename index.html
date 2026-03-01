@@ -389,14 +389,34 @@ async function fetchSP500() {
 }
 
 async function fetchISM() {
-  const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=NAPM');
-  const text = await res.text();
-  const rows = text.trim().split('\n').filter(r => r && !r.startsWith('DATE'));
-  const last  = rows[rows.length - 1];
-  if (!last) throw new Error('Ingen ISM data');
-  const val = parseFloat(last.split(',')[1]);
-  if (isNaN(val)) throw new Error('Ugyldig ISM værdi');
-  return { value: val, date: last.split(',')[0] };
+  // Try FRED direct data file first (more reliable), then CSV endpoint
+  let text;
+  try {
+    const res = await proxyFetch('https://fred.stlouisfed.org/data/NAPM.txt');
+    text = await res.text();
+    if (!text || text.includes('404') || text.trim().length < 50) throw new Error('Tom fil');
+  } catch (_) {
+    const res = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=NAPM');
+    text = await res.text();
+  }
+
+  // Parse both formats: "DATE VALUE" (txt) and "DATE,VALUE" (csv)
+  const rows = text.trim().split('\n').filter(r => {
+    const t = r.trim();
+    return t && !t.startsWith('DATE') && !t.startsWith('vintage') && /^\d{4}/.test(t);
+  });
+
+  if (rows.length === 0) throw new Error('Ingen ISM data');
+
+  // Find last row with a valid value (skip dots/missing)
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const parts = rows[i].trim().split(/[\s,]+/);
+    const val = parseFloat(parts[1]);
+    if (!isNaN(val) && val > 0) {
+      return { value: val, date: parts[0] };
+    }
+  }
+  throw new Error('Ingen gyldig ISM værdi fundet');
 }
 
 async function fetchYield() {
