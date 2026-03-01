@@ -408,25 +408,19 @@ async function fetchISM() {
 }
 
 async function fetchYield() {
-  // Stooq 10Y US Treasury (samme kilde som S&P 500 — virker fra Vercel)
+  // FRED DGS10 (10-Year Treasury daglig) — direkte browser-fetch, ingen proxy
+  const FRED_KEY = '38458b1617e021d8e44ef6fa7ac5d36';
   try {
-    const res  = await proxyFetch('https://stooq.com/q/d/l/?s=10ust.b&i=d');
-    const text = await res.text();
-    const rows = text.trim().split('\n').filter(r => r && !r.startsWith('Date'));
-    if (rows.length > 0) {
-      const closes = rows.map(r => parseFloat(r.split(',')[4]));
-      const val    = closes.filter(v => !isNaN(v) && v > 0).pop();
-      if (val) return parseFloat(val.toFixed(3));
-    }
-  } catch (_) {}
-  // Fallback: Yahoo Finance
-  try {
-    const res  = await proxyFetch('https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX?interval=1d&range=60d');
+    const url  = `https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&file_type=json&sort_order=desc&limit=10&api_key=${FRED_KEY}`;
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error(`FRED ${res.status}`);
     const json = await res.json();
-    const closes = json?.chart?.result?.[0]?.indicators?.quote?.[0]?.close;
-    if (closes && closes.length > 0) {
-      const val = closes.filter(v => v != null).pop();
-      if (val) return parseFloat(val.toFixed(3));
+    const obs  = json?.observations;
+    if (obs && obs.length > 0) {
+      for (const o of obs) {
+        const val = parseFloat(o.value);
+        if (!isNaN(val) && val > 0) return parseFloat(val.toFixed(3));
+      }
     }
   } catch (_) {}
   return null;
