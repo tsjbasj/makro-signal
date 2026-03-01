@@ -16,9 +16,7 @@
       --muted: #4a6080;
       --font: 'Courier New', Courier, monospace;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       background: var(--bg);
       color: var(--text);
@@ -29,8 +27,6 @@
       align-items: center;
       padding: 24px 16px 48px;
     }
-
-    /* Header */
     header {
       width: 100%;
       max-width: 780px;
@@ -41,27 +37,10 @@
       padding-bottom: 14px;
       margin-bottom: 32px;
     }
-
-    .logo {
-      font-size: 1.1rem;
-      letter-spacing: 0.2em;
-      color: var(--accent);
-      text-transform: uppercase;
-    }
-
+    .logo { font-size: 1.1rem; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; }
     .logo span { color: var(--muted); font-size: 0.75rem; }
-
-    #timestamp {
-      font-size: 0.72rem;
-      color: var(--muted);
-      text-align: right;
-    }
-
-    /* Main container */
-    main {
-      width: 100%;
-      max-width: 780px;
-    }
+    #timestamp { font-size: 0.72rem; color: var(--muted); text-align: right; }
+    main { width: 100%; max-width: 780px; }
 
     /* Signal box */
     #signal-box {
@@ -72,9 +51,7 @@
       text-align: center;
       margin-bottom: 20px;
       position: relative;
-      overflow: hidden;
     }
-
     #signal-box::before {
       content: '';
       position: absolute;
@@ -83,225 +60,103 @@
       background: var(--accent);
       transition: background 0.5s;
     }
+    #signal-box.sig-nej::before { background: var(--red); }
+    #signal-box.sig-vent::before { background: var(--yellow); }
 
-    #signal-box.signal-nej::before { background: var(--red); }
-    #signal-box.signal-vent::before { background: var(--yellow); }
-
-    .signal-label {
-      font-size: 0.7rem;
-      letter-spacing: 0.25em;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-
+    .signal-label { font-size: 0.7rem; letter-spacing: 0.25em; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
     #signal-text {
-      font-size: 5.5rem;
-      font-weight: 900;
-      letter-spacing: 0.05em;
-      color: var(--accent);
-      line-height: 1;
-      text-shadow: 0 0 40px currentColor;
-      transition: color 0.4s;
+      font-size: 5.5rem; font-weight: 900; letter-spacing: 0.05em;
+      line-height: 1; color: var(--accent);
+      text-shadow: 0 0 40px var(--accent);
+      transition: color 0.4s, text-shadow 0.4s;
     }
+    #signal-text.sig-nej  { color: var(--red);    text-shadow: 0 0 40px var(--red); }
+    #signal-text.sig-vent { color: var(--yellow); text-shadow: 0 0 40px var(--yellow); }
+    #niveau-text { margin-top: 10px; font-size: 0.95rem; color: var(--muted); letter-spacing: 0.12em; }
+    #niveau-text.on { color: var(--accent); }
 
-    .signal-ja   { color: var(--accent) !important; text-shadow: 0 0 40px var(--accent) !important; }
-    .signal-nej  { color: var(--red) !important;    text-shadow: 0 0 40px var(--red) !important; }
-    .signal-vent { color: var(--yellow) !important; text-shadow: 0 0 40px var(--yellow) !important; }
-
-    #niveau-text {
-      margin-top: 10px;
-      font-size: 0.95rem;
-      color: var(--muted);
-      letter-spacing: 0.12em;
-    }
-
-    #niveau-text.active { color: var(--accent); }
-
-    /* Bullets */
-    #bullets {
-      list-style: none;
-      margin: 24px 0 0;
-      text-align: left;
-    }
-
-    #bullets li {
-      padding: 8px 0 8px 20px;
-      position: relative;
-      font-size: 0.88rem;
-      color: var(--text);
-      border-bottom: 1px solid var(--border);
-    }
-
+    #bullets { list-style: none; margin: 24px 0 0; text-align: left; }
+    #bullets li { padding: 8px 0 8px 20px; position: relative; font-size: 0.88rem; border-bottom: 1px solid var(--border); }
     #bullets li:last-child { border-bottom: none; }
-
-    #bullets li::before {
-      content: '▸';
-      position: absolute;
-      left: 0;
-      color: var(--accent);
-    }
-
+    #bullets li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); }
     #bullets li.warn::before { color: var(--red); }
-    #bullets li.caution::before { color: var(--yellow); }
+    #bullets li.mid::before  { color: var(--yellow); }
 
-    /* Data table */
-    .section-title {
-      font-size: 0.65rem;
-      letter-spacing: 0.3em;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin: 28px 0 10px;
-    }
-
-    #data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.83rem;
-    }
-
-    #data-table th {
-      text-align: left;
-      color: var(--muted);
-      font-size: 0.65rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    #data-table td {
-      padding: 10px 10px;
-      border-bottom: 1px solid #0f1929;
-      vertical-align: middle;
-    }
-
+    /* Table */
+    .section-title { font-size: 0.65rem; letter-spacing: 0.3em; color: var(--muted); text-transform: uppercase; margin: 28px 0 10px; }
+    #data-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    #data-table th { text-align: left; color: var(--muted); font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    #data-table td { padding: 10px; border-bottom: 1px solid #0f1929; vertical-align: middle; }
     #data-table tr:last-child td { border-bottom: none; }
-
-    .td-name { color: var(--text); }
-
-    .td-value {
-      font-size: 1rem;
-      font-weight: bold;
-      text-align: right;
-    }
-
-    .td-status {
-      text-align: right;
-      font-size: 0.75rem;
-      letter-spacing: 0.1em;
-    }
-
-    .status-ok   { color: var(--accent); }
-    .status-warn { color: var(--red); }
-    .status-mid  { color: var(--yellow); }
-
+    .td-val { font-size: 1rem; font-weight: bold; text-align: right; }
+    .td-sig { text-align: right; font-size: 0.75rem; letter-spacing: 0.1em; }
     .td-bar { width: 120px; }
-
-    .bar-track {
-      background: var(--border);
-      border-radius: 2px;
-      height: 6px;
-      overflow: hidden;
-    }
-
-    .bar-fill {
-      height: 100%;
-      border-radius: 2px;
-      background: var(--accent);
-      transition: width 1s ease;
-    }
-
+    .bar-track { background: var(--border); border-radius: 2px; height: 6px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 1s ease; }
     .bar-fill.warn { background: var(--red); }
     .bar-fill.mid  { background: var(--yellow); }
+    .c-ok   { color: var(--accent); }
+    .c-warn { color: var(--red); }
+    .c-mid  { color: var(--yellow); }
+    .c-muted{ color: var(--muted); }
 
-    /* Footer / refresh */
-    .footer-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 28px;
-      flex-wrap: wrap;
-      gap: 12px;
+    /* ISM manual input */
+    .ism-edit-btn {
+      background: none; border: 1px dashed var(--muted); color: var(--muted);
+      font-family: var(--font); font-size: 0.7rem; padding: 2px 8px;
+      cursor: pointer; border-radius: 2px; margin-left: 8px;
+      letter-spacing: 0.1em;
+      transition: border-color 0.2s, color 0.2s;
     }
-
-    #cache-note {
-      font-size: 0.68rem;
-      color: var(--muted);
+    .ism-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+    #ism-input-row { margin-top: 10px; padding: 12px 10px; background: #0d1520; border: 1px solid var(--border); border-radius: 3px; display: none; }
+    #ism-input-row label { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.1em; display: block; margin-bottom: 6px; }
+    #ism-input-row input {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text);
+      font-family: var(--font); font-size: 0.9rem; padding: 6px 10px;
+      width: 100px; border-radius: 2px;
     }
+    #ism-input-row button {
+      background: var(--accent); border: none; color: var(--bg);
+      font-family: var(--font); font-size: 0.75rem; padding: 7px 14px;
+      cursor: pointer; border-radius: 2px; margin-left: 8px;
+      letter-spacing: 0.1em;
+    }
+    #ism-date-note { font-size: 0.65rem; color: var(--muted); margin-top: 6px; }
 
+    /* Footer */
+    .footer-row { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; flex-wrap: wrap; gap: 12px; }
+    #cache-note { font-size: 0.68rem; color: var(--muted); }
     #refresh-btn {
-      background: transparent;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      font-family: var(--font);
-      font-size: 0.78rem;
-      letter-spacing: 0.15em;
-      padding: 8px 20px;
-      cursor: pointer;
-      text-transform: uppercase;
-      border-radius: 2px;
-      transition: background 0.2s, color 0.2s;
+      background: transparent; border: 1px solid var(--accent); color: var(--accent);
+      font-family: var(--font); font-size: 0.78rem; letter-spacing: 0.15em;
+      padding: 8px 20px; cursor: pointer; text-transform: uppercase;
+      border-radius: 2px; transition: background 0.2s, color 0.2s;
     }
-
     #refresh-btn:hover { background: var(--accent); color: var(--bg); }
     #refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* Loading / error */
-    #loader {
-      text-align: center;
-      padding: 60px 0;
-      font-size: 0.85rem;
-      color: var(--muted);
-      letter-spacing: 0.2em;
-    }
-
+    /* Loader */
+    #loader { text-align: center; padding: 60px 0; font-size: 0.85rem; color: var(--muted); letter-spacing: 0.2em; }
     #loader .dot { animation: blink 1.2s infinite; }
     #loader .dot:nth-child(2) { animation-delay: 0.4s; }
     #loader .dot:nth-child(3) { animation-delay: 0.8s; }
-
-    @keyframes blink {
-      0%, 80%, 100% { opacity: 0.2; }
-      40% { opacity: 1; }
-    }
-
-    #error-msg {
-      background: #1a0f0f;
-      border: 1px solid #4a1a1a;
-      color: var(--red);
-      padding: 14px 18px;
-      border-radius: 4px;
-      font-size: 0.82rem;
-      margin-top: 16px;
-      display: none;
-    }
-
+    @keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
     .hidden { display: none !important; }
-
-    @media (max-width: 540px) {
-      #signal-text { font-size: 4rem; }
-      .td-bar { display: none; }
-    }
+    @media (max-width: 540px) { #signal-text { font-size: 4rem; } .td-bar { display: none; } }
   </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <div class="logo">Makro Signal <span>// v1.0</span></div>
-  </div>
+  <div><div class="logo">Makro Signal <span>// v1.1</span></div></div>
   <div id="timestamp">—</div>
 </header>
 
 <main>
-  <div id="loader">
-    HENTER DATA<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
-  </div>
-
-  <div id="error-msg"></div>
+  <div id="loader">HENTER DATA<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
 
   <div id="content" class="hidden">
-
     <div id="signal-box">
       <div class="signal-label">Køb ekstra ind i markedet nu?</div>
       <div id="signal-text">—</div>
@@ -322,46 +177,63 @@
       <tbody id="table-body"></tbody>
     </table>
 
+    <!-- ISM manual input panel -->
+    <div id="ism-input-row">
+      <label>OPDATER ISM MANUFACTURING PMI (fra ism.org / financial news)</label>
+      <div style="display:flex;align-items:center;gap:4px">
+        <input id="ism-val-input" type="number" step="0.1" min="30" max="70" placeholder="f.eks. 49.3" />
+        <button id="ism-save-btn">GEM</button>
+      </div>
+      <div id="ism-date-note"></div>
+    </div>
+
     <div class="footer-row">
       <div id="cache-note"></div>
       <button id="refresh-btn">⟳ Opdater</button>
     </div>
-
   </div>
 </main>
 
 <script>
-const CACHE_KEY   = 'makro_signal_data';
-const CACHE_TTL   = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_KEY   = 'mks_v2_data';
+const ISM_KEY     = 'mks_ism_manual';
+const CACHE_TTL   = 24 * 60 * 60 * 1000;
+const ISM_TTL     = 35 * 24 * 60 * 60 * 1000; // 35 days
 
-// ── Helpers ──────────────────────────────────────────────────────────────
 function $(id) { return document.getElementById(id); }
 
+// ── Cache ────────────────────────────────────────────────────────────────
 function saveCache(data) {
   localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
 }
-
 function loadCache() {
   try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const { ts, data } = JSON.parse(raw);
-    if (Date.now() - ts < CACHE_TTL) return { data, age: Date.now() - ts };
-  } catch (_) {}
+    const { ts, data } = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null') || {};
+    if (ts && Date.now() - ts < CACHE_TTL) return { data, age: Date.now() - ts };
+  } catch(_) {}
+  return null;
+}
+function fmtAge(ms) {
+  const h = Math.floor(ms/3600000), m = Math.floor((ms%3600000)/60000);
+  return h > 0 ? `Cache: ${h}t ${m}m gammel` : `Cache: ${m}m gammel`;
+}
+
+// ── ISM manual store ──────────────────────────────────────────────────────
+function saveISM(val) {
+  localStorage.setItem(ISM_KEY, JSON.stringify({ val, ts: Date.now() }));
+}
+function loadISM() {
+  try {
+    const { val, ts } = JSON.parse(localStorage.getItem(ISM_KEY) || 'null') || {};
+    if (val && ts && Date.now() - ts < ISM_TTL) return { val: parseFloat(val), ts };
+  } catch(_) {}
   return null;
 }
 
-function fmtAge(ms) {
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  if (h > 0) return `Cache: ${h}t ${m}m gammel`;
-  return `Cache: ${m}m gammel`;
-}
-
-// ── Fetch via proxy ───────────────────────────────────────────────────────
+// ── Proxy fetch ───────────────────────────────────────────────────────────
 async function proxyFetch(url) {
   const res = await fetch(`/api/fetch?url=${encodeURIComponent(url)}`);
-  if (!res.ok) throw new Error(`Proxy fejl ${res.status} for ${url}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res;
 }
 
@@ -370,7 +242,7 @@ async function fetchFearGreed() {
   const res  = await proxyFetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata');
   const json = await res.json();
   const score = json?.fear_and_greed?.score;
-  if (score == null) throw new Error('Ingen F&G data');
+  if (score == null) throw new Error('Ingen F&G score');
   return parseFloat(score);
 }
 
@@ -378,236 +250,169 @@ async function fetchSP500() {
   const res  = await proxyFetch('https://stooq.com/q/d/l/?s=%5Espx&i=d');
   const text = await res.text();
   const rows = text.trim().split('\n').filter(r => r && !r.startsWith('Date'));
-  if (rows.length < 252) throw new Error('For lidt S&P data');
-
-  const prices = rows.map(r => parseFloat(r.split(',')[4])); // Close
-  const latest  = prices[prices.length - 1];
-  // 52-week high = max of last ~252 trading days
-  const high52  = Math.max(...prices.slice(-252));
-  const drawdown = (latest / high52 - 1) * 100; // negative
-  return { latest, high52, drawdown };
-}
-
-async function fetchISM() {
-  // Kalder FRED API direkte fra browseren (FRED understøtter CORS)
-  // API-nøgle er i klienten — gratis nøgle, ingen betalingsrisiko
-  const FRED_KEY = '38458b1617e021d8e44ef6fa7ac5d36';
-  try {
-    const url  = `https://api.stlouisfed.org/fred/series/observations?series_id=NAPM&file_type=json&sort_order=desc&limit=60&api_key=${FRED_KEY}`;
-    const res  = await fetch(url); // direkte browser-fetch, ingen proxy
-    if (!res.ok) throw new Error(`FRED ${res.status}`);
-    const json = await res.json();
-    const obs  = json?.observations;
-    if (!obs || obs.length === 0) throw new Error('Ingen obs');
-    for (const o of obs) {
-      const val = parseFloat(o.value);
-      if (!isNaN(val) && val > 0) return { value: val, date: o.date };
-    }
-  } catch (_) {}
-  return null;
-}
-
-async function fetchYield() {
-  // FRED DGS10 (10-Year Treasury daglig) — direkte browser-fetch, ingen proxy
-  const FRED_KEY = '38458b1617e021d8e44ef6fa7ac5d36';
-  try {
-    const url  = `https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&file_type=json&sort_order=desc&limit=10&api_key=${FRED_KEY}`;
-    const res  = await fetch(url);
-    if (!res.ok) throw new Error(`FRED ${res.status}`);
-    const json = await res.json();
-    const obs  = json?.observations;
-    if (obs && obs.length > 0) {
-      for (const o of obs) {
-        const val = parseFloat(o.value);
-        if (!isNaN(val) && val > 0) return parseFloat(val.toFixed(3));
-      }
-    }
-  } catch (_) {}
-  return null;
+  if (rows.length < 100) throw new Error('For lidt S&P data');
+  const closes = rows.map(r => parseFloat(r.split(',')[4]));
+  const latest = closes[closes.length - 1];
+  const high52 = Math.max(...closes.slice(-252));
+  return { latest, high52, drawdown: (latest / high52 - 1) * 100 };
 }
 
 // ── Decision engine ───────────────────────────────────────────────────────
 function computeSignal({ fg, sp, ism }) {
-  const spPct = sp.drawdown; // negative
+  const spPct = sp.drawdown;
+  const ismVal = ism?.val ?? null;
 
-  // ISM may be null if FRED is unavailable — exclude from logic in that case
   const jaConditions = [
     spPct <= -12,
     fg    <= 35,
-    ism != null && ism <= 48,
+    ismVal != null && ismVal <= 48,
   ];
   const nejConditions = [
     spPct > -8,
     fg    > 45,
-    ism == null || ism >= 50, // if unknown, don't block NEJ
+    ismVal == null || ismVal >= 50,
   ];
 
   const isJA  = jaConditions.some(Boolean);
   const isNEJ = nejConditions.every(Boolean);
+  let signal  = isJA ? 'JA' : isNEJ ? 'NEJ' : 'VENT';
 
-  let signal = 'VENT';
-  if (isJA)       signal = 'JA';
-  else if (isNEJ) signal = 'NEJ';
-
-  // Niveau
   let niveau = '';
-  if (spPct <= -25) {
-    niveau = 'NIVEAU: STORT';
-  } else if (spPct <= -18 || fg <= 25) {
-    niveau = 'NIVEAU: 25%';
-  } else if (isJA) {
-    niveau = 'NIVEAU: 12,5%';
-  }
+  if (spPct <= -25)           niveau = 'NIVEAU: STORT';
+  else if (spPct <= -18 || fg <= 25) niveau = 'NIVEAU: 25%';
+  else if (isJA)              niveau = 'NIVEAU: 12,5%';
 
-  // Bullets (max 3)
   const bullets = [];
   const spStr = spPct.toFixed(1);
+  if      (spPct <= -25) bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — ekstremt niveau`, cls: 'warn' });
+  else if (spPct <= -18) bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — stort fald`, cls: 'warn' });
+  else if (spPct <= -12) bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — trigger aktiv (≤−12%)`, cls: 'warn' });
+  else                   bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — under tærskel`, cls: '' });
 
-  if (spPct <= -25) {
-    bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — ekstremt niveau`, type: 'warn' });
-  } else if (spPct <= -18) {
-    bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — stort fald`, type: 'warn' });
-  } else if (spPct <= -12) {
-    bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — over tærskel (−12%)`, type: 'warn' });
-  } else {
-    bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — under tærskel`, type: 'ok' });
-  }
+  if      (fg <= 25) bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Ekstrem frygt`, cls: 'warn' });
+  else if (fg <= 35) bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Frygt, trigger aktiv (≤35)`, cls: 'warn' });
+  else if (fg <= 45) bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Neutral/lav zone`, cls: 'mid' });
+  else               bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Neutral til grådighed`, cls: '' });
 
-  if (fg <= 25) {
-    bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Ekstrem frygt`, type: 'warn' });
-  } else if (fg <= 35) {
-    bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Frygt (≤35, trigger aktiv)`, type: 'warn' });
-  } else if (fg <= 45) {
-    bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Neutral/lav zone`, type: 'mid' });
-  } else {
-    bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Neutral/grådighed, ingen trigger`, type: 'ok' });
-  }
-
-  if (ism == null) {
-    bullets.push({ text: `ISM PMI: N/A — FRED utilgængelig, indikator ekskluderet`, type: 'mid' });
-  } else if (ism <= 48) {
-    bullets.push({ text: `ISM PMI: ${ism.toFixed(1)} — Kontraktion (≤48, trigger aktiv)`, type: 'warn' });
-  } else if (ism < 50) {
-    bullets.push({ text: `ISM PMI: ${ism.toFixed(1)} — Svag vækst, under 50`, type: 'mid' });
-  } else {
-    bullets.push({ text: `ISM PMI: ${ism.toFixed(1)} — Ekspansion, ingen trigger`, type: 'ok' });
-  }
+  if (ismVal == null)        bullets.push({ text: 'ISM PMI: ikke sat — klik "Rediger" for at tilføje manuelt', cls: 'mid' });
+  else if (ismVal <= 48)     bullets.push({ text: `ISM PMI: ${ismVal.toFixed(1)} — Kontraktion, trigger aktiv (≤48)`, cls: 'warn' });
+  else if (ismVal < 50)      bullets.push({ text: `ISM PMI: ${ismVal.toFixed(1)} — Under 50, svag vækst`, cls: 'mid' });
+  else                       bullets.push({ text: `ISM PMI: ${ismVal.toFixed(1)} — Ekspansion`, cls: '' });
 
   return { signal, niveau, bullets };
 }
 
 // ── Render ────────────────────────────────────────────────────────────────
-function render({ fg, sp, ism, yld }, fromCache, cacheAge) {
+function render({ fg, sp, ism }, fromCache, cacheAge) {
   const { signal, niveau, bullets } = computeSignal({ fg, sp, ism });
+  const sigKey = signal.toLowerCase();
 
-  // Signal
   const sigEl = $('signal-text');
   sigEl.textContent = signal;
-  sigEl.className   = `signal-${signal.toLowerCase()}`;
-
-  const box = $('signal-box');
-  box.className = `signal-${signal.toLowerCase()}`;
+  sigEl.className   = `sig-${sigKey}`;
+  $('signal-box').className = `sig-${sigKey}`;
 
   const niv = $('niveau-text');
-  if (niveau) {
-    niv.textContent = niveau;
-    niv.className   = 'active';
-  } else {
-    niv.textContent = '';
-    niv.className   = '';
-  }
+  niv.textContent = niveau;
+  niv.className   = niveau ? 'on' : '';
 
-  // Bullets
   const bul = $('bullets');
   bul.innerHTML = '';
   bullets.forEach(b => {
     const li = document.createElement('li');
     li.textContent = b.text;
-    li.className   = b.type === 'warn' ? 'warn' : b.type === 'mid' ? 'caution' : '';
+    li.className   = b.cls || '';
     bul.appendChild(li);
   });
 
-  // Table rows
+  // Table
+  const ismVal = ism?.val ?? null;
+  const ismAge = ism?.ts ? new Date(ism.ts).toLocaleDateString('da-DK') : null;
+
   const rows = [
     {
-      name:    'S&P 500 drawdown (52-ugers high)',
-      raw:     sp.drawdown,
+      name: 'S&P 500 drawdown (52-ugers high)',
       display: `${sp.drawdown.toFixed(1)}%`,
-      threshold: -12,
-      barPct:  Math.min(100, Math.abs(sp.drawdown) / 30 * 100),
-      trigger: sp.drawdown <= -12,
-      warn:    sp.drawdown <= -18,
+      barPct: Math.min(100, Math.abs(sp.drawdown) / 30 * 100),
+      trigger: sp.drawdown <= -12, warn: sp.drawdown <= -18,
     },
     {
-      name:    'CNN Fear & Greed Index',
-      raw:     fg,
+      name: 'CNN Fear & Greed Index',
       display: `${fg.toFixed(0)} / 100`,
-      threshold: 35,
-      barPct:  Math.min(100, (100 - fg) / 100 * 100),
-      trigger: fg <= 35,
-      warn:    fg <= 25,
+      barPct: Math.min(100, (100 - fg) / 100 * 100),
+      trigger: fg <= 35, warn: fg <= 25,
     },
     {
-      name:    'ISM Manufacturing PMI',
-      raw:     ism,
-      display: ism != null ? ism.toFixed(1) : 'N/A',
-      threshold: 48,
-      barPct:  ism != null ? Math.min(100, (60 - ism) / 15 * 100) : 0,
-      trigger: ism != null && ism <= 48,
-      warn:    ism != null && ism <= 45,
-      na:      ism == null,
-    },
-    {
-      name:    'US 10Y Treasury Yield',
-      raw:     yld,
-      display: yld != null ? `${yld.toFixed(3)}%` : 'N/A',
-      barPct:  yld != null ? Math.min(100, yld / 6 * 100) : 0,
-      trigger: false,
-      warn:    yld != null && yld > 5,
-      info:    true,
-      na:      yld == null,
+      name: 'ISM Manufacturing PMI',
+      display: ismVal != null ? ismVal.toFixed(1) : 'N/A',
+      barPct: ismVal != null ? Math.min(100, Math.max(0, (60 - ismVal) / 15 * 100)) : 0,
+      trigger: ismVal != null && ismVal <= 48,
+      warn:    ismVal != null && ismVal <= 45,
+      manual:  true,
+      note:    ismAge ? `manuelt — ${ismAge}` : 'manuelt — ikke sat',
     },
   ];
 
   const tbody = $('table-body');
   tbody.innerHTML = '';
   rows.forEach(r => {
-    const barClass = r.warn ? 'warn' : r.trigger ? 'mid' : '';
-    const statusClass = r.na ? 'status-mid' : r.info ? '' : r.warn ? 'status-warn' : r.trigger ? 'status-mid' : 'status-ok';
-    const statusText  = r.na ? 'N/A' : r.info ? 'INFO' : r.warn ? 'TRIGGER' : r.trigger ? 'TRIGGER' : 'OK';
-    const valClass    = r.na ? 'status-mid' : r.warn ? 'status-warn' : r.trigger ? 'status-mid' : '';
+    const barCls  = r.warn ? 'warn' : r.trigger ? 'mid' : '';
+    const valCls  = r.warn ? 'c-warn' : r.trigger ? 'c-mid' : '';
+    const sigCls  = r.warn ? 'c-warn td-sig' : r.trigger ? 'c-mid td-sig' : 'c-ok td-sig';
+    const sigTxt  = r.warn ? 'TRIGGER' : r.trigger ? 'TRIGGER' : 'OK';
+    const editBtn = r.manual
+      ? `<button class="ism-edit-btn" onclick="toggleISMInput()">Rediger</button>` : '';
 
     tbody.innerHTML += `
       <tr>
-        <td class="td-name">${r.name}</td>
-        <td class="td-value ${valClass}" style="text-align:right">${r.display}</td>
-        <td class="td-status ${statusClass}">${statusText}</td>
-        <td class="td-bar">
-          <div class="bar-track">
-            <div class="bar-fill ${barClass}" style="width:${Math.max(2, r.barPct)}%"></div>
-          </div>
-        </td>
+        <td>${r.name}${editBtn}</td>
+        <td class="td-val ${valCls}">${r.display}</td>
+        <td class="${sigCls}">${r.manual && ismVal == null ? '<span class="c-muted">N/A</span>' : sigTxt}</td>
+        <td class="td-bar"><div class="bar-track"><div class="bar-fill ${barCls}" style="width:${Math.max(2, r.barPct)}%"></div></div></td>
       </tr>`;
   });
 
-  // Timestamp
+  // Timestamps
   const now = new Date();
-  $('timestamp').innerHTML = `Opdateret: ${now.toLocaleDateString('da-DK')} ${now.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}`;
+  $('timestamp').textContent = `Opdateret: ${now.toLocaleDateString('da-DK')} ${now.toLocaleTimeString('da-DK', {hour:'2-digit',minute:'2-digit'})}`;
   $('cache-note').textContent = fromCache ? fmtAge(cacheAge) : 'Live data — cache: 24 timer';
+
+  // Prefill ISM input
+  if (ismVal != null) $('ism-val-input').value = ismVal;
+  if (ismAge) $('ism-date-note').textContent = `Sidst sat: ${ismAge}`;
 
   $('loader').classList.add('hidden');
   $('content').classList.remove('hidden');
 }
 
+// ── ISM manual input ──────────────────────────────────────────────────────
+window.toggleISMInput = function() {
+  const row = $('ism-input-row');
+  row.style.display = row.style.display === 'block' ? 'none' : 'block';
+};
+
+$('ism-save-btn').addEventListener('click', () => {
+  const raw = parseFloat($('ism-val-input').value);
+  if (isNaN(raw) || raw < 30 || raw > 70) {
+    alert('Indtast en gyldig PMI-værdi (30–70)');
+    return;
+  }
+  saveISM(raw);
+  $('ism-input-row').style.display = 'none';
+  const cached = loadCache();
+  if (cached) render(Object.assign({}, cached.data, { ism: loadISM() }), true, Date.now() - cached.data.ts || 0);
+  loadData(true);
+});
+
 // ── Main load ─────────────────────────────────────────────────────────────
 async function loadData(force = false) {
   $('refresh-btn').disabled = true;
-  $('error-msg').style.display = 'none';
+  const ism = loadISM();
 
   if (!force) {
     const cached = loadCache();
     if (cached) {
-      render(cached.data, true, cached.age);
+      render(Object.assign({}, cached.data, { ism }), true, cached.age);
       $('refresh-btn').disabled = false;
       return;
     }
@@ -617,27 +422,18 @@ async function loadData(force = false) {
   $('content').classList.add('hidden');
 
   try {
-    const [fg, sp, ismData, yld] = await Promise.all([
-      fetchFearGreed(),
-      fetchSP500(),
-      fetchISM(),
-      fetchYield(),
-    ]);
-
-    const data = { fg, sp, ism: ismData ? ismData.value : null, yld };
+    const [fg, sp] = await Promise.all([fetchFearGreed(), fetchSP500()]);
+    const data = { fg, sp };
     saveCache(data);
-    render(data, false, 0);
-  } catch (err) {
+    render(Object.assign({}, data, { ism }), false, 0);
+  } catch(err) {
     $('loader').classList.add('hidden');
-    const errEl = $('error-msg');
-    errEl.textContent = `Fejl ved datahentning: ${err.message}`;
-    errEl.style.display = 'block';
-
-    // Try cache anyway
     const cached = loadCache();
     if (cached) {
-      render(cached.data, true, cached.age);
-      errEl.textContent += ' (viser gammel cache)';
+      render(Object.assign({}, cached.data, { ism }), true, cached.age);
+    } else {
+      $('content').classList.remove('hidden');
+      alert(`Datafejl: ${err.message}`);
     }
   } finally {
     $('refresh-btn').disabled = false;
@@ -645,8 +441,6 @@ async function loadData(force = false) {
 }
 
 $('refresh-btn').addEventListener('click', () => loadData(true));
-
-// Boot
 loadData();
 </script>
 </body>
