@@ -389,31 +389,18 @@ async function fetchSP500() {
 }
 
 async function fetchISM() {
-  // Returns null if unavailable — app continues without ISM
+  // FRED API — nøgle injiceres server-side af proxy
   try {
-    const res = await proxyFetch('https://fred.stlouisfed.org/data/NAPM.txt');
-    const text = await res.text();
-    const rows = text.trim().split('\n').filter(r => {
-      const t = r.trim();
-      return t && !t.startsWith('DATE') && !t.startsWith('vintage') && /^\d{4}/.test(t);
-    });
-    for (let i = rows.length - 1; i >= 0; i--) {
-      const parts = rows[i].trim().split(/[\s,]+/);
-      const val = parseFloat(parts[1]);
-      if (!isNaN(val) && val > 0) return { value: val, date: parts[0] };
+    const url  = 'https://api.stlouisfed.org/fred/series/observations?series_id=NAPM&file_type=json&sort_order=desc&limit=5';
+    const res  = await proxyFetch(url);
+    const json = await res.json();
+    const obs  = json?.observations;
+    if (!obs || obs.length === 0) throw new Error('Ingen observationer');
+    for (const o of obs) {
+      const val = parseFloat(o.value);
+      if (!isNaN(val) && val > 0) return { value: val, date: o.date };
     }
   } catch (_) {}
-
-  try {
-    const res = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=NAPM');
-    const text = await res.text();
-    const rows = text.trim().split('\n').filter(r => r && !r.startsWith('DATE'));
-    for (let i = rows.length - 1; i >= 0; i--) {
-      const val = parseFloat(rows[i].split(',')[1]);
-      if (!isNaN(val) && val > 0) return { value: val, date: rows[i].split(',')[0] };
-    }
-  } catch (_) {}
-
   return null; // FRED utilgængelig — vises som N/A
 }
 

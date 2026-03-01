@@ -1,13 +1,14 @@
 /**
  * Vercel Serverless Proxy — /api/fetch
  * Whitelists exactly 4 data sources for Makro Signal.
+ * FRED API key is injected server-side (never exposed to client).
  */
+
+const FRED_API_KEY = '38458b1617e021d8e44ef6fa7ac5d36';
 
 const ALLOWED = [
   'https://production.dataviz.cnn.io/index/fearandgreed/graphdata',
   'https://stooq.com/q/d/l/',
-  'https://fred.stlouisfed.org/graph/fredgraph.csv',
-  'https://fred.stlouisfed.org/data/',
   'https://api.stlouisfed.org/fred/series/observations',
   'https://query1.finance.yahoo.com/v8/finance/chart/',
   'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml',
@@ -41,22 +42,20 @@ module.exports = async (req, res) => {
   }
 
   if (!isAllowed(decoded)) {
-    return res.status(403).json({
-      error: 'URL not in whitelist',
-      url: decoded,
-    });
+    return res.status(403).json({ error: 'URL not in whitelist', url: decoded });
   }
 
-  // Build request headers — add Referer for FRED to avoid 404
+  // Inject FRED API key server-side for FRED API requests
+  if (decoded.startsWith('https://api.stlouisfed.org/fred/')) {
+    const sep = decoded.includes('?') ? '&' : '?';
+    decoded = `${decoded}${sep}api_key=${FRED_API_KEY}`;
+  }
+
   const upstreamHeaders = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept': 'application/json, text/html, */*',
     'Accept-Language': 'en-US,en;q=0.5',
   };
-
-  if (decoded.includes('fred.stlouisfed.org')) {
-    upstreamHeaders['Referer'] = 'https://fred.stlouisfed.org/';
-  }
 
   try {
     const upstream = await fetch(decoded, {
