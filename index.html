@@ -275,3 +275,206 @@ async function fetchISM() {
     source: 'auto'
   };
 }
+
+// ── Decision engine ───────────────────────────────────────────────────────
+function computeSignal({ fg, sp, ism }) {
+  const spPct = sp.drawdown;
+  const ismVal = ism?.val ?? null;
+
+  const jaConditions = [
+    spPct <= -12,
+    fg    <= 35,
+    ismVal != null && ismVal <= 48,
+  ];
+  const nejConditions = [
+    spPct > -8,
+    fg    > 45,
+    ismVal == null || ismVal >= 50,
+  ];
+
+  const isJA  = jaConditions.some(Boolean);
+  const isNEJ = nejConditions.every(Boolean);
+  let signal  = isJA ? 'JA' : isNEJ ? 'NEJ' : 'VENT';
+
+  let niveau = '';
+  if (spPct <= -25)           niveau = 'NIVEAU: STORT';
+  else if (spPct <= -18 || fg <= 25) niveau = 'NIVEAU: 25%';
+  else if (isJA)              niveau = 'NIVEAU: 12,5%';
+
+  const bullets = [];
+  const spStr = spPct.toFixed(1);
+  if      (spPct <= -25) bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — ekstremt niveau`, cls: 'warn' });
+  else if (spPct <= -18) bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — stort fald`, cls: 'warn' });
+  else if (spPct <= -12) bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — trigger aktiv (≤−12%)`, cls: 'warn' });
+  else                   bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — under tærskel`, cls: '' });
+
+  if      (fg <= 25) bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Ekstrem frygt`, cls: 'warn' });
+  else if (fg <= 35) bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Frygt, trigger aktiv (≤35)`, cls: 'warn' });
+  else if (fg <= 45) bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Neutral/lav zone`, cls: 'mid' });
+  else               bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Neutral til grådighed`, cls: '' });
+
+  if (ismVal == null)        bullets.push({ text: 'ISM PMI: ikke sat — klik "Rediger" for at tilføje manuelt', cls: 'mid' });
+  else if (ismVal <= 48)     bullets.push({ text: `ISM PMI: ${ismVal.toFixed(1)} — Kontraktion, trigger aktiv (≤48)`, cls: 'warn' });
+  else if (ismVal < 50)      bullets.push({ text: `ISM PMI: ${ismVal.toFixed(1)} — Under 50, svag vækst`, cls: 'mid' });
+  else                       bullets.push({ text: `ISM PMI: ${ismVal.toFixed(1)} — Ekspansion`, cls: '' });
+
+  return { signal, niveau, bullets };
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function render({ fg, sp, ism }, fromCache, cacheAge) {
+  const { signal, niveau, bullets } = computeSignal({ fg, sp, ism });
+  const sigKey = signal.toLowerCase();
+
+  const sigEl = $('signal-text');
+  sigEl.textContent = signal;
+  sigEl.className   = `sig-${sigKey}`;
+  $('signal-box').className = `sig-${sigKey}`;
+
+  const niv = $('niveau-text');
+  niv.textContent = niveau;
+  niv.className   = niveau ? 'on' : '';
+
+  const bul = $('bullets');
+  bul.innerHTML = '';
+  bullets.forEach(b => {
+    const li = document.createElement('li');
+    li.textContent = b.text;
+    li.className   = b.cls || '';
+    bul.appendChild(li);
+  });
+
+  // Table
+  const ismVal = ism?.val ?? null;
+  const ismAge = ism?.ts ? new Date(ism.ts).toLocaleDateString('da-DK') : null;
+
+  const rows = [
+    {
+      name: 'S&P 500 drawdown (52-ugers high)',
+      display: `${sp.drawdown.toFixed(1)}%`,
+      barPct: Math.min(100, Math.abs(sp.drawdown) / 30 * 100),
+      trigger: sp.drawdown <= -12, warn: sp.drawdown <= -18,
+    },
+    {
+      name: 'CNN Fear & Greed Index',
+      display: `${fg.toFixed(0)} / 100`,
+      barPct: Math.min(100, (100 - fg) / 100 * 100),
+      trigger: fg <= 35, warn: fg <= 25,
+    },
+    {
+      name: 'ISM Manufacturing PMI',
+      display: ismVal != null ? ismVal.toFixed(1) : 'N/A',
+      barPct: ismVal != null ? Math.min(100, Math.max(0, (60 - ismVal) / 15 * 100)) : 0,
+      trigger: ismVal != null && ismVal <= 48,
+      warn:    ismVal != null && ismVal <= 45,
+      manual:  true,
+      source:  ism?.source || null,
+      note:    ismAge
+        ? `${ism?.source === 'auto' ? 'FRED auto' : 'manuelt'} — ${ismAge}`
+        : 'ikke hentet endnu',
+    },
+  ];
+
+  const tbody = $('table-body');
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const barCls  = r.warn ? 'warn' : r.trigger ? 'mid' : '';
+    const valCls  = r.warn ? 'c-warn' : r.trigger ? 'c-mid' : '';
+    const sigCls  = r.warn ? 'c-warn td-sig' : r.trigger ? 'c-mid td-sig' : 'c-ok td-sig';
+    const sigTxt  = r.warn ? 'TRIGGER' : r.trigger ? 'TRIGGER' : 'OK';
+    const srcBadge = r.manual && r.source === 'auto'
+      ? `<span style="font-size:0.6rem;color:var(--accent);margin-left:6px;letter-spacing:0.08em">FRED</span>` : '';
+    const editBtn = r.manual
+      ? `<button class="ism-edit-btn" onclick="toggleISMInput()">Rediger</button>` : '';
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${r.name}${srcBadge}${editBtn}</td>
+        <td class="td-val ${valCls}">${r.display}</td>
+        <td class="${sigCls}">${r.manual && ismVal == null ? '<span class="c-muted">N/A</span>' : sigTxt}</td>
+        <td class="td-bar"><div class="bar-track"><div class="bar-fill ${barCls}" style="width:${Math.max(2, r.barPct)}%"></div></div></td>
+      </tr>`;
+  });
+
+  // Timestamps
+  const now = new Date();
+  $('timestamp').textContent = `Opdateret: ${now.toLocaleDateString('da-DK')} ${now.toLocaleTimeString('da-DK', {hour:'2-digit',minute:'2-digit'})}`;
+  $('cache-note').textContent = fromCache ? fmtAge(cacheAge) : 'Live data — cache: 24 timer';
+
+  // Prefill ISM input
+  if (ismVal != null) $('ism-val-input').value = ismVal;
+  if (ismAge) $('ism-date-note').textContent = `Sidst sat: ${ismAge}`;
+
+  $('loader').classList.add('hidden');
+  $('content').classList.remove('hidden');
+}
+
+// ── ISM manual input ──────────────────────────────────────────────────────
+window.toggleISMInput = function() {
+  const row = $('ism-input-row');
+  row.style.display = row.style.display === 'block' ? 'none' : 'block';
+};
+
+$('ism-save-btn').addEventListener('click', () => {
+  const raw = parseFloat($('ism-val-input').value);
+  if (isNaN(raw) || raw < 30 || raw > 70) {
+    alert('Indtast en gyldig PMI-værdi (30–70)');
+    return;
+  }
+  saveISM(raw);
+  $('ism-input-row').style.display = 'none';
+  // Genindlæs — FRED auto forsøges igen, ellers bruges det netop gemte manuelle
+  loadData(true);
+});
+
+// ── Main load ─────────────────────────────────────────────────────────────
+async function loadData(force = false) {
+  $('refresh-btn').disabled = true;
+
+  if (!force) {
+    const cached = loadCache();
+    if (cached) {
+      // ISM: brug cachet auto-data, ellers manuelt fallback
+      const ism = cached.data.ismAuto || loadISM();
+      render(Object.assign({}, cached.data, { ism }), true, cached.age);
+      $('refresh-btn').disabled = false;
+      return;
+    }
+  }
+
+  $('loader').classList.remove('hidden');
+  $('content').classList.add('hidden');
+
+  try {
+    // Hent alle tre i parallel — ISM fejler gracefully
+    const [fg, sp, ismAuto] = await Promise.all([
+      fetchFearGreed(),
+      fetchSP500(),
+      fetchISM().catch(e => { console.warn('FRED ISM fejlede:', e.message); return null; }),
+    ]);
+
+    // Prioritet: auto fra FRED > manuelt gemt
+    const ism = ismAuto || loadISM();
+    const data = { fg, sp, ismAuto };
+    saveCache(data);
+    render(Object.assign({}, data, { ism }), false, 0);
+  } catch(err) {
+    $('loader').classList.add('hidden');
+    const cached = loadCache();
+    if (cached) {
+      const ism = cached.data.ismAuto || loadISM();
+      render(Object.assign({}, cached.data, { ism }), true, cached.age);
+    } else {
+      $('content').classList.remove('hidden');
+      alert(`Datafejl: ${err.message}`);
+    }
+  } finally {
+    $('refresh-btn').disabled = false;
+  }
+}
+
+$('refresh-btn').addEventListener('click', () => loadData(true));
+loadData();
+</script>
+</body>
+</html>
