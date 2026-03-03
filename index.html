@@ -4,18 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Makro Signal</title>
-  <!-- v1.2: ISM PMI auto-hentet fra FRED (NAPM series) med manuel fallback -->
+  <!-- v1.3: minimalistisk redesign — ISM PMI auto fra FRED med manuel fallback -->
   <style>
     :root {
-      --bg: #0a0e1a;
-      --panel: #111827;
-      --border: #1e2d45;
-      --accent: #00ff88;
-      --red: #ff4455;
-      --yellow: #ffcc00;
-      --text: #c8d6e8;
-      --muted: #4a6080;
-      --font: 'Courier New', Courier, monospace;
+      --bg:     #0c0c0f;
+      --text:   #d0d4dc;
+      --muted:  #3e4552;
+      --border: #181b22;
+      --green:  #22c55e;
+      --red:    #ef4444;
+      --amber:  #f59e0b;
+      --font:   'Courier New', Courier, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -26,164 +25,255 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px 48px;
+      padding: 44px 24px 88px;
     }
+
+    /* ── Header ── */
     header {
       width: 100%;
-      max-width: 780px;
+      max-width: 620px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 18px;
+      margin-bottom: 88px;
+    }
+    .logo {
+      font-size: 0.72rem;
+      letter-spacing: 0.35em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    #timestamp {
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+
+    main { width: 100%; max-width: 620px; }
+
+    /* ── Signal ── */
+    #signal-area {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+    .signal-question {
+      font-size: 0.62rem;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    #signal-text {
+      font-size: 6.5rem;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      line-height: 1;
+      color: var(--green);
+      transition: color 0.3s;
+    }
+    #signal-text.sig-nej  { color: var(--red); }
+    #signal-text.sig-vent { color: var(--amber); }
+
+    #signal-rule {
+      width: 48px;
+      height: 1px;
+      background: var(--green);
+      margin: 22px auto 0;
+      transition: background 0.3s;
+    }
+    #signal-rule.sig-nej  { background: var(--red); }
+    #signal-rule.sig-vent { background: var(--amber); }
+
+    #niveau-text {
+      margin-top: 16px;
+      font-size: 0.65rem;
+      letter-spacing: 0.22em;
+      color: var(--muted);
+      text-transform: uppercase;
+      min-height: 1em;
+    }
+    #niveau-text.on { color: var(--text); }
+
+    /* ── Metrics ── */
+    #metrics-container {
+      border-top: 1px solid var(--border);
+    }
+    .metric-row {
+      display: grid;
+      grid-template-columns: 1fr 72px 72px;
+      align-items: center;
+      gap: 20px;
+      padding: 17px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .metric-name {
+      font-size: 0.73rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .metric-value {
+      font-size: 0.95rem;
+      font-weight: bold;
+      text-align: right;
+      color: var(--text);
+    }
+    .metric-value.c-warn { color: var(--red); }
+    .metric-value.c-mid  { color: var(--amber); }
+    .metric-value.c-ok   { color: var(--green); }
+    .bar-track {
+      height: 2px;
+      background: var(--border);
+      border-radius: 1px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 1px;
+      transition: width 1s ease;
+    }
+    .bar-fill.warn { background: var(--red); }
+    .bar-fill.mid  { background: var(--amber); }
+
+    .fred-badge {
+      font-size: 0.58rem;
+      color: var(--green);
+      margin-left: 7px;
+      letter-spacing: 0.1em;
+      opacity: 0.7;
+    }
+    .ism-edit-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 0.62rem;
+      cursor: pointer;
+      padding: 0;
+      margin-left: 8px;
+      letter-spacing: 0.08em;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .ism-edit-btn:hover { color: var(--text); }
+
+    /* ── ISM override panel ── */
+    #ism-input-row {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+      display: none;
+    }
+    #ism-input-row label {
+      font-size: 0.62rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      display: block;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    #ism-input-row input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--muted);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      padding: 4px 0;
+      width: 80px;
+      outline: none;
+    }
+    #ism-input-row button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 0.65rem;
+      cursor: pointer;
+      margin-left: 16px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    #ism-input-row button:hover { color: var(--text); }
+    #ism-date-note {
+      font-size: 0.6rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    /* ── Footer ── */
+    .footer-row {
+      margin-top: 32px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 14px;
-      margin-bottom: 32px;
     }
-    .logo { font-size: 1.1rem; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; }
-    .logo span { color: var(--muted); font-size: 0.75rem; }
-    #timestamp { font-size: 0.72rem; color: var(--muted); text-align: right; }
-    main { width: 100%; max-width: 780px; }
-
-    /* Signal box */
-    #signal-box {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 36px 28px 28px;
-      text-align: center;
-      margin-bottom: 20px;
-      position: relative;
+    #cache-note {
+      font-size: 0.62rem;
+      color: var(--muted);
     }
-    #signal-box::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: var(--accent);
-      transition: background 0.5s;
-    }
-    #signal-box.sig-nej::before { background: var(--red); }
-    #signal-box.sig-vent::before { background: var(--yellow); }
-
-    .signal-label { font-size: 0.7rem; letter-spacing: 0.25em; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
-    #signal-text {
-      font-size: 5.5rem; font-weight: 900; letter-spacing: 0.05em;
-      line-height: 1; color: var(--accent);
-      text-shadow: 0 0 40px var(--accent);
-      transition: color 0.4s, text-shadow 0.4s;
-    }
-    #signal-text.sig-nej  { color: var(--red);    text-shadow: 0 0 40px var(--red); }
-    #signal-text.sig-vent { color: var(--yellow); text-shadow: 0 0 40px var(--yellow); }
-    #niveau-text { margin-top: 10px; font-size: 0.95rem; color: var(--muted); letter-spacing: 0.12em; }
-    #niveau-text.on { color: var(--accent); }
-
-    #bullets { list-style: none; margin: 24px 0 0; text-align: left; }
-    #bullets li { padding: 8px 0 8px 20px; position: relative; font-size: 0.88rem; border-bottom: 1px solid var(--border); }
-    #bullets li:last-child { border-bottom: none; }
-    #bullets li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); }
-    #bullets li.warn::before { color: var(--red); }
-    #bullets li.mid::before  { color: var(--yellow); }
-
-    /* Table */
-    .section-title { font-size: 0.65rem; letter-spacing: 0.3em; color: var(--muted); text-transform: uppercase; margin: 28px 0 10px; }
-    #data-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
-    #data-table th { text-align: left; color: var(--muted); font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 8px 10px; border-bottom: 1px solid var(--border); }
-    #data-table td { padding: 10px; border-bottom: 1px solid #0f1929; vertical-align: middle; }
-    #data-table tr:last-child td { border-bottom: none; }
-    .td-val { font-size: 1rem; font-weight: bold; text-align: right; }
-    .td-sig { text-align: right; font-size: 0.75rem; letter-spacing: 0.1em; }
-    .td-bar { width: 120px; }
-    .bar-track { background: var(--border); border-radius: 2px; height: 6px; overflow: hidden; }
-    .bar-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 1s ease; }
-    .bar-fill.warn { background: var(--red); }
-    .bar-fill.mid  { background: var(--yellow); }
-    .c-ok   { color: var(--accent); }
-    .c-warn { color: var(--red); }
-    .c-mid  { color: var(--yellow); }
-    .c-muted{ color: var(--muted); }
-
-    /* ISM manual input */
-    .ism-edit-btn {
-      background: none; border: 1px dashed var(--muted); color: var(--muted);
-      font-family: var(--font); font-size: 0.7rem; padding: 2px 8px;
-      cursor: pointer; border-radius: 2px; margin-left: 8px;
-      letter-spacing: 0.1em;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .ism-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
-    #ism-input-row { margin-top: 10px; padding: 12px 10px; background: #0d1520; border: 1px solid var(--border); border-radius: 3px; display: none; }
-    #ism-input-row label { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.1em; display: block; margin-bottom: 6px; }
-    #ism-input-row input {
-      background: var(--bg); border: 1px solid var(--border); color: var(--text);
-      font-family: var(--font); font-size: 0.9rem; padding: 6px 10px;
-      width: 100px; border-radius: 2px;
-    }
-    #ism-input-row button {
-      background: var(--accent); border: none; color: var(--bg);
-      font-family: var(--font); font-size: 0.75rem; padding: 7px 14px;
-      cursor: pointer; border-radius: 2px; margin-left: 8px;
-      letter-spacing: 0.1em;
-    }
-    #ism-date-note { font-size: 0.65rem; color: var(--muted); margin-top: 6px; }
-
-    /* Footer */
-    .footer-row { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; flex-wrap: wrap; gap: 12px; }
-    #cache-note { font-size: 0.68rem; color: var(--muted); }
     #refresh-btn {
-      background: transparent; border: 1px solid var(--accent); color: var(--accent);
-      font-family: var(--font); font-size: 0.78rem; letter-spacing: 0.15em;
-      padding: 8px 20px; cursor: pointer; text-transform: uppercase;
-      border-radius: 2px; transition: background 0.2s, color 0.2s;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
+      cursor: pointer;
+      text-transform: uppercase;
+      padding: 0;
     }
-    #refresh-btn:hover { background: var(--accent); color: var(--bg); }
-    #refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    #refresh-btn:hover { color: var(--text); }
+    #refresh-btn:disabled { opacity: 0.25; cursor: not-allowed; }
 
-    /* Loader */
-    #loader { text-align: center; padding: 60px 0; font-size: 0.85rem; color: var(--muted); letter-spacing: 0.2em; }
-    #loader .dot { animation: blink 1.2s infinite; }
-    #loader .dot:nth-child(2) { animation-delay: 0.4s; }
-    #loader .dot:nth-child(3) { animation-delay: 0.8s; }
-    @keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+    /* ── Loader ── */
+    #loader {
+      text-align: center;
+      padding: 100px 0;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.35em;
+    }
+    #loader .dot { animation: blink 1.4s infinite; }
+    #loader .dot:nth-child(2) { animation-delay: 0.45s; }
+    #loader .dot:nth-child(3) { animation-delay: 0.9s; }
+    @keyframes blink { 0%,80%,100%{opacity:0.1} 40%{opacity:0.9} }
     .hidden { display: none !important; }
-    @media (max-width: 540px) { #signal-text { font-size: 4rem; } .td-bar { display: none; } }
+
+    @media (max-width: 480px) {
+      #signal-text { font-size: 4.5rem; }
+      header { margin-bottom: 64px; }
+      .metric-row { grid-template-columns: 1fr 64px; }
+      .metric-row .bar-track { display: none; }
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <div><div class="logo">Makro Signal <span>// v1.2</span></div></div>
+  <div class="logo">Makro Signal</div>
   <div id="timestamp">—</div>
 </header>
 
 <main>
-  <div id="loader">HENTER DATA<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+  <div id="loader">HENTER<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
 
   <div id="content" class="hidden">
-    <div id="signal-box">
-      <div class="signal-label">Køb ekstra ind i markedet nu?</div>
+
+    <div id="signal-area">
+      <div class="signal-question">Køb ekstra ind i markedet nu?</div>
       <div id="signal-text">—</div>
+      <div id="signal-rule"></div>
       <div id="niveau-text"></div>
-      <ul id="bullets"></ul>
     </div>
 
-    <div class="section-title">Dataoversigt</div>
-    <table id="data-table">
-      <thead>
-        <tr>
-          <th>Indikator</th>
-          <th style="text-align:right">Værdi</th>
-          <th style="text-align:right">Signal</th>
-          <th class="td-bar">Niveau</th>
-        </tr>
-      </thead>
-      <tbody id="table-body"></tbody>
-    </table>
+    <div id="metrics-container"></div>
 
-    <!-- ISM manual override panel -->
     <div id="ism-input-row">
-      <label>MANUEL OVERRIDE — ISM MANUFACTURING PMI (bruges hvis auto-hentning fejler)</label>
-      <div style="display:flex;align-items:center;gap:4px">
+      <label>Manuel override — ISM Manufacturing PMI</label>
+      <div>
         <input id="ism-val-input" type="number" step="0.1" min="30" max="70" placeholder="f.eks. 49.3" />
-        <button id="ism-save-btn">GEM</button>
+        <button id="ism-save-btn">Gem</button>
       </div>
       <div id="ism-date-note"></div>
     </div>
@@ -192,14 +282,15 @@
       <div id="cache-note"></div>
       <button id="refresh-btn">⟳ Opdater</button>
     </div>
+
   </div>
 </main>
 
 <script>
-const CACHE_KEY   = 'mks_v3_data';   // bumped – ny schema inkl. ismAuto
+const CACHE_KEY   = 'mks_v3_data';
 const ISM_KEY     = 'mks_ism_manual';
 const CACHE_TTL   = 24 * 60 * 60 * 1000;
-const ISM_TTL     = 35 * 24 * 60 * 60 * 1000; // 35 dage
+const ISM_TTL     = 35 * 24 * 60 * 60 * 1000;
 
 function $(id) { return document.getElementById(id); }
 
@@ -259,14 +350,11 @@ async function fetchSP500() {
   return { latest, high52, drawdown: (latest / high52 - 1) * 100 };
 }
 
-// ISM Manufacturing PMI fra FRED (serie: NAPM)
-// FRED API-nøgle injiceres server-side i /api/fetch.js
 async function fetchISM() {
   const url = 'https://api.stlouisfed.org/fred/series/observations' +
     '?series_id=NAPM&file_type=json&sort_order=desc&limit=5';
   const res  = await proxyFetch(url);
   const json = await res.json();
-  // Find seneste observation med en reel værdi (ikke '.')
   const obs = json?.observations?.find(o => o.value && o.value !== '.' && !isNaN(parseFloat(o.value)));
   if (!obs) throw new Error('Ingen NAPM data fra FRED');
   return {
@@ -297,54 +385,30 @@ function computeSignal({ fg, sp, ism }) {
   let signal  = isJA ? 'JA' : isNEJ ? 'NEJ' : 'VENT';
 
   let niveau = '';
-  if (spPct <= -25)           niveau = 'NIVEAU: STORT';
-  else if (spPct <= -18 || fg <= 25) niveau = 'NIVEAU: 25%';
-  else if (isJA)              niveau = 'NIVEAU: 12,5%';
+  if (spPct <= -25)                    niveau = 'Niveau: Stort';
+  else if (spPct <= -18 || fg <= 25)   niveau = 'Niveau: 25%';
+  else if (isJA)                       niveau = 'Niveau: 12,5%';
 
-  const bullets = [];
-  const spStr = spPct.toFixed(1);
-  if      (spPct <= -25) bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — ekstremt niveau`, cls: 'warn' });
-  else if (spPct <= -18) bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — stort fald`, cls: 'warn' });
-  else if (spPct <= -12) bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — trigger aktiv (≤−12%)`, cls: 'warn' });
-  else                   bullets.push({ text: `S&P 500 er ${spStr}% fra 52-ugers high — under tærskel`, cls: '' });
-
-  if      (fg <= 25) bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Ekstrem frygt`, cls: 'warn' });
-  else if (fg <= 35) bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Frygt, trigger aktiv (≤35)`, cls: 'warn' });
-  else if (fg <= 45) bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Neutral/lav zone`, cls: 'mid' });
-  else               bullets.push({ text: `Fear & Greed: ${fg.toFixed(0)} — Neutral til grådighed`, cls: '' });
-
-  if (ismVal == null)        bullets.push({ text: 'ISM PMI: ikke sat — klik "Rediger" for at tilføje manuelt', cls: 'mid' });
-  else if (ismVal <= 48)     bullets.push({ text: `ISM PMI: ${ismVal.toFixed(1)} — Kontraktion, trigger aktiv (≤48)`, cls: 'warn' });
-  else if (ismVal < 50)      bullets.push({ text: `ISM PMI: ${ismVal.toFixed(1)} — Under 50, svag vækst`, cls: 'mid' });
-  else                       bullets.push({ text: `ISM PMI: ${ismVal.toFixed(1)} — Ekspansion`, cls: '' });
-
-  return { signal, niveau, bullets };
+  return { signal, niveau };
 }
 
 // ── Render ────────────────────────────────────────────────────────────────
 function render({ fg, sp, ism }, fromCache, cacheAge) {
-  const { signal, niveau, bullets } = computeSignal({ fg, sp, ism });
+  const { signal, niveau } = computeSignal({ fg, sp, ism });
   const sigKey = signal.toLowerCase();
 
   const sigEl = $('signal-text');
   sigEl.textContent = signal;
   sigEl.className   = `sig-${sigKey}`;
-  $('signal-box').className = `sig-${sigKey}`;
+
+  const rule = $('signal-rule');
+  rule.className = `sig-${sigKey}`;
 
   const niv = $('niveau-text');
   niv.textContent = niveau;
   niv.className   = niveau ? 'on' : '';
 
-  const bul = $('bullets');
-  bul.innerHTML = '';
-  bullets.forEach(b => {
-    const li = document.createElement('li');
-    li.textContent = b.text;
-    li.className   = b.cls || '';
-    bul.appendChild(li);
-  });
-
-  // Table
+  // Metrics
   const ismVal = ism?.val ?? null;
   const ismAge = ism?.ts ? new Date(ism.ts).toLocaleDateString('da-DK') : null;
 
@@ -353,13 +417,15 @@ function render({ fg, sp, ism }, fromCache, cacheAge) {
       name: 'S&P 500 drawdown (52-ugers high)',
       display: `${sp.drawdown.toFixed(1)}%`,
       barPct: Math.min(100, Math.abs(sp.drawdown) / 30 * 100),
-      trigger: sp.drawdown <= -12, warn: sp.drawdown <= -18,
+      trigger: sp.drawdown <= -12,
+      warn:    sp.drawdown <= -18,
     },
     {
       name: 'CNN Fear & Greed Index',
       display: `${fg.toFixed(0)} / 100`,
       barPct: Math.min(100, (100 - fg) / 100 * 100),
-      trigger: fg <= 35, warn: fg <= 25,
+      trigger: fg <= 35,
+      warn:    fg <= 25,
     },
     {
       name: 'ISM Manufacturing PMI',
@@ -369,39 +435,32 @@ function render({ fg, sp, ism }, fromCache, cacheAge) {
       warn:    ismVal != null && ismVal <= 45,
       manual:  true,
       source:  ism?.source || null,
-      note:    ismAge
-        ? `${ism?.source === 'auto' ? 'FRED auto' : 'manuelt'} — ${ismAge}`
-        : 'ikke hentet endnu',
     },
   ];
 
-  const tbody = $('table-body');
-  tbody.innerHTML = '';
+  const container = $('metrics-container');
+  container.innerHTML = '';
   rows.forEach(r => {
-    const barCls  = r.warn ? 'warn' : r.trigger ? 'mid' : '';
-    const valCls  = r.warn ? 'c-warn' : r.trigger ? 'c-mid' : '';
-    const sigCls  = r.warn ? 'c-warn td-sig' : r.trigger ? 'c-mid td-sig' : 'c-ok td-sig';
-    const sigTxt  = r.warn ? 'TRIGGER' : r.trigger ? 'TRIGGER' : 'OK';
-    const srcBadge = r.manual && r.source === 'auto'
-      ? `<span style="font-size:0.6rem;color:var(--accent);margin-left:6px;letter-spacing:0.08em">FRED</span>` : '';
+    const barCls = r.warn ? 'warn' : r.trigger ? 'mid' : '';
+    const valCls = r.warn ? 'c-warn' : r.trigger ? 'c-mid' : '';
+    const fredBadge = r.manual && r.source === 'auto'
+      ? `<span class="fred-badge">FRED</span>` : '';
     const editBtn = r.manual
-      ? `<button class="ism-edit-btn" onclick="toggleISMInput()">Rediger</button>` : '';
+      ? `<button class="ism-edit-btn" onclick="toggleISMInput()">rediger</button>` : '';
 
-    tbody.innerHTML += `
-      <tr>
-        <td>${r.name}${srcBadge}${editBtn}</td>
-        <td class="td-val ${valCls}">${r.display}</td>
-        <td class="${sigCls}">${r.manual && ismVal == null ? '<span class="c-muted">N/A</span>' : sigTxt}</td>
-        <td class="td-bar"><div class="bar-track"><div class="bar-fill ${barCls}" style="width:${Math.max(2, r.barPct)}%"></div></div></td>
-      </tr>`;
+    container.innerHTML += `
+      <div class="metric-row">
+        <div class="metric-name">${r.name}${fredBadge}${editBtn}</div>
+        <div class="metric-value ${valCls}">${r.manual && ismVal == null ? '<span style="color:var(--muted)">N/A</span>' : r.display}</div>
+        <div><div class="bar-track"><div class="bar-fill ${barCls}" style="width:${Math.max(2, r.barPct)}%"></div></div></div>
+      </div>`;
   });
 
   // Timestamps
   const now = new Date();
-  $('timestamp').textContent = `Opdateret: ${now.toLocaleDateString('da-DK')} ${now.toLocaleTimeString('da-DK', {hour:'2-digit',minute:'2-digit'})}`;
-  $('cache-note').textContent = fromCache ? fmtAge(cacheAge) : 'Live data — cache: 24 timer';
+  $('timestamp').textContent = `${now.toLocaleDateString('da-DK')} ${now.toLocaleTimeString('da-DK', {hour:'2-digit',minute:'2-digit'})}`;
+  $('cache-note').textContent = fromCache ? fmtAge(cacheAge) : 'Live data';
 
-  // Prefill ISM input
   if (ismVal != null) $('ism-val-input').value = ismVal;
   if (ismAge) $('ism-date-note').textContent = `Sidst sat: ${ismAge}`;
 
@@ -423,7 +482,6 @@ $('ism-save-btn').addEventListener('click', () => {
   }
   saveISM(raw);
   $('ism-input-row').style.display = 'none';
-  // Genindlæs — FRED auto forsøges igen, ellers bruges det netop gemte manuelle
   loadData(true);
 });
 
@@ -434,7 +492,6 @@ async function loadData(force = false) {
   if (!force) {
     const cached = loadCache();
     if (cached) {
-      // ISM: brug cachet auto-data, ellers manuelt fallback
       const ism = cached.data.ismAuto || loadISM();
       render(Object.assign({}, cached.data, { ism }), true, cached.age);
       $('refresh-btn').disabled = false;
@@ -446,14 +503,12 @@ async function loadData(force = false) {
   $('content').classList.add('hidden');
 
   try {
-    // Hent alle tre i parallel — ISM fejler gracefully
     const [fg, sp, ismAuto] = await Promise.all([
       fetchFearGreed(),
       fetchSP500(),
       fetchISM().catch(e => { console.warn('FRED ISM fejlede:', e.message); return null; }),
     ]);
 
-    // Prioritet: auto fra FRED > manuelt gemt
     const ism = ismAuto || loadISM();
     const data = { fg, sp, ismAuto };
     saveCache(data);
