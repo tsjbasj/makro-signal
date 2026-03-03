@@ -4,467 +4,772 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Makro Signal</title>
-  <!-- v1.5: market-dashboard design-system -->
+  <!-- v1.6: full redesign matching target layout -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:             #080c14;
-      --surface:        rgba(255,255,255,0.03);
-      --border:         rgba(255,255,255,0.07);
-      --border-bright:  rgba(255,255,255,0.13);
-      --text:           #e2e8f0;
-      --muted:          #64748b;
-      --dim:            #334155;
-      --green:          #22c55e;
-      --red:            #ef4444;
-      --amber:          #f59e0b;
-      --blue:           #6366f1;
-      --font-serif:     'DM Serif Display', Georgia, serif;
-      --font-mono:      'DM!Mono', 'Courier New', monospace;
-      --font-sans:      'Syne', system-ui, sans-serif;
+      --bg:       #0b0f1a;
+      --surface:  #111827;
+      --surface2: #1a2235;
+      --border:   rgba(255,255,255,0.08);
+      --border2:  rgba(255,255,255,0.14);
+      --text:     #e2e8f0;
+      --muted:    #64748b;
+      --dim:      #334155;
+      --green:    #22c55e;
+      --red:      #ef4444;
+      --amber:    #f59e0b;
+      --blue:     #6366f1;
+      --indigo:   #818cf8;
+      --font-mono: 'DM Mono', monospace;
+      --font-sans: 'Inter', system-ui, sans-serif;
+      --font-serif:'DM Serif Display', Georgia, serif;
     }
 
     body {
-      background:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.12), transparent),
-        radial-gradient(ellipse 50% 30% at 100% 80%,  rgba(34,197,94,0.04),  transparent),
-        var(--bg);
+      background: var(--bg);
       color: var(--text);
-      font-family: var(--font-mono);
+      font-family: var(--font-sans);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 20px 80px;
+      padding: 32px 16px 80px;
     }
 
-    /* ── Header ── */
-    header {
-      width: 100%;
-      max-width: 720px;
+    .page { width: 100%; max-width: 860px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* Header */
+    .site-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 48px;
+      align-items: flex-end;
+      margin-bottom: 4px;
     }
-    .logo {
+    .header-left { display: flex; flex-direction: column; gap: 4px; }
+    .header-label {
       font-family: var(--font-mono);
       font-size: 0.68rem;
-      letter-spacing: 0.35em;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-    #timestamp {
-      font-family: var(--font-mono);
-      font-size: 0.62rem;
-      color: var(--dim);
-      letter-spacing: 0.05em;
-    }
-
-    /* ── Layout ── */
-    main {
-      width: 100%;
-      max-width: 720px;
+      letter-spacing: 0.12em;
+      color: var(--indigo);
       display: flex;
-      flex-direction: column;
-      gap: 14px;
+      align-items: center;
+      gap: 6px;
+    }
+    .header-label::before { content: '◆'; font-size: 0.55rem; }
+    .header-title {
+      font-family: var(--font-sans);
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+    }
+    .header-sub {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 2rem;
+      color: var(--muted);
+      line-height: 1.1;
+    }
+    .refresh-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 10px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+      align-self: center;
+    }
+    .refresh-btn:hover { background: #243048; }
+    .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Demo banner */
+    .demo-banner {
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--indigo);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    /* ── Card base ── */
+    /* Card base */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 28px;
-      position: relative;
+      border-radius: 14px;
       overflow: hidden;
-      animation: fadeUp 0.5s ease both;
     }
-    .card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 20px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 60%);
-      pointer-events: none;
-    }
-    /* Glow ring */
-    .card[data-glow]::after {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: 21px;
-      box-shadow:
-        0 0 0 1px var(--glow, transparent),
-        0 0 40px -8px var(--glow, transparent),
-        0 0 80px -20px var(--glow, transparent);
-      pointer-events: none;
-      opacity: 0.45;
-    }
+    .card-inner { padding: 20px; }
 
-    .card-label {
+    /* Signal card */
+    .signal-card { border-color: rgba(34,197,94,0.25); }
+    .signal-card.red   { border-color: rgba(239,68,68,0.3); }
+    .signal-card.amber { border-color: rgba(245,158,11,0.3); }
+
+    .signal-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .signal-label, .signal-label-right {
       font-family: var(--font-mono);
-      font-size: 0.58rem;
-      letter-spacing: 0.3em;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
       color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 18px;
     }
 
-    /* ── Signal Card ── */
-    #signal-card {
-      text-align: center;
-      padding: 48px 28px 42px;
+    .signal-body {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
     }
-    .signal-question {
-      font-family: var(--font-mono);
-      font-size: 0.58rem;
-      letter-spacing: 0.32em;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 28px;
-    }
-    #signal-text {
-      font-family: var(--font-serif);
-      font-size: 7.5rem;
-      font-weight: 400;
-      line-height: 1;
-      color: var(--green);
-      transition: color 0.4s;
-      animation: signalPulse 4s ease-in-out infinite;
-    }
-    #signal-text.sig-nej  { color: var(--red); }
-    #signal-text.sig-vent { color: var(--amber); }
-
-    #signal-rule {
-      width: 44px;
-      height: 2px;
+    .signal-left { display: flex; flex-direction: column; gap: 8px; }
+    .signal-main { display: flex; align-items: center; gap: 12px; }
+    .signal-dot {
+      width: 18px; height: 18px;
+      border-radius: 50%;
       background: var(--green);
-      margin: 22px auto 0;
-      border-radius: 1px;
-      transition: background 0.4s, box-shadow 0.4s;
-      box-shadow: 0 0 10px rgba(34,197,94,0.7);
+      flex-shrink: 0;
     }
-    #signal-rule.sig-nej  { background: var(--red);   box-shadow: 0 0 10px rgba(239,68,68,0.7); }
-    #signal-rule.sig-vent { background: var(--amber); box-shadow: 0 0 10px rgba(245,158,11,0.7); }
-
-    #niveau-text {
-      margin-top: 16px;
+    .signal-dot.red   { background: var(--red); }
+    .signal-dot.amber { background: var(--amber); }
+    .signal-name {
       font-family: var(--font-mono);
-      font-size: 0.62rem;
-      letter-spacing: 0.22em;
+      font-size: 1.45rem;
+      font-weight: 500;
+      color: var(--green);
+      letter-spacing: 0.04em;
+    }
+    .signal-name.red   { color: var(--red); }
+    .signal-name.amber { color: var(--amber); }
+    .signal-subtitle {
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
       color: var(--muted);
-      text-transform: uppercase;
-      min-height: 1em;
     }
-    #niveau-text.on { color: var(--text); }
+    .signal-pct {
+      font-family: var(--font-mono);
+      font-size: 2.8rem;
+      font-weight: 500;
+      color: var(--green);
+      line-height: 1;
+    }
+    .signal-pct.red   { color: var(--red); }
+    .signal-pct.amber { color: var(--amber); }
 
-    @keyframes signalPulse {
-      0%, 100% { opacity: 1;    filter: brightness(1);   }
-      50%       { opacity: 0.72; filter: brightness(0.88); }
+    /* Indicator table */
+    .ind-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
     }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ── Metrics Grid ── */
-    #metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-    .metric-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 22px 18px 18px;
-      position: relative;
-      overflow: hidden;
-      animation: fadeUp 0.5s ease both;
-    }
-    .metric-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 18px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 60%);
-      pointer-events: none;
-    }
-    .metric-card[data-glow]::after {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: 19px;
-      box-shadow:
-        0 0 0 1px var(--glow, transparent),
-        0 0 28px -4px var(--glow, transparent);
-      pointer-events: none;
-      opacity: 0.38;
-    }
-    .metric-card .card-label { margin-bottom: 12px; }
-
-    .metric-value {
-      font-family: var(--font-serif);
-      font-size: 1.9rem;
+    .ind-table th {
+      color: var(--muted);
       font-weight: 400;
-      line-height: 1.15;
+      text-align: left;
+      padding: 6px 8px 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .ind-table th.c { text-align: center; }
+    .ind-table td {
+      padding: 10px 8px 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--text);
+    }
+    .ind-table td.c { text-align: center; color: var(--muted); }
+    .ind-table tr:last-child td { border-bottom: none; }
+    .t-green { color: var(--green); font-style: italic; }
+    .t-amber { color: var(--amber); }
+    .t-red   { color: var(--red); }
+    .t-dim   { color: var(--dim); }
+    .dot-g { color: var(--green); }
+    .dot-a { color: var(--amber); }
+    .dot-r { color: var(--red); }
+
+    /* Rente strip */
+    .rente-strip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      background: rgba(255,255,255,0.02);
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* 2-col grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Gauge */
+    .gauge-card-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .gauge-wrap { display: flex; justify-content: center; margin: 4px 0 8px; }
+    .gauge-center-num {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 1.5rem;
+      fill: #fff;
+      dominant-baseline: middle;
+      text-anchor: middle;
+    }
+    .gauge-badge {
+      display: block;
+      text-align: center;
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      margin: 6px auto 10px;
+      width: fit-content;
+    }
+    .gb-fear   { background: rgba(245,158,11,0.2); color:#f59e0b; border:1px solid rgba(245,158,11,0.35); }
+    .gb-greed  { background: rgba(34,197,94,0.2);  color:#22c55e; border:1px solid rgba(34,197,94,0.35); }
+    .gb-xfear  { background: rgba(239,68,68,0.2);  color:#ef4444; border:1px solid rgba(239,68,68,0.35); }
+    .gb-xgreed { background: rgba(34,197,94,0.3);  color:#16a34a; border:1px solid rgba(34,197,94,0.4); }
+    .gb-neut   { background: rgba(100,116,139,0.2);color:#94a3b8; border:1px solid rgba(100,116,139,0.3); }
+    .gauge-ends {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 4px;
+      font-family: var(--font-mono);
+      font-size: 0.63rem;
+      color: var(--muted);
+    }
+    .gauge-note {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 10px;
+    }
+    .gauge-date {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      color: var(--dim);
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    /* S&P card */
+    .card-lbl {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .sp-price {
+      font-family: 'Inter', sans-serif;
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1;
+    }
+    .sp-sub {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .sub-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .sub-box-lbl {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .sub-box-val {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
       color: var(--text);
       margin-bottom: 8px;
-      transition: color 0.4s;
     }
-    .metric-value.c-warn  { color: var(--red); }
-    .metric-value.c-mid   { color: var(--amber); }
-    .metric-value.c-ok    { color: var(--green); }
-    .metric-value.c-muted { color: var(--muted); }
-
-    .metric-desc {
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
       font-family: var(--font-mono);
-      font-size: 0.58rem;
-      color: var(--dim);
-      letter-spacing: 0.06em;
-      line-height: 1.5;
+      font-size: 0.72rem;
+      font-weight: 500;
     }
-
-    /* ── Progress Bar ── */
-    .bar-track {
-      height: 2px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 1px;
-      overflow: hidden;
-      margin-top: 12px;
-    }
-    .bar-fill {
-      height: 100%;
-      border-radius: 1px;
-      background: var(--green);
-      transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
-    }
-    .bar-fill.warn { background: var(--red); }
-    .bar-fill.mid  { background: var(--amber); }
-
-    /* ── SVG Gauge ── */
-    .gauge-wrap { margin-top: 6px; }
-    #gauge-svg  { display: block; margin: 0 auto; overflow: visible; }
-
-    /* ── Badges & edit ── */
-    .fred-badge {
-      font-size: 0.5rem;
-      color: var(--green);
-      margin-left: 6px;
-      letter-spacing: 0.1em;
-      opacity: 0.75;
-      vertical-align: middle;
-    }
-    .ism-edit-btn {
-      background: none;
-      border: none;
-      color: var(--dim);
+    .b-red   { background:rgba(239,68,68,0.15);  color:#ef4444; border:1px solid rgba(239,68,68,0.3); }
+    .b-amber { background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); }
+    .b-green { background:rgba(34,197,94,0.15);  color:#22c55e; border:1px solid rgba(34,197,94,0.3); }
+    .small-note {
       font-family: var(--font-mono);
-      font-size: 0.56rem;
-      cursor: pointer;
-      padding: 0;
-      margin-top: 8px;
-      display: block;
-      letter-spacing: 0.08em;
-      text-decoration: underline;
-      text-underline-offset: 3px;
-      transition: color 0.2s;
-    }
-    .ism-edit-btn:hover { color: var(--muted); }
-
-    /* ── ISM override panel ── */
-    #ism-input-row {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px 22px;
-      display: none;
-    }
-    #ism-input-row label {
-      font-family: var(--font-mono);
-      font-size: 0.58rem;
+      font-size: 0.65rem;
       color: var(--muted);
-      letter-spacing: 0.14em;
-      display: block;
+      line-height: 1.65;
+    }
+
+    /* ISM card */
+    .big-num-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+    .big-num {
+      font-family: 'Inter', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .arrow-d { color: var(--red);   font-size: 1.3rem; }
+    .arrow-u { color: var(--green); font-size: 1.3rem; }
+    .date-lbl {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .sub-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
       margin-bottom: 12px;
-      text-transform: uppercase;
     }
-    #ism-input-row input {
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid var(--dim);
-      color: var(--text);
+    .sub-cell {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .sub-cell-lbl {
       font-family: var(--font-mono);
-      font-size: 0.95rem;
-      padding: 4px 0;
-      width: 80px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    #ism-input-row input:focus { border-bottom-color: var(--muted); }
-    #ism-input-row button {
-      background: none;
-      border: none;
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
       color: var(--muted);
-      font-family: var(--font-mono);
-      font-size: 0.62rem;
-      cursor: pointer;
-      margin-left: 16px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      transition: color 0.2s;
+      margin-bottom: 4px;
     }
-    #ism-input-row button:hover { color: var(--text); }
-    #ism-date-note {
+    .sub-cell-val {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    .cv-neg { color: var(--red); }
+    .cv-pos { color: var(--green); }
+    .edit-lnk {
       font-family: var(--font-mono);
-      font-size: 0.57rem;
-      color: var(--dim);
+      font-size: 0.68rem;
+      color: var(--indigo);
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: rgba(129,140,248,0.3);
       margin-top: 8px;
+      display: inline-block;
     }
 
-    /* ── Footer ── */
-    .footer-row {
+    /* Yield card */
+    .yield-pct-sym {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .yield-30d-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 4px;
     }
-    #cache-note {
+    .yield-30d-lbl {
       font-family: var(--font-mono);
-      font-size: 0.58rem;
-      color: var(--dim);
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 4px;
     }
-    #refresh-btn {
-      background: none;
-      border: none;
-      color: var(--dim);
-      font-family: var(--font-mono);
-      font-size: 0.58rem;
-      letter-spacing: 0.22em;
-      cursor: pointer;
-      text-transform: uppercase;
-      padding: 0;
-      transition: color 0.2s;
+    .yield-30d-val {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
     }
-    #refresh-btn:hover   { color: var(--muted); }
-    #refresh-btn:disabled { opacity: 0.2; cursor: not-allowed; }
 
-    /* ── Loader ── */
-    #loader {
+    /* Rules */
+    .rules-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .rules-hdr {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .rules-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .rule-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .rule-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .rc-r { color: var(--red); }
+    .rc-g { color: var(--green); }
+    .rc-a { color: var(--amber); }
+    .rc-b { color: var(--indigo); }
+    .rule-body {
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    .site-footer {
       text-align: center;
-      padding: 100px 0;
       font-family: var(--font-mono);
       font-size: 0.68rem;
       color: var(--dim);
-      letter-spacing: 0.35em;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
     }
-    #loader .dot { animation: blink 1.4s infinite; }
-    #loader .dot:nth-child(2) { animation-delay: 0.45s; }
-    #loader .dot:nth-child(3) { animation-delay: 0.9s; }
-    @keyframes blink { 0%,80%,100%{opacity:0.1} 40%{opacity:0.85} }
+
+    /* Loader */
+    #loader {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      padding: 80px 0;
+      text-align: center;
+    }
+    #loader .dot { animation: blink 1.2s infinite; }
+    #loader .dot:nth-child(2) { animation-delay: 0.2s; }
+    #loader .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
     .hidden { display: none !important; }
 
-    /* ── Responsive ── */
-    @media (max-width: 600px) {
-      #signal-text  { font-size: 5rem; }
-      #metrics-grid { grid-template-columns: 1fr; }
-      .metric-value { font-size: 1.6rem; }
-      header        { margin-bottom: 32px; }
+    /* ISM input */
+    #ism-input-row {
+      display: none;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+    #ism-input-row label { color: var(--muted); display: block; margin-bottom: 8px; }
+    #ism-input-row .row { display: flex; gap: 8px; align-items: center; }
+    #ism-val-input {
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      width: 120px;
+    }
+    #ism-save-btn {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    #ism-date-note { color: var(--dim); font-size: 0.7rem; margin-top: 6px; }
+
+    @media (max-width: 580px) {
+      .metric-grid, .rules-grid { grid-template-columns: 1fr; }
+      .header-title { font-size: 1.8rem; }
+      .header-sub   { font-size: 1.5rem; }
     }
   </style>
 </head>
 <body>
+<div class="page">
 
-<header>
-  <div class="logo">Makro Signal</div>
-  <div id="timestamp">—</div>
-</header>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-left">
+      <div class="header-label">MARKEDSBAROMETER</div>
+      <div class="header-title">US Marked</div>
+      <div class="header-sub">Købsstrategi</div>
+    </div>
+    <button class="refresh-btn" id="refresh-btn">↻ Opdater data</button>
+  </header>
 
-<main>
+  <!-- Demo banner -->
+  <div class="demo-banner">
+    <span>ℹ</span>
+    <span id="banner-txt">Demo-tilstand · Live data kræver API-adgang via proxy</span>
+  </div>
+
+  <!-- Loader -->
   <div id="loader">HENTER<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
 
+  <!-- Content -->
   <div id="content" class="hidden">
 
     <!-- Signal card -->
-    <div class="card" id="signal-card">
-      <div class="signal-question">Køb ekstra ind i markedet nu?</div>
-      <div id="signal-text">—</div>
-      <div id="signal-rule"></div>
-      <div id="niveau-text"></div>
+    <div class="card signal-card" id="signal-card">
+      <div class="card-inner">
+        <div class="signal-header">
+          <div class="signal-label">STRATEGISIGNAL · KVARTALSKØB</div>
+          <div class="signal-label-right">ANBEFALET KØB</div>
+        </div>
+        <div class="signal-body">
+          <div class="signal-left">
+            <div class="signal-main">
+              <div class="signal-dot" id="signal-dot"></div>
+              <div class="signal-name" id="signal-name">—</div>
+            </div>
+            <div class="signal-subtitle" id="signal-subtitle"></div>
+          </div>
+          <div class="signal-pct" id="signal-pct">—</div>
+        </div>
+        <table class="ind-table">
+          <thead>
+            <tr>
+              <th>Indikator</th>
+              <th>Aktuel</th>
+              <th class="c"><span class="dot-g">●</span> 12½%</th>
+              <th class="c"><span class="dot-a">●</span> 25%</th>
+              <th class="c"><span class="dot-r">●</span> Stort</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>S&amp;P 500 fra 52w high</td>
+              <td id="tbl-sp">—</td>
+              <td class="c">≤ −12%</td>
+              <td class="c">≤ −18%</td>
+              <td class="c">≤ −25%</td>
+            </tr>
+            <tr>
+              <td>Fear &amp; Greed Index</td>
+              <td id="tbl-fg">—</td>
+              <td class="c">≤ 35</td>
+              <td class="c">≤ 25</td>
+              <td class="c t-dim">–</td>
+            </tr>
+            <tr>
+              <td>ISM Mfg. PMI</td>
+              <td id="tbl-ism">—</td>
+              <td class="c">≤ 48</td>
+              <td class="c t-dim">–</td>
+              <td class="c t-dim">–</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="rente-strip">
+        <span>⚖</span>
+        <span style="letter-spacing:0.08em;opacity:0.7">RENTE-FILTER</span>
+        <span id="rente-status">Ingen rentefilter aktiv</span>
+      </div>
     </div>
 
-    <!-- Metric cards -->
-    <div id="metrics-grid">
+    <!-- Metric grid -->
+    <div class="metric-grid">
 
-      <!-- S&P 500 -->
-      <div class="metric-card" id="sp-card">
-        <div class="card-label">S&amp;P 500</div>
-        <div class="metric-value" id="sp-value">—</div>
-        <div class="metric-desc">fra 52-ugers high</div>
-        <div class="bar-track"><div class="bar-fill" id="sp-bar" style="width:2%"></div></div>
+      <!-- Fear & Greed -->
+      <div class="card">
+        <div class="card-inner">
+          <div class="gauge-card-label">CNN FEAR &amp; GREED INDEX</div>
+          <div class="gauge-wrap">
+            <svg id="gauge-svg" width="160" height="100" viewBox="0 0 160 100">
+              <path id="gauge-track" d="" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="10" stroke-linecap="round"/>
+              <path id="gauge-fill"  d="" fill="none" stroke="#f97316" stroke-width="10" stroke-linecap="round"/>
+              <line id="gauge-needle" x1="80" y1="82" x2="80" y2="32" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="80" cy="82" r="4" fill="var(--amber)" id="needle-dot"/>
+              <text id="gauge-num" x="80" y="80" class="gauge-center-num">—</text>
+            </svg>
+          </div>
+          <div class="gauge-badge gb-neut" id="fg-badge">—</div>
+          <div class="gauge-ends">
+            <span>FRYGT</span>
+            <span>GRÅDIGHED</span>
+          </div>
+          <div class="gauge-note">Signal ≤ 35 → 12½% · ≤ 25 → 25%</div>
+          <div class="gauge-date" id="fg-date"></div>
+        </div>
       </div>
 
-      <!-- Fear & Greed with SVG gauge -->
-      <div class="metric-card" id="fg-card">
-        <div class="card-label">Fear &amp; Greed</div>
-        <div class="metric-value" id="fg-value">—</div>
-        <div class="gauge-wrap">
-          <svg id="gauge-svg" width="110" height="62" viewBox="0 0 110 62">
-            <path id="gauge-track"  d="" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="7" stroke-linecap="round"/>
-            <path id="gauge-fill"   d="" fill="none" stroke="#6366f1" stroke-width="7" stroke-linecap="round"/>
-            <line id="gauge-needle" x1="55" y1="54" x2="55" y2="20" stroke="rgba(255,255,255,0.45)" stroke-width="1.5" stroke-linecap="round"/>
-            <circle id="gauge-dot" cx="55" cy="54" r="2.5" fill="rgba(255,255,255,0.35)"/>
-          </svg>
+      <!-- S&P 500 -->
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-lbl">S&amp;P 500</div>
+          <div class="sp-price" id="sp-price">—</div>
+          <div class="sp-sub">USD · Nuværende kurs</div>
+          <div class="sub-box">
+            <div class="sub-box-lbl">52-UGERS HIGH</div>
+            <div class="sub-box-val" id="sp-high">—</div>
+            <span class="badge b-red" id="sp-badge">—</span>
+          </div>
+          <div class="small-note">Signal: ≤−12% → 12½% · ≤−18% → 25% · ≤−25% → Stort</div>
         </div>
-        <div class="metric-desc" id="fg-desc">CNN index</div>
       </div>
 
       <!-- ISM PMI -->
-      <div class="metric-card" id="ism-card">
-        <div class="card-label">ISM PMI <span class="fred-badge" id="fred-badge" style="display:none">FRED</span></div>
-        <div class="metric-value" id="ism-value">—</div>
-        <div class="metric-desc">Manufacturing</div>
-        <div class="bar-track"><div class="bar-fill" id="ism-bar" style="width:2%"></div></div>
-        <button class="ism-edit-btn" onclick="toggleISMInput()">rediger manuelt</button>
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-lbl">ISM MANUFACTURING PMI</div>
+          <div class="big-num-row">
+            <div class="big-num" id="ism-num">—</div>
+            <span id="ism-arrow"></span>
+          </div>
+          <div class="date-lbl" id="ism-date-lbl">—</div>
+          <div class="sub-grid">
+            <div class="sub-cell">
+              <div class="sub-cell-lbl">FORRIGE</div>
+              <div class="sub-cell-val" id="ism-prev">—</div>
+            </div>
+            <div class="sub-cell">
+              <div class="sub-cell-lbl">ÆNDRING</div>
+              <div class="sub-cell-val" id="ism-chg">—</div>
+            </div>
+          </div>
+          <div id="ism-badge-wrap" style="margin-bottom:8px;"></div>
+          <div class="small-note">Signal: ≤ 48 → 12½% ekstrakøb</div>
+          <div class="edit-lnk" onclick="toggleISMInput()">rediger manuelt</div>
+        </div>
       </div>
 
-    </div>
+      <!-- US 10Y Treasury -->
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-lbl">US 10Y TREASURY YIELD</div>
+          <div class="big-num-row">
+            <div class="big-num" id="yield-num">—</div>
+            <span class="yield-pct-sym">%</span>
+          </div>
+          <div class="date-lbl">Aktuel rente</div>
+          <div class="yield-30d-box">
+            <div>
+              <div class="yield-30d-lbl">30 DAGE SIDEN</div>
+              <div class="yield-30d-val" id="yield-30d">—</div>
+            </div>
+            <span class="badge b-amber" id="yield-badge">—</span>
+          </div>
+          <div class="small-note">
+            Filter: ≥ +0.30 pp → halvér køb<br>
+            ≤ −0.30 pp → fuld størrelse
+          </div>
+        </div>
+      </div>
 
-    <!-- ISM override panel -->
+    </div><!-- /metric-grid -->
+
+    <!-- ISM manual input -->
     <div id="ism-input-row">
       <label>Manuel override — ISM Manufacturing PMI</label>
-      <div>
+      <div class="row">
         <input id="ism-val-input" type="number" step="0.1" min="30" max="70" placeholder="f.eks. 49.3" />
         <button id="ism-save-btn">Gem</button>
       </div>
       <div id="ism-date-note"></div>
     </div>
 
-    <!-- Footer -->
-    <div class="footer-row">
-      <div id="cache-note"></div>
-      <button id="refresh-btn">⟳ Opdater</button>
+    <!-- Rules -->
+    <div class="rules-section">
+      <div class="rules-hdr">
+        <span>◧</span>
+        <span>REGLER – KØB I FRYGT, MERE JO VÆRRE DET BLIVER</span>
+      </div>
+      <div class="rules-grid">
+        <div class="rule-card">
+          <div class="rule-title"><span class="rc-r">●</span> MÅ IKKE KØBE</div>
+          <div class="rule-body">S&amp;P &gt; −8% OG F&amp;G &gt; 45 OG PMI ≥ 50</div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-title"><span class="rc-g">●</span> 12,5% EKSTRAKØB</div>
+          <div class="rule-body">S&amp;P ≤ −12% ELLER F&amp;G ≤ 35 ELLER PMI ≤ 48 · 1× pr. kvartal</div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-title"><span class="rc-a">●</span> 25% EKSTRAKØB</div>
+          <div class="rule-body">S&amp;P ≤ −18% ELLER F&amp;G ≤ 25</div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-title"><span class="rc-r">●</span> STORT KØB</div>
+          <div class="rule-body">S&amp;P ≤ −25% fra 52-ugers high</div>
+        </div>
+        <div class="rule-card">
+          <div class="rule-title"><span class="rc-b">⚖</span> RENTE-FILTER</div>
+          <div class="rule-body">10Y ↑ kraftigt → halvér · 10Y ↓ kraftigt → fuldt</div>
+        </div>
+      </div>
     </div>
 
-  </div>
-</main>
+    <!-- Footer -->
+    <div class="site-footer">
+      Demo-data · Live data kræver API-adgang · Ikke finansiel rådgivning
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /page -->
 
 <script>
-const CACHE_KEY = 'mks_v3_data';
+const CACHE_KEY = 'mks_v6_data';
 const ISM_KEY   = 'mks_ism_manual';
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 const ISM_TTL   = 35 * 24 * 60 * 60 * 1000;
 
 function $(id) { return document.getElementById(id); }
 
-// ── SVG Gauge ───────────────────────────────────────────────────────────────
+// SVG Gauge
 function describeArc(cx, cy, r, startDeg, endDeg) {
   const toRad = d => (d - 90) * Math.PI / 180;
   const x1 = cx + r * Math.cos(toRad(startDeg));
@@ -485,54 +790,51 @@ function updateGauge(value) {
   const v = Math.min(100, Math.max(0, value));
   const START = -130, END = 130;
   const angle = START + (v / 100) * (END - START);
-  const cx = 55, cy = 54, r = 40;
+  const cx = 80, cy = 82, r = 58;
   $('gauge-track').setAttribute('d', describeArc(cx, cy, r, START, END));
   $('gauge-fill').setAttribute('d', describeArc(cx, cy, r, START, angle));
   $('gauge-fill').setAttribute('stroke', gaugeColor(v));
   const toRad = d => (d - 90) * Math.PI / 180;
-  const nx = cx + 30 * Math.cos(toRad(angle));
-  const ny = cy + 30 * Math.sin(toRad(angle));
+  const nx = cx + 44 * Math.cos(toRad(angle));
+  const ny = cy + 44 * Math.sin(toRad(angle));
   $('gauge-needle').setAttribute('x2', nx.toFixed(1));
   $('gauge-needle').setAttribute('y2', ny.toFixed(1));
+  $('gauge-num').textContent = Math.round(v);
 }
 
-// ── Cache ───────────────────────────────────────────────────────────────────
+// Cache
 function saveCache(data) {
   localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
 }
 function loadCache() {
   try {
-    const { ts, data } = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null') || {};
-    if (ts && Date.now() - ts < CACHE_TTL) return { data, age: Date.now() - ts };
+    const p = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null') || {};
+    if (p.ts && Date.now() - p.ts < CACHE_TTL) return { data: p.data, age: Date.now() - p.ts };
   } catch(_) {}
   return null;
 }
-function fmtAge(ms) {
-  const h = Math.floor(ms/3600000), m = Math.floor((ms%3600000)/60000);
-  return h > 0 ? `Cache: ${h}t ${m}m gammel` : `Cache: ${m}m gammel`;
-}
 
-// ── ISM manual store ────────────────────────────────────────────────────────
+// ISM manual
 function saveISM(val) {
   localStorage.setItem(ISM_KEY, JSON.stringify({ val, ts: Date.now(), source: 'manual' }));
 }
 function loadISM() {
   try {
-    const obj = JSON.parse(localStorage.getItem(ISM_KEY) || 'null') || {};
-    if (obj.val && obj.ts && Date.now() - obj.ts < ISM_TTL)
-      return { val: parseFloat(obj.val), ts: obj.ts, source: 'manual' };
+    const o = JSON.parse(localStorage.getItem(ISM_KEY) || 'null') || {};
+    if (o.val && o.ts && Date.now() - o.ts < ISM_TTL)
+      return { val: parseFloat(o.val), ts: o.ts, prev: null, source: 'manual' };
   } catch(_) {}
   return null;
 }
 
-// ── Proxy fetch ─────────────────────────────────────────────────────────────
+// Proxy fetch
 async function proxyFetch(url) {
   const res = await fetch(`/api/fetch?url=${encodeURIComponent(url)}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res;
 }
 
-// ── Data fetchers ───────────────────────────────────────────────────────────
+// Fetchers
 async function fetchFearGreed() {
   const res  = await proxyFetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata');
   const json = await res.json();
@@ -555,127 +857,166 @@ async function fetchISM() {
     '?series_id=NAPM&file_type=json&sort_order=desc&limit=5';
   const res  = await proxyFetch(url);
   const json = await res.json();
-  const obs = json?.observations?.find(o => o.value && o.value !== '.' && !isNaN(parseFloat(o.value)));
-  if (!obs) throw new Error('Ingen NAPM data fra FRED');
-  return { val: parseFloat(obs.value), ts: new Date(obs.date).getTime(), source: 'auto' };
+  const obs = (json?.observations || []).filter(o => o.value && o.value !== '.' && !isNaN(parseFloat(o.value)));
+  if (!obs.length) throw new Error('Ingen NAPM data fra FRED');
+  return {
+    val:  parseFloat(obs[0].value),
+    prev: obs[1] ? parseFloat(obs[1].value) : null,
+    ts:   new Date(obs[0].date).getTime(),
+    source: 'auto'
+  };
+}
+async function fetchYield() {
+  const url = 'https://api.stlouisfed.org/fred/series/observations' +
+    '?series_id=DGS10&file_type=json&sort_order=desc&limit=35';
+  const res  = await proxyFetch(url);
+  const json = await res.json();
+  const obs = (json?.observations || []).filter(o => o.value && o.value !== '.' && !isNaN(parseFloat(o.value)));
+  if (obs.length < 2) throw new Error('Ingen DGS10 data');
+  return { current: parseFloat(obs[0].value), ago30: parseFloat(obs[obs.length-1].value), change: parseFloat(obs[0].value) - parseFloat(obs[obs.length-1].value) };
 }
 
-// ── Decision engine ─────────────────────────────────────────────────────────
-function computeSignal({ fg, sp, ism }) {
+// Signal logic
+function computeSignal({ fg, sp, ism, yld }) {
   const spPct  = sp.drawdown;
   const ismVal = ism?.val ?? null;
-  const jaConditions  = [ spPct <= -12, fg <= 35, ismVal != null && ismVal <= 48 ];
-  const nejConditions = [ spPct > -8,   fg > 45,  ismVal == null || ismVal >= 50 ];
-  const isJA  = jaConditions.some(Boolean);
-  const isNEJ = nejConditions.every(Boolean);
-  let signal  = isJA ? 'JA' : isNEJ ? 'NEJ' : 'VENT';
-  let niveau  = '';
-  if (spPct <= -25)                  niveau = 'Niveau: Stort';
-  else if (spPct <= -18 || fg <= 25) niveau = 'Niveau: 25%';
-  else if (isJA)                     niveau = 'Niveau: 12,5%';
-  return { signal, niveau };
+  const yldChg = yld?.change ?? null;
+  let niveau = '', niveauPct = '';
+  if (spPct <= -25)                              { niveau = 'STORT KØB';      niveauPct = 'Stort'; }
+  else if (spPct <= -18 || fg <= 25)             { niveau = '25% EKSTRAKØB'; niveauPct = '25%'; }
+  else if (spPct <= -12 || fg <= 35 || (ismVal != null && ismVal <= 48))
+                                                 { niveau = '12,5% EKSTRAKØB'; niveauPct = '12,5%'; }
+  else if (spPct > -8 && fg > 45 && (ismVal == null || ismVal >= 50))
+                                                 { niveau = 'MÅ IKKE KØBE'; niveauPct = '0%'; }
+  else                                           { niveau = 'VENT';          niveauPct = 'VENT'; }
+  let subtitle = '';
+  if (niveau === '12,5% EKSTRAKØB') subtitle = 'Mindst én købsbetingelse opfyldt';
+  else if (niveau === '25% EKSTRAKØB') subtitle = 'Stærk købsbetingelse opfyldt';
+  else if (niveau === 'STORT KØB') subtitle = 'Ekstrem markedsbetingelse';
+  else if (niveau === 'MÅ IKKE KØBE') subtitle = 'Ingen betingelser opfyldt';
+  else subtitle = 'Venter på signal';
+  let renteNote = 'Ingen rentefilter aktiv';
+  if (yldChg != null) {
+    if (yldChg >= 0.30) renteNote = '10Y steget kraftigt → halvér køb';
+    else if (yldChg <= -0.30) renteNote = '10Y faldet kraftigt → fuld størrelse';
+  }
+  return { niveau, niveauPct, subtitle, renteNote };
 }
 
-// ── Render ──────────────────────────────────────────────────────────────────
-function render({ fg, sp, ism }, fromCache, cacheAge) {
-  const { signal, niveau } = computeSignal({ fg, sp, ism });
-  const sigKey = signal.toLowerCase();
-  const glowMap = { ja: '#22c55e', nej: '#ef4444', vent: '#f59e0b' };
-  const glowHex = glowMap[sigKey];
+function fmtN(n, d = 0) {
+  return n.toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d });
+}
 
-  // Signal
-  const sigEl = $('signal-text');
-  sigEl.textContent = signal;
-  sigEl.className   = `sig-${sigKey}`;
-  const rule = $('signal-rule');
-  rule.className = `sig-${sigKey}`;
-  const sc = $('signal-card');
-  sc.style.setProperty('--glow', glowHex);
-  sc.setAttribute('data-glow', '1');
-  const niv = $('niveau-text');
-  niv.textContent = niveau;
-  niv.className   = niveau ? 'on' : '';
+// Render
+function render({ fg, sp, ism, yld }, fromCache, cacheAge) {
+  const { niveau, niveauPct, subtitle, renteNote } = computeSignal({ fg, sp, ism, yld });
+  const isRed   = niveau === 'MÅ IKKE KØBE';
+  const isAmber = niveau === 'VENT' || niveau === '25% EKSTRAKØB' || niveau === 'STORT KØB';
+  const cls = isRed ? 'red' : isAmber ? 'amber' : 'green';
 
-  // S&P 500
-  const spPct    = sp.drawdown;
-  const spBarPct = Math.min(100, Math.abs(spPct) / 30 * 100);
-  const spCls    = spPct <= -18 ? 'c-warn' : spPct <= -12 ? 'c-mid' : '';
-  const spBarCls = spPct <= -18 ? 'warn'   : spPct <= -12 ? 'mid'   : '';
-  $('sp-value').textContent = `${spPct.toFixed(1)}%`;
-  $('sp-value').className   = `metric-value ${spCls}`;
-  $('sp-bar').style.width   = Math.max(2, spBarPct) + '%';
-  $('sp-bar').className     = `bar-fill ${spBarCls}`;
-  if (spCls) {
-    $('sp-card').style.setProperty('--glow', spCls === 'c-warn' ? '#ef4444' : '#f59e0b');
-    $('sp-card').setAttribute('data-glow', '1');
+  $('signal-card').className = `card signal-card ${cls}`;
+  $('signal-dot').className  = `signal-dot ${cls}`;
+  $('signal-name').className = `signal-name ${cls}`;
+  $('signal-name').textContent  = niveau;
+  $('signal-pct').className  = `signal-pct ${cls}`;
+  $('signal-pct').textContent   = niveauPct;
+  $('signal-subtitle').textContent = subtitle;
+  $('rente-status').textContent    = renteNote;
+
+  // Table
+  const spPct = sp.drawdown;
+  const spTcls = spPct <= -25 ? 't-red' : spPct <= -18 ? 't-amber' : spPct <= -12 ? 't-green' : 't-green';
+  $('tbl-sp').innerHTML = `<span class="${spTcls}">✓ ${fmtN(spPct,1)}%</span>`;
+  const fgTcls = fg <= 25 ? 't-red' : fg <= 35 ? 't-green' : 't-green';
+  $('tbl-fg').innerHTML = `<span class="${fgTcls}">✓ ${Math.round(fg)}</span>`;
+  const ismVal = ism?.val ?? null;
+  if (ismVal != null) {
+    const ismTcls = ismVal <= 45 ? 't-red' : ismVal <= 48 ? 't-amber' : '';
+    $('tbl-ism').innerHTML = `<span class="${ismTcls}">✓ ${fmtN(ismVal,1)}</span>`;
   } else {
-    $('sp-card').removeAttribute('data-glow');
+    $('tbl-ism').textContent = 'N/A';
   }
 
-  // Fear & Greed
-  const fgCls = fg <= 25 ? 'c-warn' : fg <= 35 ? 'c-mid' : fg >= 70 ? 'c-ok' : '';
-  $('fg-value').textContent = `${fg.toFixed(0)} / 100`;
-  $('fg-value').className   = `metric-value ${fgCls}`;
-  $('fg-desc').textContent  =
-    fg <= 25 ? 'Extrem frygt'    :
-    fg <= 45 ? 'Frygt'          :
-    fg <= 55 ? 'Neutral'        :
-    fg <= 75 ? 'Grådighed'      : 'Extrem grådighed';
+  // Gauge
   updateGauge(fg);
-  if (fgCls) {
-    $('fg-card').style.setProperty('--glow', fg <= 35 ? '#ef4444' : '#22c55e');
-    $('fg-card').setAttribute('data-glow', '1');
+  const fgLabel = fg <= 25 ? 'Extrem frygt' : fg <= 45 ? 'Fear' : fg <= 55 ? 'Neutral' : fg <= 75 ? 'Greed' : 'Extrem greed';
+  const fgBCls  = fg <= 25 ? 'gb-xfear' : fg <= 45 ? 'gb-fear' : fg <= 55 ? 'gb-neut' : fg <= 75 ? 'gb-greed' : 'gb-xgreed';
+  const fgBadge = $('fg-badge');
+  fgBadge.textContent = fgLabel;
+  fgBadge.className   = `gauge-badge ${fgBCls}`;
+  $('fg-date').textContent = `Dato: ${new Date().toISOString().slice(0,10)}`;
+
+  // S&P card
+  $('sp-price').textContent = fmtN(sp.latest, 0);
+  $('sp-high').textContent  = fmtN(sp.high52, 0);
+  const spBBcls = spPct <= -25 ? 'b-red' : spPct <= -18 ? 'b-amber' : 'b-red';
+  const spBadge = $('sp-badge');
+  spBadge.textContent = `${fmtN(spPct,2)}% fra ATH`;
+  spBadge.className   = `badge ${spBBcls}`;
+
+  // ISM card
+  if (ismVal != null) {
+    $('ism-num').textContent  = fmtN(ismVal, 1);
+    $('ism-num').style.color  = ismVal <= 45 ? 'var(--red)' : ismVal <= 48 ? 'var(--amber)' : 'var(--text)';
+    const ismPrev = ism.prev ?? null;
+    const ismChg  = ismPrev != null ? ismVal - ismPrev : null;
+    $('ism-arrow').innerHTML  = ismChg != null
+      ? `<span class="${ismChg < 0 ? 'arrow-d' : 'arrow-u'}">${ismChg < 0 ? '↓' : '↑'}</span>` : '';
+    if (ism.ts) {
+      const d = new Date(ism.ts);
+      $('ism-date-lbl').textContent = d.toLocaleDateString('da-DK', { month: 'short', year: 'numeric' });
+    }
+    $('ism-prev').textContent = ismPrev != null ? fmtN(ismPrev, 1) : '—';
+    const chgEl = $('ism-chg');
+    chgEl.textContent = ismChg != null ? (ismChg >= 0 ? '+' : '') + fmtN(ismChg, 1) : '—';
+    chgEl.className   = `sub-cell-val ${ismChg != null ? (ismChg < 0 ? 'cv-neg' : 'cv-pos') : ''}`;
+    $('ism-badge-wrap').innerHTML = ismVal < 50
+      ? `<span class="badge b-red">Kontraktion &lt; 50</span>`
+      : `<span class="badge b-green">Ekspansion ≥ 50</span>`;
+    if (ism.source === 'manual') {
+      const di = $('ism-date-note');
+      if (di) di.textContent = `Manuelt sat: ${new Date(ism.ts).toLocaleDateString('da-DK')}`;
+    }
   } else {
-    $('fg-card').removeAttribute('data-glow');
+    $('ism-num').textContent = 'N/A';
   }
 
-  // ISM PMI
-  const ismVal    = ism?.val ?? null;
-  const ismAge    = ism?.ts ? new Date(ism.ts).toLocaleDateString('da-DK') : null;
-  const ismBarPct = ismVal != null ? Math.min(100, Math.max(0, (60 - ismVal) / 15 * 100)) : 0;
-  const ismCls    = ismVal == null ? 'c-muted' : ismVal <= 45 ? 'c-warn' : ismVal <= 48 ? 'c-mid' : '';
-  const ismBarCls = ismVal == null ? '' : ismVal <= 45 ? 'warn' : ismVal <= 48 ? 'mid' : '';
-  $('ism-value').textContent = ismVal != null ? ismVal.toFixed(1) : 'N/A';
-  $('ism-value').className   = `metric-value ${ismCls}`;
-  $('ism-bar').style.width   = Math.max(2, ismBarPct) + '%';
-  $('ism-bar').className     = `bar-fill ${ismBarCls}`;
-  $('fred-badge').style.display = ism?.source === 'auto' ? 'inline' : 'none';
-  if (ismCls && ismCls !== 'c-muted') {
-    $('ism-card').style.setProperty('--glow', ismVal <= 45 ? '#ef4444' : '#f59e0b');
-    $('ism-card').setAttribute('data-glow', '1');
+  // Yield card
+  if (yld) {
+    $('yield-num').textContent = fmtN(yld.current, 2);
+    $('yield-30d').textContent = fmtN(yld.ago30, 2) + '%';
+    const chg = yld.change;
+    const yB  = $('yield-badge');
+    yB.textContent = (chg >= 0 ? '+' : '') + fmtN(chg, 2) + ' pp';
+    yB.className   = `badge ${chg >= 0.30 ? 'b-red' : chg <= -0.30 ? 'b-green' : 'b-amber'}`;
   } else {
-    $('ism-card').removeAttribute('data-glow');
+    $('yield-num').textContent = 'N/A';
+    $('yield-30d').textContent = '—';
   }
 
-  // Timestamps + footer
-  const now = new Date();
-  $('timestamp').textContent  = `${now.toLocaleDateString('da-DK')} ${now.toLocaleTimeString('da-DK', {hour:'2-digit',minute:'2-digit'})}`;
-  $('cache-note').textContent = fromCache ? fmtAge(cacheAge) : 'Live data';
-
-  if (ismVal != null) $('ism-val-input').value = ismVal;
-  if (ismAge) $('ism-date-note').textContent = `Sidst sat: ${ismAge}`;
+  // Banner
+  $('banner-txt').textContent = fromCache
+    ? `Cache · ${Math.round(cacheAge/60000)}m gammel`
+    : 'Live data hentet';
 
   $('loader').classList.add('hidden');
   $('content').classList.remove('hidden');
 }
 
-// ── ISM manual input ────────────────────────────────────────────────────────
+// ISM input
 window.toggleISMInput = function() {
-  const row = $('ism-input-row');
-  row.style.display = row.style.display === 'block' ? 'none' : 'block';
+  const r = $('ism-input-row');
+  r.style.display = r.style.display === 'block' ? 'none' : 'block';
 };
 $('ism-save-btn').addEventListener('click', () => {
   const raw = parseFloat($('ism-val-input').value);
-  if (isNaN(raw) || raw < 30 || raw > 70) {
-    alert('Indtast en gyldig PMI-værdi (30–70)');
-    return;
-  }
+  if (isNaN(raw) || raw < 30 || raw > 70) { alert('Indtast en gyldig PMI-værdi (30–70)'); return; }
   saveISM(raw);
   $('ism-input-row').style.display = 'none';
   loadData(true);
 });
 
-// ── Main load ───────────────────────────────────────────────────────────────
+// Main
 async function loadData(force = false) {
   $('refresh-btn').disabled = true;
   if (!force) {
@@ -690,13 +1031,14 @@ async function loadData(force = false) {
   $('loader').classList.remove('hidden');
   $('content').classList.add('hidden');
   try {
-    const [fg, sp, ismAuto] = await Promise.all([
+    const [fg, sp, ismAuto, yld] = await Promise.all([
       fetchFearGreed(),
       fetchSP500(),
-      fetchISM().catch(e => { console.warn('FRED ISM fejlede:', e.message); return null; }),
+      fetchISM().catch(e => { console.warn('ISM fejl:', e.message); return null; }),
+      fetchYield().catch(e => { console.warn('Yield fejl:', e.message); return null; }),
     ]);
     const ism  = ismAuto || loadISM();
-    const data = { fg, sp, ismAuto };
+    const data = { fg, sp, ismAuto, yld };
     saveCache(data);
     render(Object.assign({}, data, { ism }), false, 0);
   } catch(err) {
