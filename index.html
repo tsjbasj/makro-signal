@@ -425,6 +425,67 @@
 
     /* Rules */
     .rules-section {
+      background    border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .sub-cell-lbl {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .sub-cell-val {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    .cv-neg { color: var(--red); }
+    .cv-pos { color: var(--green); }
+    .edit-lnk {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--indigo);
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: rgba(129,140,248,0.3);
+      margin-top: 8px;
+      display: inline-block;
+    }
+
+    /* Yield card */
+    .yield-pct-sym {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .yield-30d-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .yield-30d-lbl {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .yield-30d-val {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    /* Rules */
+    .rules-section {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -583,52 +644,7 @@
         <table class="ind-table">
           <thead>
             <tr>
-              <th>Indikator</th>
-              <th>Aktuel</th>
-              <th class="c"><span class="dot-g">●</span> 12½%</th>
-              <th class="c"><span class="dot-a">●</span> 25%</th>
-              <th class="c"><span class="dot-r">●</span> Stort</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>S&amp;P 500 fra 52w high</td>
-              <td id="tbl-sp">—</td>
-              <td class="c">≤ −12%</td>
-              <td class="c">≤ −18%</td>
-              <td class="c">≤ −25%</td>
-            </tr>
-            <tr>
-              <td>Fear &amp; Greed Index</td>
-              <td id="tbl-fg">—</td>
-              <td class="c">≤ 35</td>
-              <td class="c">≤ 25</td>
-              <td class="c t-dim">–</td>
-            </tr>
-            <tr>
-              <td>ISM Mfg. PMI</td>
-              <td id="tbl-ism">—</td>
-              <td class="c">≤ 48</td>
-              <td class="c t-dim">–</td>
-              <td class="c t-dim">–</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="rente-strip">
-        <span>⚖</span>
-        <span style="letter-spacing:0.08em;opacity:0.7">RENTE-FILTER</span>
-        <span id="rente-status">Ingen rentefilter aktiv</span>
-      </div>
-    </div>
-
-    <!-- Metric grid -->
-    <div class="metric-grid">
-
-      <!-- Fear & Greed -->
-      <div class="card">
-        <div class="card-inner">
-          <div class="gauge-card-label">CNN FEAR &amp; GREED INDEX</div>
+      2bel">CNN FEAR &amp; GREED INDEX</div>
           <div class="gauge-wrap">
             <svg id="gauge-svg" width="160" height="100" viewBox="0 0 160 100">
               <path id="gauge-track" d="" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="10" stroke-linecap="round"/>
@@ -736,7 +752,7 @@
         </div>
         <div class="rule-card">
           <div class="rule-title"><span class="rc-g">●</span> 12,5% EKSTRAKØB</div>
-          <div class="rule-body">S&amp;P ≤ −12% ELLER F&amp;G ≤ 35 ELLER PMI ≤ 48 · 1× pr. kvartal</div>
+  2       <div class="rule-body">S&amp;P ≤ −12% ELLER F&amp;G ≤ 35 ELLER PMI ≤ 48 · 1× pr. kvartal</div>
         </div>
         <div class="rule-card">
           <div class="rule-title"><span class="rc-a">●</span> 25% EKSTRAKØB</div>
@@ -755,7 +771,7 @@
 
     <!-- Footer -->
     <div class="site-footer">
-      Demo-data · Live data kræver API-adgang · Ikke finansiel rådgivning
+      Demo-data · Live data kræver API-adgand · Ikke finansiel rådgivning
     </div>
 
   </div><!-- /content -->
@@ -867,13 +883,15 @@ async function fetchISM() {
   };
 }
 async function fetchYield() {
-  const url = 'https://api.stlouisfed.org/fred/series/observations' +
-    '?series_id=DGS10&file_type=json&sort_order=desc&limit=35';
-  const res  = await proxyFetch(url);
-  const json = await res.json();
-  const obs = (json?.observations || []).filter(o => o.value && o.value !== '.' && !isNaN(parseFloat(o.value)));
-  if (obs.length < 2) throw new Error('Ingen DGS10 data');
-  return { current: parseFloat(obs[0].value), ago30: parseFloat(obs[obs.length-1].value), change: parseFloat(obs[0].value) - parseFloat(obs[obs.length-1].value) };
+  const res  = await proxyFetch('https://stooq.com/q/d/l/?s=10usy.b&i=d');
+  const text = await res.text();
+  const rows = text.trim().split('\n').filter(r => r && !r.startsWith('Date'));
+  if (rows.length < 2) throw new Error('For lidt yield data');
+  const closes = rows.map(r => parseFloat(r.split(',')[4])).filter(v => !isNaN(v));
+  if (closes.length < 2) throw new Error('Ingen gyldige yield værdier');
+  const current = closes[closes.length - 1];
+  const ago30   = closes[Math.max(0, closes.length - 22)];
+  return { current, ago30, change: current - ago30 };
 }
 
 // Signal logic
@@ -961,7 +979,7 @@ function render({ fg, sp, ism, yld }, fromCache, cacheAge) {
     const ismPrev = ism.prev ?? null;
     const ismChg  = ismPrev != null ? ismVal - ismPrev : null;
     $('ism-arrow').innerHTML  = ismChg != null
-      ? `<span class="${ismChg < 0 ? 'arrow-d' : 'arrow-u'}">${ismChg < 0 ? '↓' : '↑'}</span>` : '';
+      ? `<span class="${ismChg < 0 ? 'arrow-d' : 'arrow-u'}">${ismChg < 0 ? '↓' : '↑'}|/span>` : '';
     if (ism.ts) {
       const d = new Date(ism.ts);
       $('ism-date-lbl').textContent = d.toLocaleDateString('da-DK', { month: 'short', year: 'numeric' });
