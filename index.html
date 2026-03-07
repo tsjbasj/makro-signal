@@ -867,14 +867,14 @@ async function fetchISM() {
   };
 }
 async function fetchYield() {
-  const res  = await proxyFetch('https://stooq.com/q/d/l/?s=10usy.b&i=d');
+  const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10');
   const text = await res.text();
-  const rows = text.trim().split('\n').filter(r => r && !r.startsWith('Date'));
+  const rows = text.trim().split('\n').filter(r => r && !r.startsWith('DATE') && !r.includes('ND'));
   if (rows.length < 2) throw new Error('For lidt yield data');
-  const closes = rows.map(r => parseFloat(r.split(',')[4])).filter(v => !isNaN(v));
-  if (closes.length < 2) throw new Error('Ingen gyldige yield værdier');
-  const current = closes[closes.length - 1];
-  const ago30   = closes[Math.max(0, closes.length - 22)];
+  const vals = rows.map(r => parseFloat(r.split(',')[1])).filter(v => !isNaN(v));
+  if (vals.length < 2) throw new Error('Ingen gyldige yield værdier');
+  const current = vals[vals.length - 1];
+  const ago30   = vals[Math.max(0, vals.length - 22)];
   return { current, ago30, change: current - ago30 };
 }
 
