@@ -4,7 +4,7 @@
  * FRED API key is injected server-side (never exposed to client).
  */
 
-const FRED_API_KEY = '38458b1617e021d8e44ef6fa7ac5d36';
+const FRED_API_KEY = '538458b1617e021d8e44ef6fa7ac5d36';
 
 const ALLOWED = [
   'https://production.dataviz.cnn.io/index/fearandgreed/graphdata',
