@@ -1,10 +1,11 @@
 /**
  * Vercel Serverless Proxy — /api/fetch
- * Whitelists exactly 4 data sources for Makro Signal.
- * FRED API key is injected server-side (never exposed to client).
+ * Whitelists data sources for Makro Signal.
+ * API keys are injected server-side (never exposed to client).
  */
 
 const FRED_API_KEY = '538458b1617e021d8e44ef6fa7ac5d36';
+const AV_API_KEY   = 'demo'; // Replace with free key from https://www.alphavantage.co/support/#api-key
 
 const ALLOWED = [
   'https://production.dataviz.cnn.io/index/fearandgreed/graphdata',
@@ -15,6 +16,7 @@ const ALLOWED = [
   'https://query1.finance.yahoo.com/v8/finance/chart/',
   'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml',
   'https://data.nasdaq.com/api/v3/datasets/',
+  'https://www.alphavantage.co/query',
 ];
 
 function isAllowed(url) {
@@ -52,6 +54,12 @@ module.exports = async (req, res) => {
   if (decoded.startsWith('https://api.stlouisfed.org/fred/')) {
     const sep = decoded.includes('?') ? '&' : '?';
     decoded = `${decoded}${sep}api_key=${FRED_API_KEY}`;
+  }
+
+  // Inject Alpha Vantage API key server-side
+  if (decoded.startsWith('https://www.alphavantage.co/query')) {
+    const sep = decoded.includes('?') ? '&' : '?';
+    decoded = `${decoded}${sep}apikey=${AV_API_KEY}`;
   }
 
   const upstreamHeaders = {
