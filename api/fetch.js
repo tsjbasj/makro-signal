@@ -11,6 +11,7 @@ const ALLOWED = [
   'https://stooq.com/q/d/l/',
   'https://api.stlouisfed.org/fred/series/observations',
   'https://fred.stlouisfed.org/graph/fredgraph.csv',
+  'https://fred.stlouisfed.org/data/',
   'https://query1.finance.yahoo.com/v8/finance/chart/',
   'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml',
   'https://data.nasdaq.com/api/v3/datasets/',
