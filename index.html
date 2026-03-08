@@ -616,7 +616,7 @@
         </table>
       </div>
       <div class="rente-strip">
-        <span>⚖</span>
+        <span>ښ�</span>
         <span style="letter-spacing:0.08em;opacity:0.7">RENTE-FILTER</span>
         <span id="rente-status">Ingen rentefilter aktiv</span>
       </div>
@@ -705,7 +705,7 @@
             <span class="badge b-amber" id="yield-badge">—</span>
           </div>
           <div class="small-note">
-            Filter: ≥ +0.30 pp → halvér køb<br>
+            Filter: ≥ +0.30 pp → halvér �øb<br>
             ≤ −0.30 pp → fuld størrelse
           </div>
         </div>
@@ -853,18 +853,18 @@ async function fetchSP500() {
   return { latest, high52, drawdown: (latest / high52 - 1) * 100 };
 }
 async function fetchISM() {
-  const url = 'https://api.stlouisfed.org/fred/series/observations' +
-    '?series_id=NAPM&file_type=json&sort_order=desc&limit=5';
-  const res  = await proxyFetch(url);
-  const json = await res.json();
-  const obs = (json?.observations || []).filter(o => o.value && o.value !== '.' && !isNaN(parseFloat(o.value)));
-  if (!obs.length) throw new Error('Ingen NAPM data fra FRED');
-  return {
-    val:  parseFloat(obs[0].value),
-    prev: obs[1] ? parseFloat(obs[1].value) : null,
-    ts:   new Date(obs[0].date).getTime(),
-    source: 'auto'
-  };
+  const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=NAPM');
+  const text = await res.text();
+  const rows = text.trim().split('\n').filter(r => r && !r.startsWith('DATE') && !r.includes('ND'));
+  if (rows.length < 2) throw new Error('For lidt ISM data');
+  const vals = rows.map(r => {
+    const p = r.split(',');
+    return { val: parseFloat(p[1]), ts: new Date(p[0]).getTime() };
+  }).filter(v => !isNaN(v.val));
+  if (vals.length < 2) throw new Error('Ingen gyldige ISM værdier');
+  const latest = vals[vals.length - 1];
+  const prev   = vals[vals.length - 2];
+  return { val: latest.val, prev: prev.val, ts: latest.ts, source: 'auto' };
 }
 async function fetchYield() {
   const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10');
