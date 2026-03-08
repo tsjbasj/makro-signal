@@ -5,7 +5,7 @@
  */
 
 const FRED_API_KEY = '538458b1617e021d8e44ef6fa7ac5d36';
-const AV_API_KEY   = 'demo'; // Replace with free key from https://www.alphavantage.co/support/#api-key
+const AV_API_KEY   = process.env.AV_API_KEY || 'demo'; // Set AV_API_KEY in Vercel env variables (free at alphavantage.co)
 
 const ALLOWED = [
   'https://production.dataviz.cnn.io/index/fearandgreed/graphdata',
