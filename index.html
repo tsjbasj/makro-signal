@@ -854,35 +854,16 @@ async function fetchSP500() {
   return { latest, high52, drawdown: (latest / high52 - 1) * 100 };
 }
 async function fetchISM() {
-  // Forsøg 1: TradingEconomics public side (HTML-scrape)
-  try {
-    const res = await proxyFetch('https://tradingeconomics.com/united-states/ism-purchasing-managers-index');
-    if (!res.ok) throw new Error(`TE HTTP ${res.status}`);
-    const html = await res.text();
-    // TE gemmer aktuel værdi i JSON i script-tags og HTML-elementer — prøv alle mønstre
-    const patterns = [
-      /"last"\s*:\s*([\d]+\.[\d]+)/,
-      /"LatestValue"\s*:\s*"([\d]+\.[\d]+)"/,
-      /class="[^"]*\bact\b[^"]*"[^>]*>\s*([\d]+\.[\d]+)\s*</,
-      /id="p"[^>]*>\s*([\d]+\.[\d]+)\s*</,
-      /"close"\s*:\s*([\d]+\.[\d]+)/,
-    ];
-    for (const pat of patterns) {
-      const m = html.match(pat);
-      if (m) {
-        const val = parseFloat(m[1]);
-        if (val >= 30 && val <= 70) {
-          const prev_m = html.match(/"previous"\s*:\s*([\d]+\.[\d]+)/);
-          const prev = prev_m ? parseFloat(prev_m[1]) : null;
-          return { val, prev, ts: Date.now(), source: 'auto' };
-        }
-      }
-    }
-    throw new Error('Ingen gyldig PMI-værdi fundet på TE side');
-  } catch (e) {
-    console.warn('ISM TE-scrape fejl:', e.message);
-    throw e;
-  }
+  // Læser fra data/pmi.json — opdateres månedligt af GitHub Action (scripts/fetch-pmi.js)
+  const res = await fetch('/data/pmi.json?_=' + Date.now());
+  if (!res.ok) throw new Error(`pmi.json HTTP ${res.status}`);
+  const data = await res.json();
+  if (!data.latest || data.latest.value == null) throw new Error('pmi.json mangler data');
+  const val  = parseFloat(data.latest.value);
+  if (isNaN(val) || val < 30 || val > 70) throw new Error('Ugyldig PMI i pmi.json: ' + data.latest.value);
+  const hist = data.history || [];
+  const prev = hist.length >= 2 ? parseFloat(hist[hist.length - 2].value) : null;
+  return { val, prev, ts: new Date(data.latest.date).getTime(), source: 'auto' };
 }
 async function fetchYield() {
   const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10');
