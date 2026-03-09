@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Makro Signal</title>
-  <!-- v1.7: NY Fed + Philly Fed manufacturing proxy replacing ISM PMI -->
+  <!-- v1.8: ISM Manufacturing PMI via TradingEconomics (guest:guest) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -606,7 +606,7 @@
               <td class="c t-dim">–</td>
             </tr>
             <tr>
-              <td>Mfg. Konjunktur</td>
+              <td>ISM Mfg. PMI</td>
               <td id="tbl-ism">—</td>
               <td class="c">≤ −5</td>
               <td class="c t-dim">–</td>
@@ -666,7 +666,7 @@
       <!-- ISM PMI -->
       <div class="card">
         <div class="card-inner">
-          <div class="card-lbl">MFG. KONJUNKTUR-INDEX · NY FED + PHILLY FED</div>
+          <div class="card-lbl">ISM MANUFACTURING PMI</div>
           <div class="big-num-row">
             <div class="big-num" id="ism-num">—</div>
             <span id="ism-arrow"></span>
@@ -683,7 +683,7 @@
             </div>
           </div>
           <div id="ism-badge-wrap" style="margin-bottom:8px;"></div>
-          <div class="small-note">Signal: ≤ −5 → 12½% ekstrakøb · 0 = neutral grænse</div>
+          <div class="small-note">Signal: ≤ 48 → 12½% ekstrakøb · 50 = neutral grænse</div>
           <div class="edit-lnk" onclick="toggleISMInput()">rediger manuelt</div>
         </div>
       </div>
@@ -715,9 +715,9 @@
 
     <!-- ISM manual input -->
     <div id="ism-input-row">
-      <label>Manuel override — Mfg. Konjunktur-Index (NY Fed + Philly Fed gennemsnit)</label>
+      <label>Manuel override — ISM Manufacturing PMI</label>
       <div class="row">
-        <input id="ism-val-input" type="number" step="0.1" min="-50" max="50" placeholder="f.eks. -5.0" />
+        <input id="ism-val-input" type="number" step="0.1" min="30" max="70" placeholder="f.eks. 49.0" />
         <button id="ism-save-btn">Gem</button>
       </div>
       <div id="ism-date-note"></div>
@@ -732,11 +732,11 @@
       <div class="rules-grid">
         <div class="rule-card">
           <div class="rule-title"><span class="rc-r">●</span> MÅ IKKE KØBE</div>
-          <div class="rule-body">S&amp;P &gt; −8% OG F&amp;G &gt; 45 OG MFG ≥ 0</div>
+          <div class="rule-body">S&amp;P &gt; −8% OG F&amp;G &gt; 45 OG ISM ≥ 50</div>
         </div>
         <div class="rule-card">
           <div class="rule-title"><span class="rc-g">●</span> 12,5% EKSTRAKØB</div>
-          <div class="rule-body">S&amp;P ≤ −12% ELLER F&amp;G ≤ 35 ELLER MFG ≤ −5 · 1× pr. kvartal</div>
+          <div class="rule-body">S&amp;P ≤ −12% ELLER F&amp;G ≤ 35 ELLER ISM ≤ 48 · 1× pr. kvartal</div>
         </div>
         <div class="rule-card">
           <div class="rule-title"><span class="rc-a">●</span> 25% EKSTRAKØB</div>
@@ -762,7 +762,7 @@
 </div><!-- /page -->
 
 <script>
-const CACHE_KEY = 'mks_v7_data';
+const CACHE_KEY = 'mks_v8_data';
 const ISM_KEY   = 'mks_ism_manual';
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 const ISM_TTL   = 35 * 24 * 60 * 60 * 1000;
@@ -853,28 +853,14 @@ async function fetchSP500() {
   return { latest, high52, drawdown: (latest / high52 - 1) * 100 };
 }
 async function fetchISM() {
-  // NY Fed Empire State + Philly Fed Manufacturing som ISM-proxy (begge gratis via FRED)
-  // Disse indeks bruger 0 som ekspansion/kontraktion grænse (ikke 50)
-  function parseFredCsv(text) {
-    return text.trim().split('\n')
-      .filter(r => r && !r.startsWith('DATE') && !r.includes('ND'))
-      .map(r => { const p = r.split(','); return { date: p[0], val: parseFloat(p[1]) }; })
-      .filter(r => !isNaN(r.val));
-  }
-  const [resNY, resPhi] = await Promise.all([
-    proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=GACDISA066MSFRBNY'),
-    proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=GACDFSA066MSFRBPHI'),
-  ]);
-  const nyData  = parseFredCsv(await resNY.text());
-  const phiData = parseFredCsv(await resPhi.text());
-  if (nyData.length < 2 || phiData.length < 2) throw new Error('Ingen Fed manufacturing data');
-  const latestNY  = nyData[nyData.length - 1];
-  const prevNY    = nyData[nyData.length - 2];
-  const latestPhi = phiData[phiData.length - 1];
-  const prevPhi   = phiData[phiData.length - 2];
-  const val  = (latestNY.val + latestPhi.val) / 2;
-  const prev = (prevNY.val + prevPhi.val) / 2;
-  return { val, prev, ts: new Date(latestNY.date).getTime(), source: 'auto' };
+  // ISM Manufacturing PMI via TradingEconomics gratis API (guest:guest)
+  const res  = await proxyFetch('https://api.tradingeconomics.com/indicators/country/united%20states/ism%20manufacturing%20pmi?c=guest:guest&format=json');
+  const json = await res.json();
+  if (!Array.isArray(json) || json.length === 0) throw new Error('Ingen TE ISM data');
+  const val  = parseFloat(json[0].LatestValue);
+  const prev = parseFloat(json[0].PreviousValue);
+  if (isNaN(val)) throw new Error('Ugyldig ISM PMI værdi');
+  return { val, prev, ts: new Date(json[0].Date).getTime(), source: 'auto' };
 }
 async function fetchYield() {
   const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10');
@@ -896,9 +882,9 @@ function computeSignal({ fg, sp, ism, yld }) {
   let niveau = '', niveauPct = '';
   if (spPct <= -25)                              { niveau = 'STORT KØB';      niveauPct = 'Stort'; }
   else if (spPct <= -18 || fg <= 25)             { niveau = '25% EKSTRAKØB'; niveauPct = '25%'; }
-  else if (spPct <= -12 || fg <= 35 || (ismVal != null && ismVal <= -5))
+  else if (spPct <= -12 || fg <= 35 || (ismVal != null && ismVal <= 48))
                                                  { niveau = '12,5% EKSTRAKØB'; niveauPct = '12,5%'; }
-  else if (spPct > -8 && fg > 45 && (ismVal == null || ismVal >= 0))
+  else if (spPct > -8 && fg > 45 && (ismVal == null || ismVal >= 50))
                                                  { niveau = 'MÅ IKKE KØBE'; niveauPct = '0%'; }
   else                                           { niveau = 'VENT';          niveauPct = 'VENT'; }
   let subtitle = '';
@@ -943,7 +929,7 @@ function render({ fg, sp, ism, yld }, fromCache, cacheAge) {
   $('tbl-fg').innerHTML = `<span class="${fgTcls}">✓ ${Math.round(fg)}</span>`;
   const ismVal = ism?.val ?? null;
   if (ismVal != null) {
-    const ismTcls = ismVal <= -15 ? 't-red' : ismVal <= -5 ? 't-amber' : '';
+    const ismTcls = ismVal <= 45 ? 't-red' : ismVal <= 48 ? 't-amber' : '';
     $('tbl-ism').innerHTML = `<span class="${ismTcls}">✓ ${fmtN(ismVal,1)}</span>`;
   } else {
     $('tbl-ism').textContent = 'N/A';
@@ -969,7 +955,7 @@ function render({ fg, sp, ism, yld }, fromCache, cacheAge) {
   // ISM card
   if (ismVal != null) {
     $('ism-num').textContent  = fmtN(ismVal, 1);
-    $('ism-num').style.color  = ismVal <= -15 ? 'var(--red)' : ismVal <= -5 ? 'var(--amber)' : 'var(--text)';
+    $('ism-num').style.color  = ismVal <= 45 ? 'var(--red)' : ismVal <= 48 ? 'var(--amber)' : 'var(--text)';
     const ismPrev = ism.prev ?? null;
     const ismChg  = ismPrev != null ? ismVal - ismPrev : null;
     $('ism-arrow').innerHTML  = ismChg != null
@@ -982,9 +968,9 @@ function render({ fg, sp, ism, yld }, fromCache, cacheAge) {
     const chgEl = $('ism-chg');
     chgEl.textContent = ismChg != null ? (ismChg >= 0 ? '+' : '') + fmtN(ismChg, 1) : '—';
     chgEl.className   = `sub-cell-val ${ismChg != null ? (ismChg < 0 ? 'cv-neg' : 'cv-pos') : ''}`;
-    $('ism-badge-wrap').innerHTML = ismVal < 0
-      ? `<span class="badge b-red">Kontraktion &lt; 0</span>`
-      : `<span class="badge b-green">Ekspansion ≥ 0</span>`;
+    $('ism-badge-wrap').innerHTML = ismVal < 50
+      ? `<span class="badge b-red">Kontraktion &lt; 50</span>`
+      : `<span class="badge b-green">Ekspansion ≥ 50</span>`;
     if (ism.source === 'manual') {
       const di = $('ism-date-note');
       if (di) di.textContent = `Manuelt sat: ${new Date(ism.ts).toLocaleDateString('da-DK')}`;
@@ -1022,7 +1008,7 @@ window.toggleISMInput = function() {
 };
 $('ism-save-btn').addEventListener('click', () => {
   const raw = parseFloat($('ism-val-input').value);
-  if (isNaN(raw) || raw < -50 || raw > 50) { alert('Indtast en gyldig Mfg. Konjunktur-værdi (−50 til 50)'); return; }
+  if (isNaN(raw) || raw < 30 || raw > 70) { alert('Indtast en gyldig ISM PMI-værdi (30 til 70)'); return; }
   saveISM(raw);
   $('ism-input-row').style.display = 'none';
   loadData(true);
