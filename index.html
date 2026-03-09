@@ -854,14 +854,35 @@ async function fetchSP500() {
   return { latest, high52, drawdown: (latest / high52 - 1) * 100 };
 }
 async function fetchISM() {
-  // ISM Manufacturing PMI via TradingEconomics gratis API (guest:guest)
-  const res  = await proxyFetch('https://api.tradingeconomics.com/indicators/country/united%20states/ism%20manufacturing%20pmi?c=guest:guest&format=json');
-  const json = await res.json();
-  if (!Array.isArray(json) || json.length === 0) throw new Error('Ingen TE ISM data');
-  const val  = parseFloat(json[0].LatestValue);
-  const prev = parseFloat(json[0].PreviousValue);
-  if (isNaN(val)) throw new Error('Ugyldig ISM PMI værdi');
-  return { val, prev, ts: new Date(json[0].Date).getTime(), source: 'auto' };
+  // Forsøg 1: TradingEconomics public side (HTML-scrape)
+  try {
+    const res = await proxyFetch('https://tradingeconomics.com/united-states/ism-purchasing-managers-index');
+    if (!res.ok) throw new Error(`TE HTTP ${res.status}`);
+    const html = await res.text();
+    // TE gemmer aktuel værdi i JSON i script-tags og HTML-elementer — prøv alle mønstre
+    const patterns = [
+      /"last"\s*:\s*([\d]+\.[\d]+)/,
+      /"LatestValue"\s*:\s*"([\d]+\.[\d]+)"/,
+      /class="[^"]*\bact\b[^"]*"[^>]*>\s*([\d]+\.[\d]+)\s*</,
+      /id="p"[^>]*>\s*([\d]+\.[\d]+)\s*</,
+      /"close"\s*:\s*([\d]+\.[\d]+)/,
+    ];
+    for (const pat of patterns) {
+      const m = html.match(pat);
+      if (m) {
+        const val = parseFloat(m[1]);
+        if (val >= 30 && val <= 70) {
+          const prev_m = html.match(/"previous"\s*:\s*([\d]+\.[\d]+)/);
+          const prev = prev_m ? parseFloat(prev_m[1]) : null;
+          return { val, prev, ts: Date.now(), source: 'auto' };
+        }
+      }
+    }
+    throw new Error('Ingen gyldig PMI-værdi fundet på TE side');
+  } catch (e) {
+    console.warn('ISM TE-scrape fejl:', e.message);
+    throw e;
+  }
 }
 async function fetchYield() {
   const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10');
