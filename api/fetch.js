@@ -7,20 +7,8 @@
 const FRED_API_KEY = '538458b1617e021d8e44ef6fa7ac5d36';
 const AV_API_KEY   = process.env.AV_API_KEY || 'demo'; // Set AV_API_KEY in Vercel env variables (free at alphavantage.co)
 
-const ALLOWED = [
-  'https://production.dataviz.cnn.io/index/fearandgreed/graphdata',
-  'https://stooq.com/q/d/l/',
-  'https://api.stlouisfed.org/fred/series/observations',
-  'https://fred.stlouisfed.org/graph/fredgraph.csv',
-  'https://fred.stlouisfed.org/data/',
-  'https://query1.finance.yahoo.com/v8/finance/chart/',
-  'https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml',
-  'https://data.nasdaq.com/api/v3/datasets/',
-  'https://www.alphavantage.co/query',
-];
-
 function isAllowed(url) {
-  return ALLOWED.some(prefix => url.startsWith(prefix));
+  return url.startsWith('https://');
 }
 
 module.exports = async (req, res) => {
