@@ -544,6 +544,8 @@
     }
     .footer-ext-link:hover { text-decoration: underline; }
     .footer-input-wrap { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+    .footer-input-sm { width: 72px; }
+    .footer-input-lbl { color: var(--muted); font-size: 0.7rem; white-space: nowrap; }
     .footer-input {
       background: var(--bg);
       border: 1px solid var(--border2);
@@ -766,7 +768,7 @@
       <!-- Sahm række -->
       <div class="footer-row">
         <span class="footer-lbl">Sahm-regel</span>
-        <a href="https://fred.stlouisfed.org/series/UNRATE" target="_blank" class="footer-ext-link">↗ Se UNRATE (FRED)</a>
+        <a href="https://fred.stlouisfed.org/series/SAHMREALTIME" target="_blank" class="footer-ext-link">↗ Se SAHMREALTIME (FRED)</a>
         <div class="footer-input-wrap">
           <input id="sahm-val-input" type="number" step="0.01" min="0" max="3" placeholder="f.eks. 0.23" class="footer-input" />
           <button id="sahm-save-btn" class="footer-btn">OK</button>
@@ -933,18 +935,16 @@ async function fetchYield() {
 }
 
 async function fetchUnemployment() {
-  // FRED UNRATE — månedlig ledighed, bruges til Sahm-regel: current - min(forrige 12 mdr)
-  const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=UNRATE');
+  // FRED SAHMREALTIME — Sahm Rule Recession Indicator, direkte fra FRED
+  const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=SAHMREALTIME');
   const text = await res.text();
   const vals = text.trim().split('\n')
     .filter(r => r && !r.startsWith('DATE') && !r.includes('ND'))
     .map(r => parseFloat(r.split(',')[1]))
     .filter(v => !isNaN(v));
-  if (vals.length < 13) throw new Error('For lidt UNRATE data');
-  const current = vals[vals.length - 1];
-  const prev12  = vals.slice(-13, -1);
-  const low12m  = Math.min(...prev12);
-  return { current, low12m, sahm: parseFloat((current - low12m).toFixed(2)) };
+  if (vals.length < 1) throw new Error('Ingen SAHMREALTIME data');
+  const sahm = parseFloat(vals[vals.length - 1].toFixed(2));
+  return { sahm, source: 'auto' };
 }
 
 // Signal logic — investmentSignal scoring system (max 10 point)
