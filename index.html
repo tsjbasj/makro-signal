@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Makro Signal</title>
-  <!-- v1.8: ISM Manufacturing PMI via TradingEconomics (guest:guest) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -25,6 +24,7 @@
       --amber:    #f59e0b;
       --blue:     #6366f1;
       --indigo:   #818cf8;
+      --accent:   #818cf8;
       --font-mono: 'DM Mono', monospace;
       --font-sans: 'Inter', system-ui, sans-serif;
       --font-serif:'DM Serif Display', Georgia, serif;
@@ -38,10 +38,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 32px 16px 110px;
+      padding: 32px 16px 90px;
     }
 
-    .page { width: 100%; max-width: 860px; display: flex; flex-direction: column; gap: 16px; }
+    .page { width: 100%; max-width: 700px; display: flex; flex-direction: column; gap: 16px; }
 
     /* Header */
     .site-header {
@@ -94,12 +94,12 @@
     .refresh-btn:hover { background: #243048; }
     .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Demo banner */
+    /* Banner */
     .demo-banner {
       background: rgba(99,102,241,0.1);
       border: 1px solid rgba(99,102,241,0.25);
       border-radius: 10px;
-      padding: 12px 16px;
+      padding: 10px 16px;
       font-family: var(--font-mono);
       font-size: 0.78rem;
       color: var(--indigo);
@@ -108,7 +108,22 @@
       gap: 8px;
     }
 
-    /* Card base */
+    /* Loader */
+    #loader {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      padding: 40px 0;
+      text-align: center;
+    }
+    #loader .dot { animation: blink 1.4s infinite; }
+    #loader .dot:nth-child(2) { animation-delay: 0.2s; }
+    #loader .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
+    .hidden { display: none !important; }
+
+    /* Card */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -121,6 +136,7 @@
     .signal-card { border-color: rgba(34,197,94,0.25); }
     .signal-card.red   { border-color: rgba(239,68,68,0.3); }
     .signal-card.amber { border-color: rgba(245,158,11,0.3); }
+    .signal-card.dim   { border-color: var(--border2); }
 
     .signal-header {
       display: flex;
@@ -133,7 +149,6 @@
       letter-spacing: 0.1em;
       color: var(--muted);
     }
-
     .signal-body {
       display: flex;
       justify-content: space-between;
@@ -145,20 +160,22 @@
     .signal-dot {
       width: 18px; height: 18px;
       border-radius: 50%;
-      background: var(--green);
+      background: var(--dim);
       flex-shrink: 0;
     }
-    .signal-dot.red   { background: var(--red); }
+    .signal-dot.green { background: var(--green); }
     .signal-dot.amber { background: var(--amber); }
+    .signal-dot.red   { background: var(--red); }
     .signal-name {
       font-family: var(--font-mono);
       font-size: 1.45rem;
       font-weight: 500;
-      color: var(--green);
+      color: var(--muted);
       letter-spacing: 0.04em;
     }
-    .signal-name.red   { color: var(--red); }
+    .signal-name.green { color: var(--green); }
     .signal-name.amber { color: var(--amber); }
+    .signal-name.red   { color: var(--red); }
     .signal-subtitle {
       font-family: var(--font-sans);
       font-size: 0.82rem;
@@ -168,11 +185,12 @@
       font-family: var(--font-mono);
       font-size: 2.8rem;
       font-weight: 500;
-      color: var(--green);
+      color: var(--muted);
       line-height: 1;
     }
-    .signal-pct.red   { color: var(--red); }
+    .signal-pct.green { color: var(--green); }
     .signal-pct.amber { color: var(--amber); }
+    .signal-pct.red   { color: var(--red); }
 
     /* Indicator table */
     .ind-table {
@@ -196,323 +214,55 @@
     }
     .ind-table td.c { text-align: center; color: var(--muted); }
     .ind-table tr:last-child td { border-bottom: none; }
-    .t-green { color: var(--green); font-style: italic; }
+    .t-green { color: var(--green); }
     .t-amber { color: var(--amber); }
     .t-red   { color: var(--red); }
     .t-dim   { color: var(--dim); }
-    .dot-g { color: var(--green); }
-    .dot-a { color: var(--amber); }
-    .dot-r { color: var(--red); }
+
+    /* Score row */
     .score-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 0 2px;
+      padding: 10px 0 4px;
       border-top: 1px solid var(--border2);
       margin-top: 4px;
       font-family: var(--font-mono);
     }
     .score-lbl { font-size: 0.7rem; letter-spacing: 0.1em; color: var(--muted); }
-    #signal-score-val { font-size: 1rem; font-weight: 700; color: var(--text); }
+    #signal-score-val { font-size: 1.1rem; font-weight: 700; color: var(--text); }
 
-    /* Rente strip */
-    .rente-strip {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 20px;
-      background: rgba(255,255,255,0.02);
-      border-top: 1px solid var(--border);
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
-
-    /* 2-col grid */
-    .metric-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    /* Gauge */
-    .gauge-card-label {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
-    .gauge-wrap { display: flex; justify-content: center; margin: 4px 0 8px; }
-    .gauge-center-num {
-      font-family: 'Inter', sans-serif;
-      font-weight: 700;
-      font-size: 1.5rem;
-      fill: #fff;
-      dominant-baseline: middle;
-      text-anchor: middle;
-    }
-    .gauge-badge {
-      display: block;
-      text-align: center;
-      padding: 3px 12px;
-      border-radius: 20px;
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      font-weight: 500;
-      margin: 6px auto 10px;
-      width: fit-content;
-    }
-    .gb-fear   { background: rgba(245,158,11,0.2); color:#f59e0b; border:1px solid rgba(245,158,11,0.35); }
-    .gb-greed  { background: rgba(34,197,94,0.2);  color:#22c55e; border:1px solid rgba(34,197,94,0.35); }
-    .gb-xfear  { background: rgba(239,68,68,0.2);  color:#ef4444; border:1px solid rgba(239,68,68,0.35); }
-    .gb-xgreed { background: rgba(34,197,94,0.3);  color:#16a34a; border:1px solid rgba(34,197,94,0.4); }
-    .gb-neut   { background: rgba(100,116,139,0.2);color:#94a3b8; border:1px solid rgba(100,116,139,0.3); }
-    .gauge-ends {
-      display: flex;
-      justify-content: space-between;
-      padding: 0 4px;
-      font-family: var(--font-mono);
-      font-size: 0.63rem;
-      color: var(--muted);
-    }
-    .gauge-note {
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      color: var(--muted);
-      text-align: center;
-      margin-top: 10px;
-    }
-    .gauge-date {
-      font-family: var(--font-mono);
-      font-size: 0.66rem;
-      color: var(--dim);
-      text-align: center;
-      margin-top: 4px;
-    }
-
-    /* S&P card */
-    .card-lbl {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-    .sp-price {
-      font-family: 'Inter', sans-serif;
-      font-size: 2.6rem;
-      font-weight: 700;
-      color: #fff;
-      line-height: 1;
-    }
-    .sp-sub {
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      color: var(--muted);
-      margin-bottom: 16px;
-    }
-    .sub-box {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 14px;
-      margin-bottom: 12px;
-    }
-    .sub-box-lbl {
-      font-family: var(--font-mono);
-      font-size: 0.6rem;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-    .sub-box-val {
-      font-family: 'Inter', sans-serif;
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 8px;
-    }
-    .badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      font-weight: 500;
-    }
-    .b-red   { background:rgba(239,68,68,0.15);  color:#ef4444; border:1px solid rgba(239,68,68,0.3); }
-    .b-amber { background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); }
-    .b-green { background:rgba(34,197,94,0.15);  color:#22c55e; border:1px solid rgba(34,197,94,0.3); }
-    .small-note {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      color: var(--muted);
-      line-height: 1.65;
-    }
-
-    /* ISM card */
-    .big-num-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
-    .big-num {
-      font-family: 'Inter', sans-serif;
-      font-size: 2.8rem;
-      font-weight: 700;
-      line-height: 1;
-    }
-    .arrow-d { color: var(--red);   font-size: 1.3rem; }
-    .arrow-u { color: var(--green); font-size: 1.3rem; }
-    .date-lbl {
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      color: var(--muted);
-      margin-bottom: 14px;
-    }
-    .sub-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .sub-cell {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 12px;
-    }
-    .sub-cell-lbl {
-      font-family: var(--font-mono);
-      font-size: 0.6rem;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-    .sub-cell-val {
-      font-family: 'Inter', sans-serif;
-      font-size: 1.3rem;
-      font-weight: 700;
-    }
-    .cv-neg { color: var(--red); }
-    .cv-pos { color: var(--green); }
-    .edit-lnk {
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      color: var(--indigo);
-      cursor: pointer;
-      text-decoration: underline;
-      text-decoration-color: rgba(129,140,248,0.3);
-      margin-top: 8px;
-      display: inline-block;
-    }
-
-    /* Yield card */
-    .yield-pct-sym {
-      font-family: 'Inter', sans-serif;
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: var(--muted);
-    }
-    .yield-30d-box {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      margin-bottom: 12px;
+    /* Cooldown strip */
+    .cooldown-strip {
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-    .yield-30d-lbl {
-      font-family: var(--font-mono);
-      font-size: 0.6rem;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-    .yield-30d-val {
-      font-family: 'Inter', sans-serif;
-      font-size: 1.2rem;
-      font-weight: 700;
-    }
-
-    /* Rules */
-    .rules-section {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
-    }
-    .rules-hdr {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      margin-bottom: 16px;
-    }
-    .rules-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .rule-card {
       background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 16px;
-    }
-    .rule-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      border-top: 1px solid var(--border2);
+      padding: 10px 20px;
       font-family: var(--font-mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.08em;
-      font-weight: 500;
-      margin-bottom: 6px;
-    }
-    .rc-r { color: var(--red); }
-    .rc-g { color: var(--green); }
-    .rc-a { color: var(--amber); }
-    .rc-b { color: var(--indigo); }
-    .rule-body {
-      font-family: var(--font-sans);
       font-size: 0.78rem;
-      color: var(--muted);
-      line-height: 1.5;
+      gap: 12px;
+      flex-wrap: wrap;
     }
-
-    /* Footer */
-    .site-footer {
-      text-align: center;
+    .cooldown-info { color: var(--muted); }
+    .cooldown-info span { color: var(--text); }
+    .cooldown-info.active span { color: var(--amber); }
+    .reg-buy-btn {
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.35);
+      color: var(--indigo);
       font-family: var(--font-mono);
-      font-size: 0.68rem;
-      color: var(--dim);
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
     }
+    .reg-buy-btn:hover { background: rgba(99,102,241,0.25); }
 
-    /* Loader */
-    #loader {
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      letter-spacing: 0.15em;
-      color: var(--muted);
-      padding: 80px 0;
-      text-align: center;
-    }
-    #loader .dot { animation: blink 1.2s infinite; }
-    #loader .dot:nth-child(2) { animation-delay: 0.2s; }
-    #loader .dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
-    .hidden { display: none !important; }
-
-    /* ISM footer bar */
+    /* Footer bar */
     #ism-footer-bar {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
       background: var(--surface2);
       border-top: 1px solid var(--border2);
       font-family: var(--font-mono);
@@ -526,26 +276,12 @@
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
-      padding: 8px 20px;
+      padding: 9px 20px;
     }
-    .footer-row + .footer-row {
-      border-top: 1px solid var(--border2);
-    }
-    .footer-lbl {
-      color: var(--muted);
-      letter-spacing: 0.07em;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-    }
-    .footer-ext-link {
-      color: var(--accent);
-      text-decoration: none;
-      white-space: nowrap;
-    }
+    .footer-lbl { color: var(--muted); letter-spacing: 0.07em; font-size: 0.72rem; text-transform: uppercase; }
+    .footer-ext-link { color: var(--accent); text-decoration: none; white-space: nowrap; }
     .footer-ext-link:hover { text-decoration: underline; }
     .footer-input-wrap { display: flex; gap: 8px; align-items: center; margin-left: auto; }
-    .footer-input-sm { width: 72px; }
-    .footer-input-lbl { color: var(--muted); font-size: 0.7rem; white-space: nowrap; }
     .footer-input {
       background: var(--bg);
       border: 1px solid var(--border2);
@@ -566,11 +302,12 @@
       font-size: 0.82rem;
       cursor: pointer;
     }
+    .footer-btn:hover { background: #4f46e5; }
 
     @media (max-width: 580px) {
-      .metric-grid, .rules-grid { grid-template-columns: 1fr; }
       .header-title { font-size: 1.8rem; }
       .header-sub   { font-size: 1.5rem; }
+      .signal-pct   { font-size: 2rem; }
     }
   </style>
 </head>
@@ -587,10 +324,10 @@
     <button class="refresh-btn" id="refresh-btn">↻ Opdater data</button>
   </header>
 
-  <!-- Demo banner -->
+  <!-- Cache banner -->
   <div class="demo-banner">
     <span>ℹ</span>
-    <span id="banner-txt">Demo-tilstand · Live data kræver API-adgang via proxy</span>
+    <span id="banner-txt">Henter data…</span>
   </div>
 
   <!-- Loader -->
@@ -600,7 +337,7 @@
   <div id="content" class="hidden">
 
     <!-- Signal card -->
-    <div class="card signal-card" id="signal-card">
+    <div class="card signal-card dim" id="signal-card">
       <div class="card-inner">
         <div class="signal-header">
           <div class="signal-label">STRATEGISIGNAL · KVARTALSKØB</div>
@@ -616,6 +353,7 @@
           </div>
           <div class="signal-pct" id="signal-pct">—</div>
         </div>
+
         <table class="ind-table">
           <thead>
             <tr>
@@ -645,218 +383,58 @@
               <td class="c" id="tbl-ism-pts">—</td>
             </tr>
             <tr>
-              <td>Sahm-regel (ledighedsstigning)</td>
+              <td>Sahm-regel</td>
               <td id="tbl-sahm">—</td>
-              <td class="c t-dim">≥0,5 pp→+2</td>
+              <td class="c t-dim">≥0,5→+2</td>
               <td class="c" id="tbl-sahm-pts">—</td>
             </tr>
           </tbody>
         </table>
+
         <div class="score-row">
           <span class="score-lbl">SCORE</span>
-          <span id="signal-score-val">0 / 10</span>
-        </div>
-      </div>
-      <div class="rente-strip">
-        <span>⚖</span>
-        <span style="letter-spacing:0.08em;opacity:0.7">RENTE-FILTER</span>
-        <span id="rente-status">Ingen rentefilter aktiv</span>
-      </div>
-    </div>
-
-    <!-- Metric grid -->
-    <div class="metric-grid">
-
-      <!-- Fear & Greed -->
-      <div class="card">
-        <div class="card-inner">
-          <div class="gauge-card-label">CNN FEAR &amp; GREED INDEX</div>
-          <div class="gauge-wrap">
-            <svg id="gauge-svg" width="160" height="100" viewBox="0 0 160 100">
-              <path id="gauge-track" d="" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="10" stroke-linecap="round"/>
-              <path id="gauge-fill"  d="" fill="none" stroke="#f97316" stroke-width="10" stroke-linecap="round"/>
-              <line id="gauge-needle" x1="80" y1="82" x2="80" y2="32" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="80" cy="82" r="4" fill="var(--amber)" id="needle-dot"/>
-              <text id="gauge-num" x="80" y="80" class="gauge-center-num">—</text>
-            </svg>
-          </div>
-          <div class="gauge-badge gb-neut" id="fg-badge">—</div>
-          <div class="gauge-ends">
-            <span>FRYGT</span>
-            <span>GRÅDIGHED</span>
-          </div>
-          <div class="gauge-note">Signal ≤ 35 → 12½% · ≤ 25 → 25%</div>
-          <div class="gauge-date" id="fg-date"></div>
+          <span id="signal-score-val">— / 10</span>
         </div>
       </div>
 
-      <!-- S&P 500 -->
-      <div class="card">
-        <div class="card-inner">
-          <div class="card-lbl">S&amp;P 500</div>
-          <div class="sp-price" id="sp-price">—</div>
-          <div class="sp-sub">USD · Nuværende kurs</div>
-          <div class="sub-box">
-            <div class="sub-box-lbl">52-UGERS HIGH</div>
-            <div class="sub-box-val" id="sp-high">—</div>
-            <span class="badge b-red" id="sp-badge">—</span>
-          </div>
-          <div class="small-note">Signal: ≤−12% → 12½% · ≤−18% → 25% · ≤−25% → Stort</div>
+      <!-- Cooldown strip -->
+      <div class="cooldown-strip">
+        <div class="cooldown-info" id="cooldown-info">
+          <span id="cooldown-txt">Ingen aktiv cooldown</span>
         </div>
+        <button class="reg-buy-btn" id="reg-buy-btn">Registrer køb i dag</button>
       </div>
-
-      <!-- ISM PMI -->
-      <div class="card">
-        <div class="card-inner">
-          <div class="card-lbl">ISM MANUFACTURING PMI</div>
-          <div class="big-num-row">
-            <div class="big-num" id="ism-num">—</div>
-            <span id="ism-arrow"></span>
-          </div>
-          <div class="date-lbl" id="ism-date-lbl">—</div>
-          <div class="sub-grid">
-            <div class="sub-cell">
-              <div class="sub-cell-lbl">FORRIGE</div>
-              <div class="sub-cell-val" id="ism-prev">—</div>
-            </div>
-            <div class="sub-cell">
-              <div class="sub-cell-lbl">ÆNDRING</div>
-              <div class="sub-cell-val" id="ism-chg">—</div>
-            </div>
-          </div>
-          <div id="ism-badge-wrap" style="margin-bottom:8px;"></div>
-          <div class="small-note">Signal: ≤ 48 → 12½% ekstrakøb · 50 = neutral grænse</div>
-        </div>
-      </div>
-
-      <!-- US 10Y Treasury -->
-      <div class="card">
-        <div class="card-inner">
-          <div class="card-lbl">US 10Y TREASURY YIELD</div>
-          <div class="big-num-row">
-            <div class="big-num" id="yield-num">—</div>
-            <span class="yield-pct-sym">%</span>
-          </div>
-          <div class="date-lbl">Aktuel rente</div>
-          <div class="yield-30d-box">
-            <div>
-              <div class="yield-30d-lbl">30 DAGE SIDEN</div>
-              <div class="yield-30d-val" id="yield-30d">—</div>
-            </div>
-            <span class="badge b-amber" id="yield-badge">—</span>
-          </div>
-          <div class="small-note">
-            Filter: ≥ +0.30 pp → halvér køb<br>
-            ≤ −0.30 pp → fuld størrelse
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /metric-grid -->
-
-    <!-- ISM footer bar -->
-    <div id="ism-footer-bar">
-      <!-- PMI række -->
-      <div class="footer-row">
-        <span class="footer-lbl">ISM PMI</span>
-        <a href="https://tradingeconomics.com/united-states/business-confidence" target="_blank" class="footer-ext-link">↗ Se seneste tal</a>
-        <div class="footer-input-wrap">
-          <input id="ism-val-input" type="number" step="0.1" min="30" max="70" placeholder="f.eks. 52.4" class="footer-input" />
-          <button id="ism-save-btn" class="footer-btn">OK</button>
-        </div>
-      </div>
-      <!-- Sahm række -->
-      <div class="footer-row">
-        <span class="footer-lbl">Sahm-regel</span>
-        <a href="https://fred.stlouisfed.org/series/SAHMREALTIME" target="_blank" class="footer-ext-link">↗ Se SAHMREALTIME (FRED)</a>
-        <div class="footer-input-wrap">
-          <input id="sahm-val-input" type="number" step="0.01" min="0" max="3" placeholder="f.eks. 0.23" class="footer-input" />
-          <button id="sahm-save-btn" class="footer-btn">OK</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Rules -->
-    <div class="rules-section">
-      <div class="rules-hdr">
-        <span>◧</span>
-        <span>REGLER – KØB I FRYGT, MERE JO VÆRRE DET BLIVER</span>
-      </div>
-      <div class="rules-grid">
-        <div class="rule-card">
-          <div class="rule-title"><span class="rc-r">●</span> MÅ IKKE KØBE</div>
-          <div class="rule-body">S&amp;P &gt; −8% OG F&amp;G &gt; 45 OG ISM ≥ 50</div>
-        </div>
-        <div class="rule-card">
-          <div class="rule-title"><span class="rc-g">●</span> 12,5% EKSTRAKØB</div>
-          <div class="rule-body">S&amp;P ≤ −12% ELLER F&amp;G ≤ 35 ELLER ISM ≤ 48 · 1× pr. kvartal</div>
-        </div>
-        <div class="rule-card">
-          <div class="rule-title"><span class="rc-a">●</span> 25% EKSTRAKØB</div>
-          <div class="rule-body">S&amp;P ≤ −18% ELLER F&amp;G ≤ 25</div>
-        </div>
-        <div class="rule-card">
-          <div class="rule-title"><span class="rc-r">●</span> STORT KØB</div>
-          <div class="rule-body">S&amp;P ≤ −25% fra 52-ugers high</div>
-        </div>
-        <div class="rule-card">
-          <div class="rule-title"><span class="rc-b">⚖</span> RENTE-FILTER</div>
-          <div class="rule-body">10Y ↑ kraftigt → halvér · 10Y ↓ kraftigt → fuldt</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="site-footer">
-      Demo-data · Live data kræver API-adgang · Ikke finansiel rådgivning
     </div>
 
   </div><!-- /content -->
+
 </div><!-- /page -->
 
+<!-- ISM PMI footer bar -->
+<div id="ism-footer-bar">
+  <div class="footer-row">
+    <span class="footer-lbl">ISM PMI</span>
+    <a href="https://tradingeconomics.com/united-states/business-confidence" target="_blank" class="footer-ext-link">↗ Se seneste tal</a>
+    <div class="footer-input-wrap">
+      <input id="ism-val-input" type="number" step="0.1" min="30" max="70" placeholder="f.eks. 52.4" class="footer-input" />
+      <button id="ism-save-btn" class="footer-btn">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const CACHE_KEY = 'mks_v8_data';
-const ISM_KEY   = 'mks_ism_manual';
-const SAHM_KEY  = 'mks_sahm_manual';
-const CACHE_TTL = 24 * 60 * 60 * 1000;
-const ISM_TTL   = 35 * 24 * 60 * 60 * 1000;
+const CACHE_KEY    = 'mks_v9_data';
+const ISM_KEY      = 'mks_ism_manual';
+const COOLDOWN_KEY = 'mks_last_buy';
+const CACHE_TTL    = 24 * 60 * 60 * 1000;   // 24 timer
+const COOLDOWN_DAYS = 90;
 
 function $(id) { return document.getElementById(id); }
-
-// SVG Gauge
-function describeArc(cx, cy, r, startDeg, endDeg) {
-  const toRad = d => (d - 90) * Math.PI / 180;
-  const x1 = cx + r * Math.cos(toRad(startDeg));
-  const y1 = cy + r * Math.sin(toRad(startDeg));
-  const x2 = cx + r * Math.cos(toRad(endDeg));
-  const y2 = cy + r * Math.sin(toRad(endDeg));
-  const large = Math.abs(endDeg - startDeg) > 180 ? 1 : 0;
-  return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
-}
-function gaugeColor(v) {
-  if (v <= 25) return '#ef4444';
-  if (v <= 45) return '#f97316';
-  if (v <= 55) return '#eab308';
-  if (v <= 75) return '#84cc16';
-  return '#22c55e';
-}
-function updateGauge(value) {
-  const v = Math.min(100, Math.max(0, value));
-  const START = -130, END = 130;
-  const angle = START + (v / 100) * (END - START);
-  const cx = 80, cy = 82, r = 58;
-  $('gauge-track').setAttribute('d', describeArc(cx, cy, r, START, END));
-  $('gauge-fill').setAttribute('d', describeArc(cx, cy, r, START, angle));
-  $('gauge-fill').setAttribute('stroke', gaugeColor(v));
-  const toRad = d => (d - 90) * Math.PI / 180;
-  const nx = cx + 44 * Math.cos(toRad(angle));
-  const ny = cy + 44 * Math.sin(toRad(angle));
-  $('gauge-needle').setAttribute('x2', nx.toFixed(1));
-  $('gauge-needle').setAttribute('y2', ny.toFixed(1));
-  $('gauge-num').textContent = Math.round(v);
+function fmtN(n, d = 0) {
+  return n.toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d });
 }
 
-// Cache
+// ── Cache ────────────────────────────────────────────────────────────────────
 function saveCache(data) {
   localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
 }
@@ -868,39 +446,45 @@ function loadCache() {
   return null;
 }
 
-// ISM manual
+// ── ISM manual ────────────────────────────────────────────────────────────────
 function saveISM(val) {
-  localStorage.setItem(ISM_KEY, JSON.stringify({ val, ts: Date.now(), source: 'manual' }));
+  localStorage.setItem(ISM_KEY, JSON.stringify({ val, ts: Date.now() }));
 }
 function loadISM() {
   try {
     const o = JSON.parse(localStorage.getItem(ISM_KEY) || 'null') || {};
-    if (o.val != null) return { val: parseFloat(o.val), ts: o.ts || Date.now(), prev: null, source: 'manual' };
+    if (o.val != null) return { val: parseFloat(o.val), source: 'manual' };
   } catch(_) {}
-  // Standardværdi: februar 2026
-  return { val: 52.4, ts: Date.now(), prev: null, source: 'default' };
+  return { val: 52.4, source: 'default' };
 }
 
-// Sahm manual
-function saveSahm(val) {
-  localStorage.setItem(SAHM_KEY, JSON.stringify({ val, ts: Date.now(), source: 'manual' }));
+// ── Cooldown ──────────────────────────────────────────────────────────────────
+function saveCooldown() {
+  localStorage.setItem(COOLDOWN_KEY, new Date().toISOString());
 }
-function loadSahm() {
+function loadCooldown() {
   try {
-    const o = JSON.parse(localStorage.getItem(SAHM_KEY) || 'null') || {};
-    if (o.val != null) return { current: null, low12m: null, sahm: parseFloat(o.val), source: 'manual' };
+    const raw = localStorage.getItem(COOLDOWN_KEY);
+    if (!raw) return { active: false, daysLeft: 0, nextDate: null };
+    const last    = new Date(raw);
+    const elapsed = (Date.now() - last.getTime()) / (1000 * 60 * 60 * 24);
+    const daysLeft = Math.ceil(COOLDOWN_DAYS - elapsed);
+    if (daysLeft > 0) {
+      const next = new Date(last.getTime() + COOLDOWN_DAYS * 24 * 60 * 60 * 1000);
+      return { active: true, daysLeft, nextDate: next.toISOString().slice(0, 10) };
+    }
   } catch(_) {}
-  return null;
+  return { active: false, daysLeft: 0, nextDate: null };
 }
 
-// Proxy fetch
+// ── Proxy fetch ───────────────────────────────────────────────────────────────
 async function proxyFetch(url) {
   const res = await fetch(`/api/fetch?url=${encodeURIComponent(url)}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
   return res;
 }
 
-// Fetchers
+// ── Fetchers ──────────────────────────────────────────────────────────────────
 async function fetchFearGreed() {
   const res  = await proxyFetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata');
   const json = await res.json();
@@ -908,60 +492,34 @@ async function fetchFearGreed() {
   if (score == null) throw new Error('Ingen F&G score');
   return parseFloat(score);
 }
+
 async function fetchSP500() {
-  const res  = await proxyFetch('https://stooq.com/q/d/l/?s=%5Espx&i=d');
-  const text = await res.text();
-  const rows = text.trim().split('\n').filter(r => r && !r.startsWith('Date'));
+  const res    = await proxyFetch('https://stooq.com/q/d/l/?s=%5Espx&i=d');
+  const text   = await res.text();
+  const rows   = text.trim().split('\n').filter(r => r && !r.startsWith('Date'));
   if (rows.length < 100) throw new Error('For lidt S&P data');
   const closes = rows.map(r => parseFloat(r.split(',')[4]));
   const latest = closes[closes.length - 1];
   const high52 = Math.max(...closes.slice(-252));
   return { latest, high52, drawdown: (latest / high52 - 1) * 100 };
 }
-async function fetchISM() {
-  // ISM PMI sættes manuelt via footer-bjælken — ingen automatisk datakilde
-  return null;
-}
-async function fetchYield() {
-  const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10');
-  const text = await res.text();
-  const rows = text.trim().split('\n').filter(r => r && !r.startsWith('DATE') && !r.includes('ND'));
-  if (rows.length < 2) throw new Error('For lidt yield data');
-  const vals = rows.map(r => parseFloat(r.split(',')[1])).filter(v => !isNaN(v));
-  if (vals.length < 2) throw new Error('Ingen gyldige yield værdier');
-  const current = vals[vals.length - 1];
-  const ago30   = vals[Math.max(0, vals.length - 22)];
-  return { current, ago30, change: current - ago30 };
+
+async function fetchSahm() {
+  const url  = 'https://api.stlouisfed.org/fred/series/observations?series_id=SAHMREALTIME&api_key=61026cb5f11d98af5bc80a81e9860406&limit=1&sort_order=desc&file_type=json';
+  const res  = await proxyFetch(url);
+  const json = await res.json();
+  const val  = parseFloat(json?.observations?.[0]?.value);
+  if (isNaN(val)) throw new Error('Ingen SAHMREALTIME data');
+  return val;
 }
 
-async function fetchUnemployment() {
-  // FRED SAHMREALTIME — Sahm Rule Recession Indicator, direkte fra FRED
-  const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=SAHMREALTIME');
-  const text = await res.text();
-  const vals = text.trim().split('\n')
-    .filter(r => r && !r.startsWith('DATE') && !r.includes('ND'))
-    .map(r => parseFloat(r.split(',')[1]))
-    .filter(v => !isNaN(v));
-  if (vals.length < 1) throw new Error('Ingen SAHMREALTIME data');
-  const sahm = parseFloat(vals[vals.length - 1].toFixed(2));
-  return { sahm, source: 'auto' };
-}
-
-// Signal logic — investmentSignal scoring system (max 10 point)
-function computeSignal({ fg, sp, ism, yld, unemp }) {
-  const ANNUAL_BUDGET = 50000;
-  const BUY_SMALL  = ANNUAL_BUDGET * 0.125; // 6.250 kr
-  const BUY_MEDIUM = ANNUAL_BUDGET * 0.25;  // 12.500 kr
-  const BUY_LARGE  = ANNUAL_BUDGET * 0.50;  // 25.000 kr
-
-  // Drawdown som positiv brøk (0.15 = 15% ned fra ATH)
-  const drawdown = -(sp.drawdown / 100);
+// ── Signal ────────────────────────────────────────────────────────────────────
+function computeSignal({ fg, sp, ism, sahm }) {
+  const drawdown = -(sp.drawdown / 100); // positiv brøk
   const ismVal   = ism?.val ?? null;
-  const sahm     = unemp?.sahm ?? null;
-
   let score = 0;
 
-  // S&P 500 — maks +4
+  // S&P — maks +4
   if (drawdown >= 0.15) score += 2;
   if (drawdown >= 0.25) score += 2;
   const spPts = drawdown >= 0.25 ? 4 : drawdown >= 0.15 ? 2 : 0;
@@ -976,140 +534,83 @@ function computeSignal({ fg, sp, ism, yld, unemp }) {
   if (ismVal != null && ismVal <= 47) score += 1;
   const ismPts = ismVal == null ? null : ismVal <= 47 ? 2 : ismVal <= 49 ? 1 : 0;
 
-  // Sahm-regel — maks +2
+  // Sahm — maks +2
   if (sahm != null && sahm >= 0.5) score += 2;
   const sahmPts = sahm == null ? null : sahm >= 0.5 ? 2 : 0;
 
-  let signal, extraBuy, niveau, subtitle;
-  if (score >= 6)      { signal = 'buy_large';  extraBuy = BUY_LARGE;  niveau = 'STORT KØB';  subtitle = 'Score ≥ 6 — stærkt signal'; }
-  else if (score >= 4) { signal = 'buy_medium'; extraBuy = BUY_MEDIUM; niveau = 'MEDIUM KØB'; subtitle = 'Score ≥ 4 — moderat signal'; }
-  else if (score === 3){ signal = 'buy_small';  extraBuy = BUY_SMALL;  niveau = 'LILLE KØB';  subtitle = 'Score = 3 — svagt signal'; }
-  else                 { signal = 'none';       extraBuy = 0;          niveau = 'AFVENT';     subtitle = 'Score < 3 — ingen betingelser'; }
+  let signal, extraBuy, niveau, subtitle, cls;
+  if (score >= 7)      { signal = 'buy_large';  extraBuy = 25000; niveau = 'STORT KØB';  subtitle = 'Score ≥ 7'; cls = 'green'; }
+  else if (score >= 4) { signal = 'buy_medium'; extraBuy = 12500; niveau = 'MEDIUM KØB'; subtitle = 'Score 4–6'; cls = 'green'; }
+  else if (score === 3){ signal = 'buy_small';  extraBuy = 6250;  niveau = 'LILLE KØB';  subtitle = 'Score = 3'; cls = 'amber'; }
+  else                 { signal = 'none';       extraBuy = 0;     niveau = 'AFVENT';     subtitle = 'Score 0–2'; cls = 'dim';   }
 
-  let renteNote = 'Ingen rentefilter aktiv';
-  if (yld?.change != null) {
-    if (yld.change >= 0.30)  renteNote = '10Y steget kraftigt → halvér køb';
-    else if (yld.change <= -0.30) renteNote = '10Y faldet kraftigt → fuld størrelse';
-  }
-
-  return { score, signal, extraBuy, niveau, subtitle, renteNote, pts: { sp: spPts, fg: fgPts, ism: ismPts, sahm: sahmPts } };
+  return { score, signal, extraBuy, niveau, subtitle, cls, pts: { sp: spPts, fg: fgPts, ism: ismPts, sahm: sahmPts } };
 }
 
-function fmtN(n, d = 0) {
-  return n.toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d });
-}
+// ── Render ────────────────────────────────────────────────────────────────────
+function render({ fg, sp, ism, sahm }, fromCache, cacheAge) {
+  const { score, niveau, extraBuy, subtitle, cls, pts } = computeSignal({ fg, sp, ism, sahm });
+  const cooldown = loadCooldown();
 
-// Render
-function render({ fg, sp, ism, yld, unemp }, fromCache, cacheAge) {
-  const { score, niveau, extraBuy, subtitle, renteNote, pts } = computeSignal({ fg, sp, ism, yld, unemp });
-  const isAmber = niveau === 'AFVENT' || niveau === 'LILLE KØB';
-  const isGreen = niveau === 'MEDIUM KØB' || niveau === 'STORT KØB';
-  const cls = isGreen ? 'green' : isAmber ? 'amber' : 'red';
+  // Signal card border
+  $('signal-card').className = `card signal-card ${cls === 'green' ? '' : cls === 'amber' ? 'amber' : cls === 'dim' ? 'dim' : ''}`;
 
-  $('signal-card').className = `card signal-card ${cls}`;
+  // Signal name + DKK
   $('signal-dot').className  = `signal-dot ${cls}`;
   $('signal-name').className = `signal-name ${cls}`;
-  $('signal-name').textContent  = niveau;
+  $('signal-name').textContent = niveau;
   $('signal-pct').className  = `signal-pct ${cls}`;
   $('signal-pct').textContent = extraBuy > 0 ? fmtN(extraBuy, 0) + ' kr.' : '—';
-  $('signal-subtitle').textContent = subtitle;
-  $('rente-status').textContent    = renteNote;
+  $('signal-subtitle').textContent = subtitle + (cooldown.active ? ' · Cooldown aktiv' : '');
+
+  // Score
   $('signal-score-val').textContent = `${score} / 10`;
 
-  // Tabel — aktuelle værdier
+  // Tabel
   const spPct = sp.drawdown;
-  const spTcls = pts.sp >= 4 ? 't-red' : pts.sp >= 2 ? 't-amber' : 't-green';
-  $('tbl-sp').innerHTML = `<span class="${spTcls}">${fmtN(spPct,1)}%</span>`;
+  $('tbl-sp').innerHTML  = `<span class="${pts.sp > 0 ? 't-red' : ''}">${fmtN(spPct, 1)}%</span>`;
   $('tbl-sp-pts').innerHTML = pts.sp > 0 ? `<span class="t-red">+${pts.sp}</span>` : `<span class="t-dim">+0</span>`;
 
-  const fgTcls = pts.fg >= 2 ? 't-red' : pts.fg >= 1 ? 't-amber' : 't-green';
-  $('tbl-fg').innerHTML = `<span class="${fgTcls}">${Math.round(fg)}</span>`;
+  $('tbl-fg').innerHTML  = `<span class="${pts.fg > 0 ? 't-red' : ''}">${Math.round(fg)}</span>`;
   $('tbl-fg-pts').innerHTML = pts.fg > 0 ? `<span class="t-red">+${pts.fg}</span>` : `<span class="t-dim">+0</span>`;
 
   const ismVal = ism?.val ?? null;
   if (ismVal != null) {
-    const ismTcls = pts.ism >= 2 ? 't-red' : pts.ism >= 1 ? 't-amber' : '';
-    $('tbl-ism').innerHTML = `<span class="${ismTcls}">${fmtN(ismVal,1)}</span>`;
+    $('tbl-ism').innerHTML = `<span class="${pts.ism > 0 ? 't-red' : ''}">${fmtN(ismVal, 1)}</span>`;
     $('tbl-ism-pts').innerHTML = pts.ism > 0 ? `<span class="t-red">+${pts.ism}</span>` : `<span class="t-dim">+0</span>`;
   } else {
     $('tbl-ism').textContent = 'N/A';
     $('tbl-ism-pts').textContent = '—';
   }
 
-  if (unemp != null) {
-    const sahmTcls = pts.sahm >= 2 ? 't-red' : '';
-    $('tbl-sahm').innerHTML = `<span class="${sahmTcls}">${fmtN(unemp.sahm, 2)}</span>`;
+  if (sahm != null) {
+    $('tbl-sahm').innerHTML = `<span class="${pts.sahm > 0 ? 't-red' : ''}">${fmtN(sahm, 2)}</span>`;
     $('tbl-sahm-pts').innerHTML = pts.sahm > 0 ? `<span class="t-red">+${pts.sahm}</span>` : `<span class="t-dim">+0</span>`;
   } else {
     $('tbl-sahm').textContent = 'N/A';
     $('tbl-sahm-pts').textContent = '—';
   }
 
-  // Gauge
-  updateGauge(fg);
-  const fgLabel = fg <= 25 ? 'Extrem frygt' : fg <= 45 ? 'Fear' : fg <= 55 ? 'Neutral' : fg <= 75 ? 'Greed' : 'Extrem greed';
-  const fgBCls  = fg <= 25 ? 'gb-xfear' : fg <= 45 ? 'gb-fear' : fg <= 55 ? 'gb-neut' : fg <= 75 ? 'gb-greed' : 'gb-xgreed';
-  const fgBadge = $('fg-badge');
-  fgBadge.textContent = fgLabel;
-  fgBadge.className   = `gauge-badge ${fgBCls}`;
-  $('fg-date').textContent = `Dato: ${new Date().toISOString().slice(0,10)}`;
-
-  // S&P card
-  $('sp-price').textContent = fmtN(sp.latest, 0);
-  $('sp-high').textContent  = fmtN(sp.high52, 0);
-  const spBBcls = spPct <= -25 ? 'b-red' : spPct <= -18 ? 'b-amber' : 'b-red';
-  const spBadge = $('sp-badge');
-  spBadge.textContent = `${fmtN(spPct,2)}% fra ATH`;
-  spBadge.className   = `badge ${spBBcls}`;
-
-  // ISM card
-  if (ismVal != null) {
-    $('ism-num').textContent  = fmtN(ismVal, 1);
-    $('ism-num').style.color  = ismVal <= 45 ? 'var(--red)' : ismVal <= 48 ? 'var(--amber)' : 'var(--text)';
-    const ismPrev = ism.prev ?? null;
-    const ismChg  = ismPrev != null ? ismVal - ismPrev : null;
-    $('ism-arrow').innerHTML  = ismChg != null
-      ? `<span class="${ismChg < 0 ? 'arrow-d' : 'arrow-u'}">${ismChg < 0 ? '↓' : '↑'}</span>` : '';
-    const now = new Date();
-    $('ism-date-lbl').textContent = now.toISOString().slice(0, 7); // YYYY-MM
-    $('ism-prev').textContent = ismPrev != null ? fmtN(ismPrev, 1) : '—';
-    const chgEl = $('ism-chg');
-    chgEl.textContent = ismChg != null ? (ismChg >= 0 ? '+' : '') + fmtN(ismChg, 1) : '—';
-    chgEl.className   = `sub-cell-val ${ismChg != null ? (ismChg < 0 ? 'cv-neg' : 'cv-pos') : ''}`;
-    $('ism-badge-wrap').innerHTML = ismVal < 50
-      ? `<span class="badge b-red">Kontraktion &lt; 50</span>`
-      : `<span class="badge b-green">Ekspansion ≥ 50</span>`;
-    if (ism.source === 'manual') {
-      const di = $('ism-date-note');
-      if (di) di.textContent = `Manuelt sat: ${new Date(ism.ts).toLocaleDateString('da-DK')}`;
-    }
+  // Cooldown
+  const cdInfo = $('cooldown-info');
+  if (cooldown.active) {
+    cdInfo.className = 'cooldown-info active';
+    $('cooldown-txt').innerHTML = `Næste køb tidligst: <span>${cooldown.nextDate}</span> (${cooldown.daysLeft} dage)`;
   } else {
-    $('ism-num').textContent = 'N/A';
-  }
-
-  // Yield card
-  if (yld) {
-    $('yield-num').textContent = fmtN(yld.current, 2);
-    $('yield-30d').textContent = fmtN(yld.ago30, 2) + '%';
-    const chg = yld.change;
-    const yB  = $('yield-badge');
-    yB.textContent = (chg >= 0 ? '+' : '') + fmtN(chg, 2) + ' pp';
-    yB.className   = `badge ${chg >= 0.30 ? 'b-red' : chg <= -0.30 ? 'b-green' : 'b-amber'}`;
-  } else {
-    $('yield-num').textContent = 'N/A';
-    $('yield-30d').textContent = '—';
+    cdInfo.className = 'cooldown-info';
+    $('cooldown-txt').innerHTML = `Cooldown: <span>ingen aktiv</span>`;
   }
 
   // Banner
   $('banner-txt').textContent = fromCache
-    ? `Cache · ${Math.round(cacheAge/60000)}m gammel`
-    : 'Live data hentet';
+    ? `Cache · ${Math.round(cacheAge / 60000)}m gammel · ISM: ${ism?.source === 'default' ? 'standardværdi' : 'gemt'}`
+    : `Live data hentet · ISM: ${ism?.source === 'default' ? 'standardværdi — indtast manuelt' : 'gemt'}`;
 
   $('loader').classList.add('hidden');
   $('content').classList.remove('hidden');
 }
 
-// Footer opdatering — ISM PMI
+// ── ISM footer ────────────────────────────────────────────────────────────────
 function submitISM() {
   const raw = parseFloat($('ism-val-input').value);
   if (isNaN(raw) || raw < 30 || raw > 70) { alert('Indtast en gyldig ISM PMI-værdi (30–70)'); return; }
@@ -1120,26 +621,25 @@ function submitISM() {
 $('ism-save-btn').addEventListener('click', submitISM);
 $('ism-val-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitISM(); });
 
-// Footer opdatering — Sahm-regel
-function submitSahm() {
-  const raw = parseFloat($('sahm-val-input').value);
-  if (isNaN(raw) || raw < 0 || raw > 3) { alert('Indtast en gyldig Sahm-værdi (0.00–3.00)'); return; }
-  saveSahm(raw);
-  $('sahm-val-input').value = '';
-  loadData(true);
-}
-$('sahm-save-btn').addEventListener('click', submitSahm);
-$('sahm-val-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitSahm(); });
+// ── Cooldown-knap ─────────────────────────────────────────────────────────────
+$('reg-buy-btn').addEventListener('click', () => {
+  const cd = loadCooldown();
+  const msg = cd.active
+    ? `Der er stadig ${cd.daysLeft} dage af din cooldown (til ${cd.nextDate}).\nVil du alligevel nulstille og registrere et nyt køb i dag?`
+    : 'Registrer køb i dag? Næste køb kan tidligst ske om 90 dage.';
+  if (!confirm(msg)) return;
+  saveCooldown();
+  const cached = loadCache();
+  if (cached) render(Object.assign({}, cached.data, { ism: loadISM() }), true, Date.now() - (Date.now() - CACHE_TTL + 1));
+});
 
-// Main
+// ── loadData ──────────────────────────────────────────────────────────────────
 async function loadData(force = false) {
   $('refresh-btn').disabled = true;
   if (!force) {
     const cached = loadCache();
     if (cached) {
-      const ism   = loadISM();
-      const unemp = cached.data.unemp || loadSahm();
-      render(Object.assign({}, cached.data, { ism, unemp }), true, cached.age);
+      render(Object.assign({}, cached.data, { ism: loadISM() }), true, cached.age);
       $('refresh-btn').disabled = false;
       return;
     }
@@ -1147,23 +647,20 @@ async function loadData(force = false) {
   $('loader').classList.remove('hidden');
   $('content').classList.add('hidden');
   try {
-    const [fg, sp, yld, unempAuto] = await Promise.all([
+    const [fg, sp, sahm] = await Promise.all([
       fetchFearGreed(),
       fetchSP500(),
-      fetchYield().catch(e => { console.warn('Yield fejl:', e.message); return null; }),
-      fetchUnemployment().catch(e => { console.warn('Unemployment fejl:', e.message); return null; }),
+      fetchSahm().catch(e => { console.warn('Sahm fejl:', e.message); return null; }),
     ]);
-    const ism   = loadISM();
-    const unemp = unempAuto || loadSahm();
-    const data  = { fg, sp, yld, unemp };
+    const ism  = loadISM();
+    const data = { fg, sp, sahm };
     saveCache(data);
     render(Object.assign({}, data, { ism }), false, 0);
   } catch(err) {
     $('loader').classList.add('hidden');
     const cached = loadCache();
     if (cached) {
-      const ism = loadISM();
-      render(Object.assign({}, cached.data, { ism }), true, cached.age);
+      render(Object.assign({}, cached.data, { ism: loadISM() }), true, cached.age);
     } else {
       $('content').classList.remove('hidden');
       alert(`Datafejl: ${err.message}`);
