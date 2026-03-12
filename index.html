@@ -760,7 +760,7 @@
         <a href="https://tradingeconomics.com/united-states/business-confidence" target="_blank" class="footer-ext-link">↗ Se seneste tal</a>
         <div class="footer-input-wrap">
           <input id="ism-val-input" type="number" step="0.1" min="30" max="70" placeholder="f.eks. 52.4" class="footer-input" />
-          <button id="ism-save-btn" class="footer-btn">Opdater</button>
+          <button id="ism-save-btn" class="footer-btn">OK</button>
         </div>
       </div>
       <!-- Sahm række -->
@@ -769,7 +769,7 @@
         <a href="https://fred.stlouisfed.org/series/UNRATE" target="_blank" class="footer-ext-link">↗ Se UNRATE (FRED)</a>
         <div class="footer-input-wrap">
           <input id="sahm-val-input" type="number" step="0.01" min="0" max="3" placeholder="f.eks. 0.23" class="footer-input" />
-          <button id="sahm-save-btn" class="footer-btn">Opdater</button>
+          <button id="sahm-save-btn" class="footer-btn">OK</button>
         </div>
       </div>
     </div>
@@ -1110,22 +1110,26 @@ function render({ fg, sp, ism, yld, unemp }, fromCache, cacheAge) {
 }
 
 // Footer opdatering — ISM PMI
-$('ism-save-btn').addEventListener('click', () => {
+function submitISM() {
   const raw = parseFloat($('ism-val-input').value);
   if (isNaN(raw) || raw < 30 || raw > 70) { alert('Indtast en gyldig ISM PMI-værdi (30–70)'); return; }
   saveISM(raw);
   $('ism-val-input').value = '';
   loadData(true);
-});
+}
+$('ism-save-btn').addEventListener('click', submitISM);
+$('ism-val-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitISM(); });
 
 // Footer opdatering — Sahm-regel
-$('sahm-save-btn').addEventListener('click', () => {
+function submitSahm() {
   const raw = parseFloat($('sahm-val-input').value);
   if (isNaN(raw) || raw < 0 || raw > 3) { alert('Indtast en gyldig Sahm-værdi (0.00–3.00)'); return; }
   saveSahm(raw);
   $('sahm-val-input').value = '';
   loadData(true);
-});
+}
+$('sahm-save-btn').addEventListener('click', submitSahm);
+$('sahm-val-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitSahm(); });
 
 // Main
 async function loadData(force = false) {
