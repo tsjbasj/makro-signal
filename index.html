@@ -497,18 +497,28 @@
     @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
     .hidden { display: none !important; }
 
-    /* ISM input */
-    #ism-input-row {
-      display: none;
+    /* ISM footer bar */
+    #ism-footer-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
       background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      padding: 14px 16px;
+      border-top: 1px solid var(--border2);
+      padding: 10px 20px;
       font-family: var(--font-mono);
       font-size: 0.78rem;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 100;
     }
-    #ism-input-row label { color: var(--muted); display: block; margin-bottom: 8px; }
-    #ism-input-row .row { display: flex; gap: 8px; align-items: center; }
+    #ism-footer-link {
+      color: var(--accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    #ism-footer-link:hover { text-decoration: underline; }
+    #ism-footer-input-wrap { display: flex; gap: 8px; align-items: center; margin-left: auto; }
     #ism-val-input {
       background: var(--bg);
       border: 1px solid var(--border2);
@@ -684,8 +694,6 @@
           </div>
           <div id="ism-badge-wrap" style="margin-bottom:8px;"></div>
           <div class="small-note">Signal: ≤ 48 → 12½% ekstrakøb · 50 = neutral grænse</div>
-          <div class="edit-lnk" onclick="toggleISMInput()">rediger manuelt</div>
-          <div class="small-note" style="margin-top:4px;"><a href="https://www.ismworld.org/supply-management-news-and-reports/reports/ism-report-on-business/pmi/" target="_blank" style="color:var(--accent);text-decoration:none;">→ find ISM PMI på ismworld.org</a></div>
         </div>
       </div>
 
@@ -714,14 +722,13 @@
 
     </div><!-- /metric-grid -->
 
-    <!-- ISM manual input -->
-    <div id="ism-input-row">
-      <label>Manuel override — ISM Manufacturing PMI</label>
-      <div class="row">
-        <input id="ism-val-input" type="number" step="0.1" min="30" max="70" placeholder="f.eks. 49.0" />
-        <button id="ism-save-btn">Gem</button>
+    <!-- ISM footer bar -->
+    <div id="ism-footer-bar">
+      <a href="https://tradingeconomics.com/united-states/business-confidence" target="_blank" id="ism-footer-link">↗ Se seneste ISM PMI tal</a>
+      <div id="ism-footer-input-wrap">
+        <input id="ism-val-input" type="number" step="0.1" min="30" max="70" placeholder="f.eks. 52.4" />
+        <button id="ism-save-btn">Opdater</button>
       </div>
-      <div id="ism-date-note"></div>
     </div>
 
     <!-- Rules -->
@@ -822,10 +829,10 @@ function saveISM(val) {
 function loadISM() {
   try {
     const o = JSON.parse(localStorage.getItem(ISM_KEY) || 'null') || {};
-    if (o.val && o.ts && Date.now() - o.ts < ISM_TTL)
-      return { val: parseFloat(o.val), ts: o.ts, prev: null, source: 'manual' };
+    if (o.val != null) return { val: parseFloat(o.val), ts: o.ts || Date.now(), prev: null, source: 'manual' };
   } catch(_) {}
-  return null;
+  // Standardværdi: februar 2026
+  return { val: 52.4, ts: Date.now(), prev: null, source: 'default' };
 }
 
 // Proxy fetch
@@ -854,16 +861,8 @@ async function fetchSP500() {
   return { latest, high52, drawdown: (latest / high52 - 1) * 100 };
 }
 async function fetchISM() {
-  // Læser fra data/pmi.json — opdateres månedligt af GitHub Action (scripts/fetch-pmi.js)
-  const res = await fetch('/data/pmi.json?_=' + Date.now());
-  if (!res.ok) throw new Error(`pmi.json HTTP ${res.status}`);
-  const data = await res.json();
-  if (!data.latest || data.latest.value == null) throw new Error('pmi.json mangler data');
-  const val  = parseFloat(data.latest.value);
-  if (isNaN(val) || val < 30 || val > 70) throw new Error('Ugyldig PMI i pmi.json: ' + data.latest.value);
-  const hist = data.history || [];
-  const prev = hist.length >= 2 ? parseFloat(hist[hist.length - 2].value) : null;
-  return { val, prev, ts: new Date(data.latest.date).getTime(), source: 'auto' };
+  // ISM PMI sættes manuelt via footer-bjælken — ingen automatisk datakilde
+  return null;
 }
 async function fetchYield() {
   const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10');
@@ -963,10 +962,8 @@ function render({ fg, sp, ism, yld }, fromCache, cacheAge) {
     const ismChg  = ismPrev != null ? ismVal - ismPrev : null;
     $('ism-arrow').innerHTML  = ismChg != null
       ? `<span class="${ismChg < 0 ? 'arrow-d' : 'arrow-u'}">${ismChg < 0 ? '↓' : '↑'}</span>` : '';
-    if (ism.ts) {
-      const d = new Date(ism.ts);
-      $('ism-date-lbl').textContent = d.toLocaleDateString('da-DK', { month: 'short', year: 'numeric' });
-    }
+    const now = new Date();
+    $('ism-date-lbl').textContent = now.toISOString().slice(0, 7); // YYYY-MM
     $('ism-prev').textContent = ismPrev != null ? fmtN(ismPrev, 1) : '—';
     const chgEl = $('ism-chg');
     chgEl.textContent = ismChg != null ? (ismChg >= 0 ? '+' : '') + fmtN(ismChg, 1) : '—';
@@ -1004,16 +1001,12 @@ function render({ fg, sp, ism, yld }, fromCache, cacheAge) {
   $('content').classList.remove('hidden');
 }
 
-// ISM input
-window.toggleISMInput = function() {
-  const r = $('ism-input-row');
-  r.style.display = r.style.display === 'block' ? 'none' : 'block';
-};
+// ISM footer opdatering
 $('ism-save-btn').addEventListener('click', () => {
   const raw = parseFloat($('ism-val-input').value);
-  if (isNaN(raw) || raw < 30 || raw > 70) { alert('Indtast en gyldig ISM PMI-værdi (30 til 70)'); return; }
+  if (isNaN(raw) || raw < 30 || raw > 70) { alert('Indtast en gyldig ISM PMI-værdi (30–70)'); return; }
   saveISM(raw);
-  $('ism-input-row').style.display = 'none';
+  $('ism-val-input').value = '';
   loadData(true);
 });
 
