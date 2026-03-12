@@ -38,7 +38,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 32px 16px 80px;
+      padding: 32px 16px 110px;
     }
 
     .page { width: 100%; max-width: 860px; display: flex; flex-direction: column; gap: 16px; }
@@ -511,46 +511,59 @@
     /* ISM footer bar */
     #ism-footer-bar {
       display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 0;
       background: var(--surface2);
       border-top: 1px solid var(--border2);
-      padding: 10px 20px;
       font-family: var(--font-mono);
       font-size: 0.78rem;
       position: fixed;
       bottom: 0; left: 0; right: 0;
       z-index: 100;
     }
-    #ism-footer-link {
+    .footer-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 8px 20px;
+    }
+    .footer-row + .footer-row {
+      border-top: 1px solid var(--border2);
+    }
+    .footer-lbl {
+      color: var(--muted);
+      letter-spacing: 0.07em;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+    }
+    .footer-ext-link {
       color: var(--accent);
       text-decoration: none;
       white-space: nowrap;
     }
-    #ism-footer-link:hover { text-decoration: underline; }
-    #ism-footer-input-wrap { display: flex; gap: 8px; align-items: center; margin-left: auto; }
-    #ism-val-input {
+    .footer-ext-link:hover { text-decoration: underline; }
+    .footer-input-wrap { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+    .footer-input {
       background: var(--bg);
       border: 1px solid var(--border2);
       color: var(--text);
-      padding: 7px 10px;
+      padding: 6px 10px;
       border-radius: 6px;
       font-family: var(--font-mono);
       font-size: 0.85rem;
-      width: 120px;
+      width: 110px;
     }
-    #ism-save-btn {
+    .footer-btn {
       background: var(--blue);
       color: #fff;
       border: none;
-      padding: 7px 14px;
+      padding: 6px 13px;
       border-radius: 6px;
       font-family: var(--font-mono);
       font-size: 0.82rem;
       cursor: pointer;
     }
-    #ism-date-note { color: var(--dim); font-size: 0.7rem; margin-top: 6px; }
 
     @media (max-width: 580px) {
       .metric-grid, .rules-grid { grid-template-columns: 1fr; }
@@ -741,10 +754,23 @@
 
     <!-- ISM footer bar -->
     <div id="ism-footer-bar">
-      <a href="https://tradingeconomics.com/united-states/business-confidence" target="_blank" id="ism-footer-link">↗ Se seneste ISM PMI tal</a>
-      <div id="ism-footer-input-wrap">
-        <input id="ism-val-input" type="number" step="0.1" min="30" max="70" placeholder="f.eks. 52.4" />
-        <button id="ism-save-btn">Opdater</button>
+      <!-- PMI række -->
+      <div class="footer-row">
+        <span class="footer-lbl">ISM PMI</span>
+        <a href="https://tradingeconomics.com/united-states/business-confidence" target="_blank" class="footer-ext-link">↗ Se seneste tal</a>
+        <div class="footer-input-wrap">
+          <input id="ism-val-input" type="number" step="0.1" min="30" max="70" placeholder="f.eks. 52.4" class="footer-input" />
+          <button id="ism-save-btn" class="footer-btn">Opdater</button>
+        </div>
+      </div>
+      <!-- Sahm række -->
+      <div class="footer-row">
+        <span class="footer-lbl">Sahm-regel</span>
+        <a href="https://fred.stlouisfed.org/series/UNRATE" target="_blank" class="footer-ext-link">↗ Se UNRATE (FRED)</a>
+        <div class="footer-input-wrap">
+          <input id="sahm-val-input" type="number" step="0.01" min="0" max="3" placeholder="f.eks. 0.23" class="footer-input" />
+          <button id="sahm-save-btn" class="footer-btn">Opdater</button>
+        </div>
       </div>
     </div>
 
@@ -789,6 +815,7 @@
 <script>
 const CACHE_KEY = 'mks_v8_data';
 const ISM_KEY   = 'mks_ism_manual';
+const SAHM_KEY  = 'mks_sahm_manual';
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 const ISM_TTL   = 35 * 24 * 60 * 60 * 1000;
 
@@ -850,6 +877,18 @@ function loadISM() {
   } catch(_) {}
   // Standardværdi: februar 2026
   return { val: 52.4, ts: Date.now(), prev: null, source: 'default' };
+}
+
+// Sahm manual
+function saveSahm(val) {
+  localStorage.setItem(SAHM_KEY, JSON.stringify({ val, ts: Date.now(), source: 'manual' }));
+}
+function loadSahm() {
+  try {
+    const o = JSON.parse(localStorage.getItem(SAHM_KEY) || 'null') || {};
+    if (o.val != null) return { current: null, low12m: null, sahm: parseFloat(o.val), source: 'manual' };
+  } catch(_) {}
+  return null;
 }
 
 // Proxy fetch
@@ -1070,12 +1109,21 @@ function render({ fg, sp, ism, yld, unemp }, fromCache, cacheAge) {
   $('content').classList.remove('hidden');
 }
 
-// ISM footer opdatering
+// Footer opdatering — ISM PMI
 $('ism-save-btn').addEventListener('click', () => {
   const raw = parseFloat($('ism-val-input').value);
   if (isNaN(raw) || raw < 30 || raw > 70) { alert('Indtast en gyldig ISM PMI-værdi (30–70)'); return; }
   saveISM(raw);
   $('ism-val-input').value = '';
+  loadData(true);
+});
+
+// Footer opdatering — Sahm-regel
+$('sahm-save-btn').addEventListener('click', () => {
+  const raw = parseFloat($('sahm-val-input').value);
+  if (isNaN(raw) || raw < 0 || raw > 3) { alert('Indtast en gyldig Sahm-værdi (0.00–3.00)'); return; }
+  saveSahm(raw);
+  $('sahm-val-input').value = '';
   loadData(true);
 });
 
@@ -1085,8 +1133,9 @@ async function loadData(force = false) {
   if (!force) {
     const cached = loadCache();
     if (cached) {
-      const ism = loadISM();
-      render(Object.assign({}, cached.data, { ism }), true, cached.age);
+      const ism   = loadISM();
+      const unemp = cached.data.unemp || loadSahm();
+      render(Object.assign({}, cached.data, { ism, unemp }), true, cached.age);
       $('refresh-btn').disabled = false;
       return;
     }
@@ -1094,14 +1143,15 @@ async function loadData(force = false) {
   $('loader').classList.remove('hidden');
   $('content').classList.add('hidden');
   try {
-    const [fg, sp, yld, unemp] = await Promise.all([
+    const [fg, sp, yld, unempAuto] = await Promise.all([
       fetchFearGreed(),
       fetchSP500(),
       fetchYield().catch(e => { console.warn('Yield fejl:', e.message); return null; }),
       fetchUnemployment().catch(e => { console.warn('Unemployment fejl:', e.message); return null; }),
     ]);
-    const ism  = loadISM();
-    const data = { fg, sp, yld, unemp };
+    const ism   = loadISM();
+    const unemp = unempAuto || loadSahm();
+    const data  = { fg, sp, yld, unemp };
     saveCache(data);
     render(Object.assign({}, data, { ism }), false, 0);
   } catch(err) {
