@@ -203,6 +203,17 @@
     .dot-g { color: var(--green); }
     .dot-a { color: var(--amber); }
     .dot-r { color: var(--red); }
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0 2px;
+      border-top: 1px solid var(--border2);
+      margin-top: 4px;
+      font-family: var(--font-mono);
+    }
+    .score-lbl { font-size: 0.7rem; letter-spacing: 0.1em; color: var(--muted); }
+    #signal-score-val { font-size: 1rem; font-weight: 700; color: var(--text); }
 
     /* Rente strip */
     .rente-strip {
@@ -578,7 +589,7 @@
       <div class="card-inner">
         <div class="signal-header">
           <div class="signal-label">STRATEGISIGNAL · KVARTALSKØB</div>
-          <div class="signal-label-right">ANBEFALET KØB</div>
+          <div class="signal-label-right">EKSTRA KØB (DKK)</div>
         </div>
         <div class="signal-body">
           <div class="signal-left">
@@ -595,35 +606,41 @@
             <tr>
               <th>Indikator</th>
               <th>Aktuel</th>
-              <th class="c"><span class="dot-g">●</span> 12½%</th>
-              <th class="c"><span class="dot-a">●</span> 25%</th>
-              <th class="c"><span class="dot-r">●</span> Stort</th>
+              <th class="c t-dim">Tærskler</th>
+              <th class="c">Point</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>S&amp;P 500 fra 52w high</td>
+              <td>S&amp;P 500 fra ATH</td>
               <td id="tbl-sp">—</td>
-              <td class="c">≤ −12%</td>
-              <td class="c">≤ −18%</td>
-              <td class="c">≤ −25%</td>
+              <td class="c t-dim">≥15%→+2 · ≥25%→+4</td>
+              <td class="c" id="tbl-sp-pts">—</td>
             </tr>
             <tr>
               <td>Fear &amp; Greed Index</td>
               <td id="tbl-fg">—</td>
-              <td class="c">≤ 35</td>
-              <td class="c">≤ 25</td>
-              <td class="c t-dim">–</td>
+              <td class="c t-dim">≤35→+1 · ≤20→+2</td>
+              <td class="c" id="tbl-fg-pts">—</td>
             </tr>
             <tr>
               <td>ISM Mfg. PMI</td>
               <td id="tbl-ism">—</td>
-              <td class="c">≤ −5</td>
-              <td class="c t-dim">–</td>
-              <td class="c t-dim">–</td>
+              <td class="c t-dim">≤49→+1 · ≤47→+2</td>
+              <td class="c" id="tbl-ism-pts">—</td>
+            </tr>
+            <tr>
+              <td>Sahm-regel (ledighedsstigning)</td>
+              <td id="tbl-sahm">—</td>
+              <td class="c t-dim">≥0,5 pp→+2</td>
+              <td class="c" id="tbl-sahm-pts">—</td>
             </tr>
           </tbody>
         </table>
+        <div class="score-row">
+          <span class="score-lbl">SCORE</span>
+          <span id="signal-score-val">0 / 10</span>
+        </div>
       </div>
       <div class="rente-strip">
         <span>⚖</span>
@@ -876,31 +893,67 @@ async function fetchYield() {
   return { current, ago30, change: current - ago30 };
 }
 
-// Signal logic
-function computeSignal({ fg, sp, ism, yld }) {
-  const spPct  = sp.drawdown;
-  const ismVal = ism?.val ?? null;
-  const yldChg = yld?.change ?? null;
-  let niveau = '', niveauPct = '';
-  if (spPct <= -25)                              { niveau = 'STORT KØB';      niveauPct = 'Stort'; }
-  else if (spPct <= -18 || fg <= 25)             { niveau = '25% EKSTRAKØB'; niveauPct = '25%'; }
-  else if (spPct <= -12 || fg <= 35 || (ismVal != null && ismVal <= 48))
-                                                 { niveau = '12,5% EKSTRAKØB'; niveauPct = '12,5%'; }
-  else if (spPct > -8 && fg > 45 && (ismVal == null || ismVal >= 50))
-                                                 { niveau = 'MÅ IKKE KØBE'; niveauPct = '0%'; }
-  else                                           { niveau = 'VENT';          niveauPct = 'VENT'; }
-  let subtitle = '';
-  if (niveau === '12,5% EKSTRAKØB') subtitle = 'Mindst én købsbetingelse opfyldt';
-  else if (niveau === '25% EKSTRAKØB') subtitle = 'Stærk købsbetingelse opfyldt';
-  else if (niveau === 'STORT KØB') subtitle = 'Ekstrem markedsbetingelse';
-  else if (niveau === 'MÅ IKKE KØBE') subtitle = 'Ingen betingelser opfyldt';
-  else subtitle = 'Venter på signal';
+async function fetchUnemployment() {
+  // FRED UNRATE — månedlig ledighed, bruges til Sahm-regel: current - min(forrige 12 mdr)
+  const res  = await proxyFetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=UNRATE');
+  const text = await res.text();
+  const vals = text.trim().split('\n')
+    .filter(r => r && !r.startsWith('DATE') && !r.includes('ND'))
+    .map(r => parseFloat(r.split(',')[1]))
+    .filter(v => !isNaN(v));
+  if (vals.length < 13) throw new Error('For lidt UNRATE data');
+  const current = vals[vals.length - 1];
+  const prev12  = vals.slice(-13, -1);
+  const low12m  = Math.min(...prev12);
+  return { current, low12m, sahm: parseFloat((current - low12m).toFixed(2)) };
+}
+
+// Signal logic — investmentSignal scoring system (max 10 point)
+function computeSignal({ fg, sp, ism, yld, unemp }) {
+  const ANNUAL_BUDGET = 50000;
+  const BUY_SMALL  = ANNUAL_BUDGET * 0.125; // 6.250 kr
+  const BUY_MEDIUM = ANNUAL_BUDGET * 0.25;  // 12.500 kr
+  const BUY_LARGE  = ANNUAL_BUDGET * 0.50;  // 25.000 kr
+
+  // Drawdown som positiv brøk (0.15 = 15% ned fra ATH)
+  const drawdown = -(sp.drawdown / 100);
+  const ismVal   = ism?.val ?? null;
+  const sahm     = unemp?.sahm ?? null;
+
+  let score = 0;
+
+  // S&P 500 — maks +4
+  if (drawdown >= 0.15) score += 2;
+  if (drawdown >= 0.25) score += 2;
+  const spPts = drawdown >= 0.25 ? 4 : drawdown >= 0.15 ? 2 : 0;
+
+  // Fear & Greed — maks +2
+  if (fg <= 35) score += 1;
+  if (fg <= 20) score += 1;
+  const fgPts = fg <= 20 ? 2 : fg <= 35 ? 1 : 0;
+
+  // ISM PMI — maks +2
+  if (ismVal != null && ismVal <= 49) score += 1;
+  if (ismVal != null && ismVal <= 47) score += 1;
+  const ismPts = ismVal == null ? null : ismVal <= 47 ? 2 : ismVal <= 49 ? 1 : 0;
+
+  // Sahm-regel — maks +2
+  if (sahm != null && sahm >= 0.5) score += 2;
+  const sahmPts = sahm == null ? null : sahm >= 0.5 ? 2 : 0;
+
+  let signal, extraBuy, niveau, subtitle;
+  if (score >= 6)      { signal = 'buy_large';  extraBuy = BUY_LARGE;  niveau = 'STORT KØB';  subtitle = 'Score ≥ 6 — stærkt signal'; }
+  else if (score >= 4) { signal = 'buy_medium'; extraBuy = BUY_MEDIUM; niveau = 'MEDIUM KØB'; subtitle = 'Score ≥ 4 — moderat signal'; }
+  else if (score === 3){ signal = 'buy_small';  extraBuy = BUY_SMALL;  niveau = 'LILLE KØB';  subtitle = 'Score = 3 — svagt signal'; }
+  else                 { signal = 'none';       extraBuy = 0;          niveau = 'AFVENT';     subtitle = 'Score < 3 — ingen betingelser'; }
+
   let renteNote = 'Ingen rentefilter aktiv';
-  if (yldChg != null) {
-    if (yldChg >= 0.30) renteNote = '10Y steget kraftigt → halvér køb';
-    else if (yldChg <= -0.30) renteNote = '10Y faldet kraftigt → fuld størrelse';
+  if (yld?.change != null) {
+    if (yld.change >= 0.30)  renteNote = '10Y steget kraftigt → halvér køb';
+    else if (yld.change <= -0.30) renteNote = '10Y faldet kraftigt → fuld størrelse';
   }
-  return { niveau, niveauPct, subtitle, renteNote };
+
+  return { score, signal, extraBuy, niveau, subtitle, renteNote, pts: { sp: spPts, fg: fgPts, ism: ismPts, sahm: sahmPts } };
 }
 
 function fmtN(n, d = 0) {
@@ -908,33 +961,49 @@ function fmtN(n, d = 0) {
 }
 
 // Render
-function render({ fg, sp, ism, yld }, fromCache, cacheAge) {
-  const { niveau, niveauPct, subtitle, renteNote } = computeSignal({ fg, sp, ism, yld });
-  const isRed   = niveau === 'MÅ IKKE KØBE';
-  const isAmber = niveau === 'VENT' || niveau === '25% EKSTRAKØB' || niveau === 'STORT KØB';
-  const cls = isRed ? 'red' : isAmber ? 'amber' : 'green';
+function render({ fg, sp, ism, yld, unemp }, fromCache, cacheAge) {
+  const { score, niveau, extraBuy, subtitle, renteNote, pts } = computeSignal({ fg, sp, ism, yld, unemp });
+  const isAmber = niveau === 'AFVENT' || niveau === 'LILLE KØB';
+  const isGreen = niveau === 'MEDIUM KØB' || niveau === 'STORT KØB';
+  const cls = isGreen ? 'green' : isAmber ? 'amber' : 'red';
 
   $('signal-card').className = `card signal-card ${cls}`;
   $('signal-dot').className  = `signal-dot ${cls}`;
   $('signal-name').className = `signal-name ${cls}`;
   $('signal-name').textContent  = niveau;
   $('signal-pct').className  = `signal-pct ${cls}`;
-  $('signal-pct').textContent   = niveauPct;
+  $('signal-pct').textContent = extraBuy > 0 ? fmtN(extraBuy, 0) + ' kr.' : '—';
   $('signal-subtitle').textContent = subtitle;
   $('rente-status').textContent    = renteNote;
+  $('signal-score-val').textContent = `${score} / 10`;
 
-  // Table
+  // Tabel — aktuelle værdier
   const spPct = sp.drawdown;
-  const spTcls = spPct <= -25 ? 't-red' : spPct <= -18 ? 't-amber' : spPct <= -12 ? 't-green' : 't-green';
-  $('tbl-sp').innerHTML = `<span class="${spTcls}">✓ ${fmtN(spPct,1)}%</span>`;
-  const fgTcls = fg <= 25 ? 't-red' : fg <= 35 ? 't-green' : 't-green';
-  $('tbl-fg').innerHTML = `<span class="${fgTcls}">✓ ${Math.round(fg)}</span>`;
+  const spTcls = pts.sp >= 4 ? 't-red' : pts.sp >= 2 ? 't-amber' : 't-green';
+  $('tbl-sp').innerHTML = `<span class="${spTcls}">${fmtN(spPct,1)}%</span>`;
+  $('tbl-sp-pts').innerHTML = pts.sp > 0 ? `<span class="t-red">+${pts.sp}</span>` : `<span class="t-dim">+0</span>`;
+
+  const fgTcls = pts.fg >= 2 ? 't-red' : pts.fg >= 1 ? 't-amber' : 't-green';
+  $('tbl-fg').innerHTML = `<span class="${fgTcls}">${Math.round(fg)}</span>`;
+  $('tbl-fg-pts').innerHTML = pts.fg > 0 ? `<span class="t-red">+${pts.fg}</span>` : `<span class="t-dim">+0</span>`;
+
   const ismVal = ism?.val ?? null;
   if (ismVal != null) {
-    const ismTcls = ismVal <= 45 ? 't-red' : ismVal <= 48 ? 't-amber' : '';
-    $('tbl-ism').innerHTML = `<span class="${ismTcls}">✓ ${fmtN(ismVal,1)}</span>`;
+    const ismTcls = pts.ism >= 2 ? 't-red' : pts.ism >= 1 ? 't-amber' : '';
+    $('tbl-ism').innerHTML = `<span class="${ismTcls}">${fmtN(ismVal,1)}</span>`;
+    $('tbl-ism-pts').innerHTML = pts.ism > 0 ? `<span class="t-red">+${pts.ism}</span>` : `<span class="t-dim">+0</span>`;
   } else {
     $('tbl-ism').textContent = 'N/A';
+    $('tbl-ism-pts').textContent = '—';
+  }
+
+  if (unemp != null) {
+    const sahmTcls = pts.sahm >= 2 ? 't-red' : '';
+    $('tbl-sahm').innerHTML = `<span class="${sahmTcls}">${fmtN(unemp.sahm, 2)}</span>`;
+    $('tbl-sahm-pts').innerHTML = pts.sahm > 0 ? `<span class="t-red">+${pts.sahm}</span>` : `<span class="t-dim">+0</span>`;
+  } else {
+    $('tbl-sahm').textContent = 'N/A';
+    $('tbl-sahm-pts').textContent = '—';
   }
 
   // Gauge
@@ -1016,7 +1085,7 @@ async function loadData(force = false) {
   if (!force) {
     const cached = loadCache();
     if (cached) {
-      const ism = cached.data.ismAuto || loadISM();
+      const ism = loadISM();
       render(Object.assign({}, cached.data, { ism }), true, cached.age);
       $('refresh-btn').disabled = false;
       return;
@@ -1025,21 +1094,21 @@ async function loadData(force = false) {
   $('loader').classList.remove('hidden');
   $('content').classList.add('hidden');
   try {
-    const [fg, sp, ismAuto, yld] = await Promise.all([
+    const [fg, sp, yld, unemp] = await Promise.all([
       fetchFearGreed(),
       fetchSP500(),
-      fetchISM().catch(e => { console.warn('ISM fejl:', e.message); return null; }),
       fetchYield().catch(e => { console.warn('Yield fejl:', e.message); return null; }),
+      fetchUnemployment().catch(e => { console.warn('Unemployment fejl:', e.message); return null; }),
     ]);
-    const ism  = ismAuto || loadISM();
-    const data = { fg, sp, ismAuto, yld };
+    const ism  = loadISM();
+    const data = { fg, sp, yld, unemp };
     saveCache(data);
     render(Object.assign({}, data, { ism }), false, 0);
   } catch(err) {
     $('loader').classList.add('hidden');
     const cached = loadCache();
     if (cached) {
-      const ism = cached.data.ismAuto || loadISM();
+      const ism = loadISM();
       render(Object.assign({}, cached.data, { ism }), true, cached.age);
     } else {
       $('content').classList.remove('hidden');
