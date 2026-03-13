@@ -4,674 +4,1084 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Makro Signal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:       #0b0f1a;
-      --surface:  #111827;
-      --surface2: #1a2235;
-      --border:   rgba(255,255,255,0.08);
-      --border2:  rgba(255,255,255,0.14);
-      --text:     #e2e8f0;
-      --muted:    #64748b;
-      --dim:      #334155;
-      --green:    #22c55e;
-      --red:      #ef4444;
-      --amber:    #f59e0b;
-      --blue:     #6366f1;
-      --indigo:   #818cf8;
-      --accent:   #818cf8;
-      --font-mono: 'DM Mono', monospace;
-      --font-sans: 'Inter', system-ui, sans-serif;
-      --font-serif:'DM Serif Display', Georgia, serif;
+      --bg:        #07090f;
+      --surface:   rgba(255,255,255,0.03);
+      --border:    rgba(255,255,255,0.07);
+      --border2:   rgba(255,255,255,0.12);
+      --purple:    #7c3aed;
+      --purple-lt: #a78bfa;
+      --text:      #f1f5f9;
+      --muted:     #64748b;
+      --dim:       #334155;
+      --green:     #4ade80;
+      --amber:     #fbbf24;
+      --red:       #f87171;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
     }
 
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-sans);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 32px 16px 90px;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% -5%, rgba(124,58,237,0.18) 0%, transparent 60%),
+        var(--bg);
     }
 
-    .page { width: 100%; max-width: 700px; display: flex; flex-direction: column; gap: 16px; }
+    /* ── Layout ─────────────────────────────────────────────────── */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 20px 120px;
+    }
 
-    /* Header */
+    /* ── Header ─────────────────────────────────────────────────── */
     .site-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 4px;
+      text-align: center;
+      margin-bottom: 40px;
     }
-    .header-left { display: flex; flex-direction: column; gap: 4px; }
-    .header-label {
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      letter-spacing: 0.12em;
-      color: var(--indigo);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .header-label::before { content: '◆'; font-size: 0.55rem; }
-    .header-title {
-      font-family: var(--font-sans);
-      font-size: 2.4rem;
-      font-weight: 800;
-      color: #fff;
+    .site-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.2rem, 6vw, 3.4rem);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--text);
       line-height: 1;
     }
-    .header-sub {
-      font-family: var(--font-serif);
-      font-style: italic;
-      font-size: 2rem;
+    .site-subtitle {
+      margin-top: 10px;
+      font-size: 0.72rem;
       color: var(--muted);
-      line-height: 1.1;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
+
+    /* ── Cache bar ──────────────────────────────────────────────── */
+    .cache-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+    .cache-bar .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--dim);
+    }
+    .cache-bar .dot.live  { background: var(--green); }
+    .cache-bar .dot.stale { background: var(--amber); }
+    .cache-bar .dot.error { background: var(--red); }
     .refresh-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--surface2);
+      background: none;
       border: 1px solid var(--border2);
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: 0.85rem;
-      font-weight: 500;
-      padding: 10px 18px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.15s;
-      align-self: center;
-    }
-    .refresh-btn:hover { background: #243048; }
-    .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* Banner */
-    .demo-banner {
-      background: rgba(99,102,241,0.1);
-      border: 1px solid rgba(99,102,241,0.25);
-      border-radius: 10px;
-      padding: 10px 16px;
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      color: var(--indigo);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* Loader */
-    #loader {
-      font-family: var(--font-mono);
-      font-size: 0.9rem;
       color: var(--muted);
-      letter-spacing: 0.1em;
-      padding: 40px 0;
-      text-align: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      padding: 3px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
     }
-    #loader .dot { animation: blink 1.4s infinite; }
-    #loader .dot:nth-child(2) { animation-delay: 0.2s; }
-    #loader .dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
-    .hidden { display: none !important; }
+    .refresh-btn:hover { border-color: var(--purple-lt); color: var(--purple-lt); }
 
-    /* Card */
+    /* ── PMI reminder ───────────────────────────────────────────── */
+    #pmi-reminder {
+      display: none;
+      align-items: flex-start;
+      gap: 14px;
+      background: rgba(251,191,36,0.08);
+      border: 1px solid rgba(251,191,36,0.25);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 28px;
+      font-size: 0.75rem;
+    }
+    #pmi-reminder.visible { display: flex; }
+    .reminder-body { flex: 1; line-height: 1.5; }
+    .reminder-title { color: var(--amber); font-size: 0.78rem; margin-bottom: 4px; }
+    .reminder-link {
+      color: var(--amber);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      opacity: 0.8;
+      font-size: 0.72rem;
+    }
+    .reminder-link:hover { opacity: 1; }
+    .reminder-close {
+      background: none; border: none;
+      color: var(--amber); opacity: 0.6;
+      cursor: pointer; font-size: 0.9rem;
+      flex-shrink: 0; padding: 0 2px;
+    }
+    .reminder-close:hover { opacity: 1; }
+
+    /* ── Cards grid ─────────────────────────────────────────────── */
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 12px;
+      padding: 22px 20px 20px;
+      position: relative;
       overflow: hidden;
+      transition: border-color 0.25s;
     }
-    .card-inner { padding: 20px; }
-
-    /* Signal card */
-    .signal-card { border-color: rgba(34,197,94,0.25); }
-    .signal-card.red   { border-color: rgba(239,68,68,0.3); }
-    .signal-card.amber { border-color: rgba(245,158,11,0.3); }
-    .signal-card.dim   { border-color: var(--border2); }
-
-    .signal-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 16px;
+    .card:hover { border-color: var(--border2); }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--purple), var(--purple-lt));
+      opacity: 0.7;
     }
-    .signal-label, .signal-label-right {
-      font-family: var(--font-mono);
+    .card-label {
       font-size: 0.65rem;
+      text-transform: uppercase;
       letter-spacing: 0.1em;
       color: var(--muted);
+      margin-bottom: 14px;
     }
-    .signal-body {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 20px;
-    }
-    .signal-left { display: flex; flex-direction: column; gap: 8px; }
-    .signal-main { display: flex; align-items: center; gap: 12px; }
-    .signal-dot {
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      background: var(--dim);
-      flex-shrink: 0;
-    }
-    .signal-dot.green { background: var(--green); }
-    .signal-dot.amber { background: var(--amber); }
-    .signal-dot.red   { background: var(--red); }
-    .signal-name {
-      font-family: var(--font-mono);
-      font-size: 1.45rem;
+    .card-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.4rem;
       font-weight: 500;
-      color: var(--muted);
-      letter-spacing: 0.04em;
-    }
-    .signal-name.green { color: var(--green); }
-    .signal-name.amber { color: var(--amber); }
-    .signal-name.red   { color: var(--red); }
-    .signal-subtitle {
-      font-family: var(--font-sans);
-      font-size: 0.82rem;
-      color: var(--muted);
-    }
-    .signal-pct {
-      font-family: var(--font-mono);
-      font-size: 2.8rem;
-      font-weight: 500;
-      color: var(--muted);
       line-height: 1;
-    }
-    .signal-pct.green { color: var(--green); }
-    .signal-pct.amber { color: var(--amber); }
-    .signal-pct.red   { color: var(--red); }
-
-    /* Indicator table */
-    .ind-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-    }
-    .ind-table th {
-      color: var(--muted);
-      font-weight: 400;
-      text-align: left;
-      padding: 6px 8px 8px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .ind-table th.c { text-align: center; }
-    .ind-table td {
-      padding: 10px 8px 10px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
       color: var(--text);
     }
-    .ind-table td.c { text-align: center; color: var(--muted); }
-    .ind-table tr:last-child td { border-bottom: none; }
-    .t-green { color: var(--green); }
-    .t-amber { color: var(--amber); }
-    .t-red   { color: var(--red); }
-    .t-dim   { color: var(--dim); }
+    .card-sub {
+      margin-top: 6px;
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+    .card-badge {
+      display: inline-block;
+      font-size: 0.63rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-top: 8px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+    .badge-fear-extreme { background: rgba(248,113,113,0.15); color: #fca5a5; }
+    .badge-fear         { background: rgba(251,146,60,0.15);  color: #fdba74; }
+    .badge-neutral      { background: rgba(234,179,8,0.12);   color: #fde047; }
+    .badge-greed        { background: rgba(132,204,22,0.12);  color: #bef264; }
+    .badge-greed-extreme{ background: rgba(74,222,128,0.12);  color: #4ade80; }
+    .badge-ok   { background: rgba(74,222,128,0.12);  color: #4ade80; }
+    .badge-warn { background: rgba(248,113,113,0.12); color: #fca5a5; }
 
-    /* Score row */
-    .score-row {
+    /* ── Gauge (F&G) ────────────────────────────────────────────── */
+    .gauge-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 4px 0 6px;
+    }
+    .gauge-svg { width: 100%; max-width: 180px; }
+    .gauge-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 500;
+      text-anchor: middle;
+      dominant-baseline: auto;
+      fill: #f1f5f9;
+    }
+
+    /* ── S&P drawdown ───────────────────────────────────────────── */
+    .drawdown-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+    .drawdown-val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--muted);
+    }
+    .drawdown-val.down    { color: var(--red); }
+    .drawdown-val.neutral { color: var(--muted); }
+
+    /* ── ISM manual ─────────────────────────────────────────────── */
+    .ism-note {
+      margin-top: 4px;
+      font-size: 0.62rem;
+      color: var(--dim);
+    }
+
+    /* ── Sahm bar ───────────────────────────────────────────────── */
+    .sahm-bar-wrap { margin-top: 12px; }
+    .sahm-track {
+      position: relative;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: visible;
+    }
+    .sahm-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+    .sahm-threshold {
+      position: absolute;
+      top: -4px; bottom: -4px;
+      width: 2px;
+      background: var(--amber);
+      border-radius: 1px;
+    }
+    .sahm-track-labels {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding: 10px 0 4px;
-      border-top: 1px solid var(--border2);
+      font-size: 0.6rem;
+      color: var(--dim);
       margin-top: 4px;
-      font-family: var(--font-mono);
     }
-    .score-lbl { font-size: 0.7rem; letter-spacing: 0.1em; color: var(--muted); }
-    #signal-score-val { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+
+    /* ── Signal panel ───────────────────────────────────────────── */
+    .signal-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 24px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .signal-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--purple), var(--purple-lt), #ec4899);
+    }
+    .signal-panel.active-buy {
+      animation: pulseBorder 2.4s ease-in-out infinite;
+    }
+    @keyframes pulseBorder {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(124,58,237,0.0); }
+      50%       { box-shadow: 0 0 0 8px rgba(124,58,237,0.18); }
+    }
+
+    .signal-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .signal-score-lbl {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .signal-score {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3.8rem;
+      font-weight: 600;
+      line-height: 1;
+      color: var(--text);
+    }
+    .signal-score-denom {
+      font-size: 1.4rem;
+      color: var(--muted);
+    }
+    .signal-rec-block { text-align: right; }
+    .signal-rec-lbl {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .signal-rec {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      line-height: 1;
+    }
+    .signal-amount {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    /* Score table */
+    .score-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.72rem;
+      margin-bottom: 20px;
+    }
+    .score-table th {
+      text-align: left;
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 0 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .score-table th:last-child { text-align: right; }
+    .score-table td {
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .score-table tr:last-child td { border-bottom: none; }
+    .col-metric { color: var(--muted); font-size: 0.68rem; }
+    .col-value  { color: var(--text); padding-left: 12px; }
+    .col-pts    { text-align: right; font-size: 0.7rem; }
+    .pts-pos    { color: var(--green); }
+    .pts-zero   { color: var(--dim); }
 
     /* Cooldown strip */
     .cooldown-strip {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      background: var(--surface2);
-      border-top: 1px solid var(--border2);
-      padding: 10px 20px;
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
+      justify-content: space-between;
       gap: 12px;
       flex-wrap: wrap;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
     }
-    .cooldown-info { color: var(--muted); }
-    .cooldown-info span { color: var(--text); }
-    .cooldown-info.active span { color: var(--amber); }
-    .reg-buy-btn {
-      background: rgba(99,102,241,0.15);
-      border: 1px solid rgba(99,102,241,0.35);
-      color: var(--indigo);
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      padding: 5px 12px;
+    .cooldown-info {
+      font-size: 0.68rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .cooldown-days { color: var(--purple-lt); }
+    .register-btn {
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.3);
+      color: var(--purple-lt);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      padding: 7px 16px;
       border-radius: 6px;
       cursor: pointer;
       white-space: nowrap;
+      transition: background 0.2s, border-color 0.2s;
     }
-    .reg-buy-btn:hover { background: rgba(99,102,241,0.25); }
+    .register-btn:hover { background: rgba(124,58,237,0.25); border-color: var(--purple-lt); }
+    .register-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-    /* Footer bar */
+    /* ── ISM footer bar ─────────────────────────────────────────── */
     #ism-footer-bar {
-      background: var(--surface2);
-      border-top: 1px solid var(--border2);
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
       position: fixed;
       bottom: 0; left: 0; right: 0;
+      background: rgba(7,9,15,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border2);
+      padding: 12px 20px;
       z-index: 100;
     }
-    .footer-row {
+    .footer-inner {
+      max-width: 860px;
+      margin: 0 auto;
       display: flex;
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
-      padding: 9px 20px;
     }
-    .footer-lbl { color: var(--muted); letter-spacing: 0.07em; font-size: 0.72rem; text-transform: uppercase; }
-    .footer-ext-link { color: var(--accent); text-decoration: none; white-space: nowrap; }
-    .footer-ext-link:hover { text-decoration: underline; }
-    .footer-input-wrap { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+    .footer-lbl {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .footer-ext-link {
+      font-size: 0.65rem;
+      color: var(--purple-lt);
+      text-decoration: none;
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+    .footer-ext-link:hover { opacity: 1; }
+    .footer-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
     .footer-input {
-      background: var(--bg);
+      background: rgba(255,255,255,0.04);
       border: 1px solid var(--border2);
       color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
       padding: 6px 10px;
       border-radius: 6px;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
       width: 110px;
+      outline: none;
+      transition: border-color 0.2s;
     }
+    .footer-input:focus { border-color: var(--purple-lt); }
     .footer-btn {
-      background: var(--blue);
-      color: #fff;
-      border: none;
-      padding: 6px 13px;
+      background: rgba(124,58,237,0.2);
+      border: 1px solid rgba(124,58,237,0.35);
+      color: var(--purple-lt);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      padding: 6px 14px;
       border-radius: 6px;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
       cursor: pointer;
+      transition: background 0.2s;
     }
-    .footer-btn:hover { background: #4f46e5; }
+    .footer-btn:hover { background: rgba(124,58,237,0.32); }
+    .footer-saved {
+      font-size: 0.65rem;
+      color: var(--muted);
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-    @media (max-width: 580px) {
-      .header-title { font-size: 1.8rem; }
-      .header-sub   { font-size: 1.5rem; }
-      .signal-pct   { font-size: 2rem; }
+    /* ── Skeleton ───────────────────────────────────────────────── */
+    .skeleton {
+      display: inline-block;
+      background: linear-gradient(90deg, var(--border) 25%, rgba(255,255,255,0.06) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+      height: 1em;
+      width: 80px;
     }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .color-green  { color: var(--green); }
+    .color-amber  { color: var(--amber); }
+    .color-red    { color: var(--red); }
+    .color-muted  { color: var(--muted); }
+    .color-purple { color: var(--purple-lt); }
   </style>
 </head>
 <body>
-<div class="page">
 
-  <!-- Header -->
+<div class="container">
+
+  <!-- ── Header ── -->
   <header class="site-header">
-    <div class="header-left">
-      <div class="header-label">MARKEDSBAROMETER</div>
-      <div class="header-title">US Marked</div>
-      <div class="header-sub">Købsstrategi</div>
-    </div>
-    <button class="refresh-btn" id="refresh-btn">↻ Opdater data</button>
+    <h1 class="site-title">Makro Signal</h1>
+    <p class="site-subtitle">Investeringssignal · S&amp;P 500 · Fear &amp; Greed · ISM PMI · Sahm-reglen</p>
   </header>
 
-  <!-- Cache banner -->
-  <div class="demo-banner">
-    <span>ℹ</span>
-    <span id="banner-txt">Henter data…</span>
+  <!-- ── Cache bar ── -->
+  <div class="cache-bar">
+    <span class="dot" id="status-dot"></span>
+    <span id="status-text">Henter data…</span>
+    <button class="refresh-btn" id="refresh-btn" onclick="loadData(true)">↻ Opdater</button>
   </div>
 
-  <!-- Loader -->
-  <div id="loader">HENTER<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
-
-  <!-- Content -->
-  <div id="content" class="hidden">
-
-    <!-- Signal card -->
-    <div class="card signal-card dim" id="signal-card">
-      <div class="card-inner">
-        <div class="signal-header">
-          <div class="signal-label">STRATEGISIGNAL · KVARTALSKØB</div>
-          <div class="signal-label-right">EKSTRA KØB (DKK)</div>
-        </div>
-        <div class="signal-body">
-          <div class="signal-left">
-            <div class="signal-main">
-              <div class="signal-dot" id="signal-dot"></div>
-              <div class="signal-name" id="signal-name">—</div>
-            </div>
-            <div class="signal-subtitle" id="signal-subtitle"></div>
-          </div>
-          <div class="signal-pct" id="signal-pct">—</div>
-        </div>
-
-        <table class="ind-table">
-          <thead>
-            <tr>
-              <th>Indikator</th>
-              <th>Aktuel</th>
-              <th class="c t-dim">Tærskler</th>
-              <th class="c">Point</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>S&amp;P 500 fra ATH</td>
-              <td id="tbl-sp">—</td>
-              <td class="c t-dim">≥15%→+2 · ≥25%→+4</td>
-              <td class="c" id="tbl-sp-pts">—</td>
-            </tr>
-            <tr>
-              <td>Fear &amp; Greed Index</td>
-              <td id="tbl-fg">—</td>
-              <td class="c t-dim">≤35→+1 · ≤20→+2</td>
-              <td class="c" id="tbl-fg-pts">—</td>
-            </tr>
-            <tr>
-              <td>ISM Mfg. PMI</td>
-              <td id="tbl-ism">—</td>
-              <td class="c t-dim">≤49→+1 · ≤47→+2</td>
-              <td class="c" id="tbl-ism-pts">—</td>
-            </tr>
-            <tr>
-              <td>Sahm-regel</td>
-              <td id="tbl-sahm">—</td>
-              <td class="c t-dim">≥0,5→+2</td>
-              <td class="c" id="tbl-sahm-pts">—</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="score-row">
-          <span class="score-lbl">SCORE</span>
-          <span id="signal-score-val">— / 10</span>
-        </div>
+  <!-- ── PMI reminder ── -->
+  <div id="pmi-reminder">
+    <div class="reminder-body">
+      <div class="reminder-title">📊 Nyt ISM PMI tal udkom i dag — husk at opdatere</div>
+      <div>
+        <a href="https://tradingeconomics.com/united-states/business-confidence"
+           target="_blank" class="reminder-link">↗ Åbn TradingEconomics og find det seneste tal</a>
       </div>
+    </div>
+    <button class="reminder-close" id="reminder-close-btn" title="Luk">✕</button>
+  </div>
 
-      <!-- Cooldown strip -->
-      <div class="cooldown-strip">
-        <div class="cooldown-info" id="cooldown-info">
-          <span id="cooldown-txt">Ingen aktiv cooldown</span>
+  <!-- ── Metric cards ── -->
+  <div class="cards">
+
+    <!-- Fear & Greed -->
+    <div class="card">
+      <div class="card-label">Fear &amp; Greed Index</div>
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 200 112">
+          <defs>
+            <linearGradient id="gauge-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stop-color="#ef4444" />
+              <stop offset="25%"  stop-color="#f97316" />
+              <stop offset="50%"  stop-color="#eab308" />
+              <stop offset="75%"  stop-color="#84cc16" />
+              <stop offset="100%" stop-color="#22c55e" />
+            </linearGradient>
+          </defs>
+          <path d="M 18 100 A 82 82 0 0 1 182 100"
+                stroke="rgba(255,255,255,0.07)" stroke-width="14" fill="none" stroke-linecap="round" />
+          <path d="M 18 100 A 82 82 0 0 1 182 100"
+                stroke="url(#gauge-grad)" stroke-width="14" fill="none" stroke-linecap="round" />
+          <line id="gauge-needle" x1="100" y1="100" x2="100" y2="28"
+                stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.9" />
+          <circle cx="100" cy="100" r="4.5" fill="white" opacity="0.9" />
+          <text id="gauge-text" x="100" y="92"
+                font-family="Cormorant Garamond, serif" font-size="28" font-weight="500"
+                text-anchor="middle" fill="#f1f5f9">—</text>
+        </svg>
+      </div>
+      <div id="fg-badge" class="card-badge" style="display:none"></div>
+    </div>
+
+    <!-- S&P 500 -->
+    <div class="card">
+      <div class="card-label">S&amp;P 500</div>
+      <div class="card-value" id="sp-price">—</div>
+      <div class="card-sub">52-ugers high: <span id="sp-high">—</span></div>
+      <div class="drawdown-row">
+        <span class="drawdown-val neutral" id="sp-drawdown">—</span>
+        <span class="card-sub" id="sp-drawdown-lbl"></span>
+      </div>
+      <div id="sp-badge" class="card-badge" style="display:none"></div>
+    </div>
+
+    <!-- ISM PMI -->
+    <div class="card">
+      <div class="card-label">ISM Manufacturing PMI <span style="color:var(--dim)">(manuelt)</span></div>
+      <div class="card-value" id="ism-display">—</div>
+      <div class="card-sub" id="ism-sub"></div>
+      <div id="ism-badge" class="card-badge" style="display:none"></div>
+      <div class="ism-note">Opdateres 1. hverdag hver måned</div>
+    </div>
+
+    <!-- Sahm Rule -->
+    <div class="card">
+      <div class="card-label">Sahm-regel</div>
+      <div class="card-value" id="sahm-display">—</div>
+      <div class="card-sub">Tærskel: 0,50 · Recessionsindikator</div>
+      <div id="sahm-badge" class="card-badge" style="display:none"></div>
+      <div class="sahm-bar-wrap">
+        <div class="sahm-track">
+          <div class="sahm-fill" id="sahm-fill" style="width:0%;background:var(--green)"></div>
+          <div class="sahm-threshold" style="left:33.3%"></div>
         </div>
-        <button class="reg-buy-btn" id="reg-buy-btn">Registrer køb i dag</button>
+        <div class="sahm-track-labels">
+          <span>0,0</span><span>0,5</span><span>1,5</span>
+        </div>
       </div>
     </div>
 
-  </div><!-- /content -->
+  </div><!-- /cards -->
 
-</div><!-- /page -->
+  <!-- ── Signal panel ── -->
+  <div class="signal-panel" id="signal-panel">
+    <div class="signal-top">
+      <div>
+        <div class="signal-score-lbl">Score</div>
+        <div class="signal-score">
+          <span id="sig-score">—</span><span class="signal-score-denom"> / 10</span>
+        </div>
+      </div>
+      <div class="signal-rec-block">
+        <div class="signal-rec-lbl">Anbefaling</div>
+        <div class="signal-rec" id="sig-rec" style="color:var(--muted)">Afventer data</div>
+        <div class="signal-amount" id="sig-amount"></div>
+      </div>
+    </div>
 
-<!-- ISM PMI footer bar -->
+    <table class="score-table">
+      <thead>
+        <tr>
+          <th>Indikator</th>
+          <th>Værdi</th>
+          <th style="text-align:right">Point</th>
+        </tr>
+      </thead>
+      <tbody id="score-tbody">
+        <tr>
+          <td class="col-metric">S&amp;P 500</td>
+          <td class="col-value"><span class="skeleton"></span></td>
+          <td class="col-pts pts-zero">—</td>
+        </tr>
+        <tr>
+          <td class="col-metric">Fear &amp; Greed</td>
+          <td class="col-value"><span class="skeleton"></span></td>
+          <td class="col-pts pts-zero">—</td>
+        </tr>
+        <tr>
+          <td class="col-metric">ISM PMI</td>
+          <td class="col-value"><span class="skeleton"></span></td>
+          <td class="col-pts pts-zero">—</td>
+        </tr>
+        <tr>
+          <td class="col-metric">Sahm-regel</td>
+          <td class="col-value"><span class="skeleton"></span></td>
+          <td class="col-pts pts-zero">—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="cooldown-strip">
+      <div class="cooldown-info" id="cooldown-info">Ingen registreret køb</div>
+      <button class="register-btn" id="register-btn" onclick="registerBuy()">
+        Registrer køb i dag
+      </button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ── ISM footer bar ── -->
 <div id="ism-footer-bar">
-  <div class="footer-row">
+  <div class="footer-inner">
     <span class="footer-lbl">ISM PMI</span>
-    <a href="https://tradingeconomics.com/united-states/business-confidence" target="_blank" class="footer-ext-link">↗ Se seneste tal</a>
+    <a href="https://tradingeconomics.com/united-states/business-confidence"
+       target="_blank" class="footer-ext-link">↗ Se seneste tal</a>
     <div class="footer-input-wrap">
-      <input id="ism-val-input" type="number" step="0.1" min="30" max="70" placeholder="f.eks. 52.4" class="footer-input" />
-      <button id="ism-save-btn" class="footer-btn">OK</button>
+      <input id="ism-val-input" type="number" step="0.1" min="20" max="75"
+             placeholder="f.eks. 49.8" class="footer-input" />
+      <button class="footer-btn" onclick="saveISM()">OK</button>
     </div>
+    <span class="footer-saved" id="footer-saved-txt"></span>
   </div>
 </div>
 
 <script>
-const CACHE_KEY    = 'mks_v9_data';
-const ISM_KEY      = 'mks_ism_manual';
-const COOLDOWN_KEY = 'mks_last_buy';
-const CACHE_TTL    = 24 * 60 * 60 * 1000;   // 24 timer
+/* ═══════════════════════════════════════════════════════════════════
+   MAKRO SIGNAL — v10
+═══════════════════════════════════════════════════════════════════ */
+
+const CACHE_KEY     = 'mks_v10_data';
+const ISM_KEY       = 'mks_ism_manual';
+const COOLDOWN_KEY  = 'mks_last_buy';
+const REMINDER_KEY  = 'mks_reminder_dismissed';
 const COOLDOWN_DAYS = 90;
+const CACHE_TTL_MS  = 3_600_000;
 
-function $(id) { return document.getElementById(id); }
-function fmtN(n, d = 0) {
-  return n.toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d });
-}
+/* ── ISM PMI ──────────────────────────────────────────────────────── */
 
-// ── Cache ────────────────────────────────────────────────────────────────────
-function saveCache(data) {
-  localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
-}
-function loadCache() {
-  try {
-    const p = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null') || {};
-    if (p.ts && Date.now() - p.ts < CACHE_TTL) return { data: p.data, age: Date.now() - p.ts };
-  } catch(_) {}
-  return null;
-}
-
-// ── ISM manual ────────────────────────────────────────────────────────────────
-function saveISM(val) {
-  localStorage.setItem(ISM_KEY, JSON.stringify({ val, ts: Date.now() }));
-}
 function loadISM() {
   try {
-    const o = JSON.parse(localStorage.getItem(ISM_KEY) || 'null') || {};
-    if (o.val != null) return { val: parseFloat(o.val), source: 'manual' };
-  } catch(_) {}
-  return { val: 52.4, source: 'default' };
+    const raw = localStorage.getItem(ISM_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
 }
 
-// ── Cooldown ──────────────────────────────────────────────────────────────────
-function saveCooldown() {
+function saveISM() {
+  const inp = document.getElementById('ism-val-input');
+  const val = parseFloat(inp.value);
+  if (isNaN(val) || val < 20 || val > 75) {
+    inp.style.borderColor = 'var(--red)';
+    setTimeout(() => { inp.style.borderColor = ''; }, 1200);
+    return;
+  }
+  localStorage.setItem(ISM_KEY, JSON.stringify({ value: val, savedAt: new Date().toISOString() }));
+  inp.value = '';
+  updateISMDisplay();
+  renderSignal(window._lastData);
+}
+
+function updateISMDisplay() {
+  const ism   = loadISM();
+  const disp  = document.getElementById('ism-display');
+  const sub   = document.getElementById('ism-sub');
+  const badge = document.getElementById('ism-badge');
+  const ftTxt = document.getElementById('footer-saved-txt');
+
+  if (!ism) {
+    disp.textContent        = '—';
+    sub.textContent         = 'Ikke indlæst';
+    badge.style.display     = 'none';
+    ftTxt.textContent       = 'Intet gemt';
+    return;
+  }
+
+  disp.textContent = ism.value.toFixed(1);
+  const d = new Date(ism.savedAt);
+  sub.textContent  = 'Opdateret ' + d.toLocaleDateString('da-DK', { day:'numeric', month:'short', year:'numeric' });
+
+  badge.style.display = '';
+  if (ism.value >= 50) {
+    badge.className   = 'card-badge badge-ok';
+    badge.textContent = 'Ekspansion ≥50';
+  } else {
+    badge.className   = 'card-badge badge-warn';
+    badge.textContent = 'Kontraktion <50';
+  }
+
+  ftTxt.textContent = 'Gemt: ' + ism.value.toFixed(1) + ' (' + d.toLocaleDateString('da-DK') + ')';
+}
+
+/* ── Cooldown ─────────────────────────────────────────────────────── */
+
+function registerBuy() {
+  if (!confirm('Registrer køb i dag (' + new Date().toLocaleDateString('da-DK') + ')?')) return;
   localStorage.setItem(COOLDOWN_KEY, new Date().toISOString());
+  renderCooldown();
 }
+
 function loadCooldown() {
-  try {
-    const raw = localStorage.getItem(COOLDOWN_KEY);
-    if (!raw) return { active: false, daysLeft: 0, nextDate: null };
-    const last    = new Date(raw);
-    const elapsed = (Date.now() - last.getTime()) / (1000 * 60 * 60 * 24);
-    const daysLeft = Math.ceil(COOLDOWN_DAYS - elapsed);
-    if (daysLeft > 0) {
-      const next = new Date(last.getTime() + COOLDOWN_DAYS * 24 * 60 * 60 * 1000);
-      return { active: true, daysLeft, nextDate: next.toISOString().slice(0, 10) };
-    }
-  } catch(_) {}
-  return { active: false, daysLeft: 0, nextDate: null };
+  const raw = localStorage.getItem(COOLDOWN_KEY);
+  if (!raw) return { active: false, daysLeft: 0, lastDate: null, nextDate: null };
+  const last     = new Date(raw);
+  const elapsed  = (Date.now() - last.getTime()) / (1000 * 60 * 60 * 24);
+  const daysLeft = Math.ceil(COOLDOWN_DAYS - elapsed);
+  if (daysLeft <= 0) return { active: false, daysLeft: 0, lastDate: last, nextDate: null };
+  const next = new Date(last.getTime() + COOLDOWN_DAYS * 86_400_000);
+  return { active: true, daysLeft, lastDate: last, nextDate: next };
 }
 
-// ── Proxy fetch ───────────────────────────────────────────────────────────────
-async function proxyFetch(url) {
-  const res = await fetch(`/api/fetch?url=${encodeURIComponent(url)}`);
-  if (!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
-  return res;
+function renderCooldown() {
+  const cd  = loadCooldown();
+  const inf = document.getElementById('cooldown-info');
+  const btn = document.getElementById('register-btn');
+  const fmt = d => d.toLocaleDateString('da-DK', { day:'numeric', month:'long', year:'numeric' });
+
+  if (!cd.lastDate) {
+    inf.textContent = 'Ingen registreret køb';
+    btn.disabled    = false;
+    return;
+  }
+
+  if (cd.active) {
+    inf.innerHTML =
+      'Seneste køb: ' + fmt(cd.lastDate) +
+      ' · Cooldown: <span class="cooldown-days">' + cd.daysLeft + ' dage tilbage</span>' +
+      ' (næste ' + fmt(cd.nextDate) + ')';
+    btn.disabled = true;
+  } else {
+    inf.innerHTML =
+      'Seneste køb: ' + fmt(cd.lastDate) +
+      ' · <span class="color-green">Cooldown udløbet — klar til køb</span>';
+    btn.disabled = false;
+  }
 }
 
-// ── Fetchers ──────────────────────────────────────────────────────────────────
-async function fetchFearGreed() {
-  const res  = await proxyFetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata');
-  const json = await res.json();
-  const score = json?.fear_and_greed?.score;
-  if (score == null) throw new Error('Ingen F&G score');
-  return parseFloat(score);
+/* ── Gauge ────────────────────────────────────────────────────────── */
+
+function updateGauge(value) {
+  if (value == null || isNaN(value)) return;
+  const v   = Math.min(100, Math.max(0, value));
+  const deg = 180 - (v / 100) * 180;
+  const rad = deg * Math.PI / 180;
+  const r   = 66;
+  const nx  = 100 + r * Math.cos(rad);
+  const ny  = 100 - r * Math.sin(rad);
+  const needle = document.getElementById('gauge-needle');
+  const txt    = document.getElementById('gauge-text');
+  if (needle) { needle.setAttribute('x2', nx.toFixed(1)); needle.setAttribute('y2', ny.toFixed(1)); }
+  if (txt)    { txt.textContent = v; }
 }
 
-async function fetchSP500() {
-  const res    = await proxyFetch('https://stooq.com/q/d/l/?s=%5Espx&i=d');
-  const text   = await res.text();
-  const rows   = text.trim().split('\n').filter(r => r && !r.startsWith('Date'));
-  if (rows.length < 100) throw new Error('For lidt S&P data');
-  const closes = rows.map(r => parseFloat(r.split(',')[4]));
-  const latest = closes[closes.length - 1];
-  const high52 = Math.max(...closes.slice(-252));
-  return { latest, high52, drawdown: (latest / high52 - 1) * 100 };
+function fgBadgeClass(label) {
+  const map = {
+    'Extreme Fear': 'badge-fear-extreme',
+    'Fear':         'badge-fear',
+    'Neutral':      'badge-neutral',
+    'Greed':        'badge-greed',
+    'Extreme Greed':'badge-greed-extreme',
+  };
+  return map[label] || 'badge-neutral';
 }
 
-async function fetchSahm() {
-  const url  = 'https://api.stlouisfed.org/fred/series/observations?series_id=SAHMREALTIME&api_key=61026cb5f11d98af5bc80a81e9860406&limit=1&sort_order=desc&file_type=json';
-  const res  = await proxyFetch(url);
-  const json = await res.json();
-  const val  = parseFloat(json?.observations?.[0]?.value);
-  if (isNaN(val)) throw new Error('Ingen SAHMREALTIME data');
-  return val;
-}
+/* ── Score ────────────────────────────────────────────────────────── */
 
-// ── Signal ────────────────────────────────────────────────────────────────────
-function computeSignal({ fg, sp, ism, sahm }) {
-  const drawdown = -(sp.drawdown / 100); // positiv brøk
-  const ismVal   = ism?.val ?? null;
+function computeSignal({ fg, sp500Price, sp500_52wHigh, ism, sahm }) {
+  const drawdownPct = (sp500_52wHigh > 0 && sp500Price < sp500_52wHigh)
+    ? (sp500_52wHigh - sp500Price) / sp500_52wHigh
+    : 0;
+
   let score = 0;
+  const pts = { sp: 0, fg: 0, ism: 0, sahm: 0 };
 
-  // S&P — maks +4
-  if (drawdown >= 0.15) score += 2;
-  if (drawdown >= 0.25) score += 2;
-  const spPts = drawdown >= 0.25 ? 4 : drawdown >= 0.15 ? 2 : 0;
+  if (drawdownPct >= 0.15) { score += 2; pts.sp += 2; }
+  if (drawdownPct >= 0.25) { score += 2; pts.sp += 2; }
+  if (fg != null && fg <= 35) { score += 1; pts.fg += 1; }
+  if (fg != null && fg <= 20) { score += 1; pts.fg += 1; }
+  if (ism != null && ism <= 49) { score += 1; pts.ism += 1; }
+  if (ism != null && ism <= 47) { score += 1; pts.ism += 1; }
+  if (sahm != null && sahm >= 0.5) { score += 2; pts.sahm += 2; }
 
-  // Fear & Greed — maks +2
-  if (fg <= 35) score += 1;
-  if (fg <= 20) score += 1;
-  const fgPts = fg <= 20 ? 2 : fg <= 35 ? 1 : 0;
+  let label, amount, color;
+  if      (score >= 7) { label = 'STORT KØB';  amount = '25.000 kr'; color = '#4ade80'; }
+  else if (score >= 4) { label = 'MEDIUM KØB'; amount = '12.500 kr'; color = '#86efac'; }
+  else if (score === 3) { label = 'LILLE KØB';  amount = '6.250 kr';  color = '#fde68a'; }
+  else                  { label = 'AFVENT';     amount = '—';          color = '#64748b'; }
 
-  // ISM PMI — maks +2
-  if (ismVal != null && ismVal <= 49) score += 1;
-  if (ismVal != null && ismVal <= 47) score += 1;
-  const ismPts = ismVal == null ? null : ismVal <= 47 ? 2 : ismVal <= 49 ? 1 : 0;
-
-  // Sahm — maks +2
-  if (sahm != null && sahm >= 0.5) score += 2;
-  const sahmPts = sahm == null ? null : sahm >= 0.5 ? 2 : 0;
-
-  let signal, extraBuy, niveau, subtitle, cls;
-  if (score >= 7)      { signal = 'buy_large';  extraBuy = 25000; niveau = 'STORT KØB';  subtitle = 'Score ≥ 7'; cls = 'green'; }
-  else if (score >= 4) { signal = 'buy_medium'; extraBuy = 12500; niveau = 'MEDIUM KØB'; subtitle = 'Score 4–6'; cls = 'green'; }
-  else if (score === 3){ signal = 'buy_small';  extraBuy = 6250;  niveau = 'LILLE KØB';  subtitle = 'Score = 3'; cls = 'amber'; }
-  else                 { signal = 'none';       extraBuy = 0;     niveau = 'AFVENT';     subtitle = 'Score 0–2'; cls = 'dim';   }
-
-  return { score, signal, extraBuy, niveau, subtitle, cls, pts: { sp: spPts, fg: fgPts, ism: ismPts, sahm: sahmPts } };
+  return { score, pts, label, amount, color, drawdownPct };
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
-function render({ fg, sp, ism, sahm }, fromCache, cacheAge) {
-  const { score, niveau, extraBuy, subtitle, cls, pts } = computeSignal({ fg, sp, ism, sahm });
-  const cooldown = loadCooldown();
+/* ── Render ───────────────────────────────────────────────────────── */
 
-  // Signal card border
-  $('signal-card').className = `card signal-card ${cls === 'green' ? '' : cls === 'amber' ? 'amber' : cls === 'dim' ? 'dim' : ''}`;
+function renderDashboard(data) {
+  window._lastData = data;
+  const ism    = loadISM();
+  const ismVal = ism ? ism.value : null;
+  const fg        = data?.fearGreedIndex ?? null;
+  const fgLabel   = data?.fearGreedLabel ?? null;
+  const spPrice   = data?.sp500Price     ?? null;
+  const spHigh    = data?.sp500_52wHigh  ?? null;
+  const sahmVal   = data?.sahmRule       ?? null;
 
-  // Signal name + DKK
-  $('signal-dot').className  = `signal-dot ${cls}`;
-  $('signal-name').className = `signal-name ${cls}`;
-  $('signal-name').textContent = niveau;
-  $('signal-pct').className  = `signal-pct ${cls}`;
-  $('signal-pct').textContent = extraBuy > 0 ? fmtN(extraBuy, 0) + ' kr.' : '—';
-  $('signal-subtitle').textContent = subtitle + (cooldown.active ? ' · Cooldown aktiv' : '');
-
-  // Score
-  $('signal-score-val').textContent = `${score} / 10`;
-
-  // Tabel
-  const spPct = sp.drawdown;
-  $('tbl-sp').innerHTML  = `<span class="${pts.sp > 0 ? 't-red' : ''}">${fmtN(spPct, 1)}%</span>`;
-  $('tbl-sp-pts').innerHTML = pts.sp > 0 ? `<span class="t-red">+${pts.sp}</span>` : `<span class="t-dim">+0</span>`;
-
-  $('tbl-fg').innerHTML  = `<span class="${pts.fg > 0 ? 't-red' : ''}">${Math.round(fg)}</span>`;
-  $('tbl-fg-pts').innerHTML = pts.fg > 0 ? `<span class="t-red">+${pts.fg}</span>` : `<span class="t-dim">+0</span>`;
-
-  const ismVal = ism?.val ?? null;
-  if (ismVal != null) {
-    $('tbl-ism').innerHTML = `<span class="${pts.ism > 0 ? 't-red' : ''}">${fmtN(ismVal, 1)}</span>`;
-    $('tbl-ism-pts').innerHTML = pts.ism > 0 ? `<span class="t-red">+${pts.ism}</span>` : `<span class="t-dim">+0</span>`;
-  } else {
-    $('tbl-ism').textContent = 'N/A';
-    $('tbl-ism-pts').textContent = '—';
+  // F&G gauge
+  updateGauge(fg);
+  const fgBadge = document.getElementById('fg-badge');
+  if (fg != null && fgLabel) {
+    fgBadge.style.display = '';
+    fgBadge.className     = 'card-badge ' + fgBadgeClass(fgLabel);
+    fgBadge.textContent   = fgLabel;
   }
 
-  if (sahm != null) {
-    $('tbl-sahm').innerHTML = `<span class="${pts.sahm > 0 ? 't-red' : ''}">${fmtN(sahm, 2)}</span>`;
-    $('tbl-sahm-pts').innerHTML = pts.sahm > 0 ? `<span class="t-red">+${pts.sahm}</span>` : `<span class="t-dim">+0</span>`;
-  } else {
-    $('tbl-sahm').textContent = 'N/A';
-    $('tbl-sahm-pts').textContent = '—';
+  // S&P 500
+  if (spPrice != null) {
+    document.getElementById('sp-price').textContent =
+      spPrice.toLocaleString('da-DK', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    document.getElementById('sp-high').textContent =
+      spHigh.toLocaleString('da-DK',  { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+    const ddPct = (spHigh > 0 && spPrice < spHigh) ? (spHigh - spPrice) / spHigh * 100 : 0;
+    const drawEl = document.getElementById('sp-drawdown');
+    const lblEl  = document.getElementById('sp-drawdown-lbl');
+    const spBadge = document.getElementById('sp-badge');
+
+    if (ddPct >= 0.1) {
+      drawEl.textContent = '−' + ddPct.toFixed(1) + '%';
+      drawEl.className   = 'drawdown-val ' + (ddPct >= 15 ? 'down' : 'color-amber');
+      lblEl.textContent  = 'fra 52-ugers high';
+      spBadge.style.display = '';
+      spBadge.className  = 'card-badge badge-warn';
+      spBadge.textContent = ddPct >= 25 ? 'Nedtur ≥25%' : ddPct >= 15 ? 'Nedtur ≥15%' : 'Lille nedtur';
+    } else {
+      drawEl.textContent = 'Nær all-time high';
+      drawEl.className   = 'drawdown-val neutral';
+      lblEl.textContent  = '';
+      spBadge.style.display = '';
+      spBadge.className  = 'card-badge badge-ok';
+      spBadge.textContent = 'Styrke';
+    }
   }
 
-  // Cooldown
-  const cdInfo = $('cooldown-info');
-  if (cooldown.active) {
-    cdInfo.className = 'cooldown-info active';
-    $('cooldown-txt').innerHTML = `Næste køb tidligst: <span>${cooldown.nextDate}</span> (${cooldown.daysLeft} dage)`;
-  } else {
-    cdInfo.className = 'cooldown-info';
-    $('cooldown-txt').innerHTML = `Cooldown: <span>ingen aktiv</span>`;
+  // ISM
+  updateISMDisplay();
+
+  // Sahm
+  if (sahmVal != null) {
+    document.getElementById('sahm-display').textContent = sahmVal.toFixed(2).replace('.', ',');
+    const pct = Math.min(100, (sahmVal / 1.5) * 100);
+    const fill = document.getElementById('sahm-fill');
+    fill.style.width      = pct + '%';
+    fill.style.background = sahmVal >= 0.5 ? 'var(--red)' : sahmVal >= 0.3 ? 'var(--amber)' : 'var(--green)';
+    const sahmBadge = document.getElementById('sahm-badge');
+    sahmBadge.style.display = '';
+    sahmBadge.className     = 'card-badge ' + (sahmVal >= 0.5 ? 'badge-warn' : 'badge-ok');
+    sahmBadge.textContent   = sahmVal >= 0.5 ? 'Recessionsadvarsel ≥0,5' : 'Ingen signal <0,5';
   }
 
-  // Banner
-  $('banner-txt').textContent = fromCache
-    ? `Cache · ${Math.round(cacheAge / 60000)}m gammel · ISM: ${ism?.source === 'default' ? 'standardværdi' : 'gemt'}`
-    : `Live data hentet · ISM: ${ism?.source === 'default' ? 'standardværdi — indtast manuelt' : 'gemt'}`;
-
-  $('loader').classList.add('hidden');
-  $('content').classList.remove('hidden');
+  renderSignal(data);
+  renderCooldown();
 }
 
-// ── ISM footer ────────────────────────────────────────────────────────────────
-function submitISM() {
-  const raw = parseFloat($('ism-val-input').value);
-  if (isNaN(raw) || raw < 30 || raw > 70) { alert('Indtast en gyldig ISM PMI-værdi (30–70)'); return; }
-  saveISM(raw);
-  $('ism-val-input').value = '';
-  loadData(true);
-}
-$('ism-save-btn').addEventListener('click', submitISM);
-$('ism-val-input').addEventListener('keydown', e => { if (e.key === 'Enter') submitISM(); });
+function renderSignal(data) {
+  const ism    = loadISM();
+  const ismVal = ism ? ism.value : null;
+  const fg     = data?.fearGreedIndex ?? null;
+  const fgLabel= data?.fearGreedLabel ?? null;
+  const spPrice= data?.sp500Price     ?? null;
+  const spHigh = data?.sp500_52wHigh  ?? null;
+  const sahmVal= data?.sahmRule       ?? null;
 
-// ── Cooldown-knap ─────────────────────────────────────────────────────────────
-$('reg-buy-btn').addEventListener('click', () => {
-  const cd = loadCooldown();
-  const msg = cd.active
-    ? `Der er stadig ${cd.daysLeft} dage af din cooldown (til ${cd.nextDate}).\nVil du alligevel nulstille og registrere et nyt køb i dag?`
-    : 'Registrer køb i dag? Næste køb kan tidligst ske om 90 dage.';
-  if (!confirm(msg)) return;
-  saveCooldown();
-  const cached = loadCache();
-  if (cached) render(Object.assign({}, cached.data, { ism: loadISM() }), true, Date.now() - (Date.now() - CACHE_TTL + 1));
+  if (!data || ismVal == null) {
+    document.getElementById('sig-rec').textContent = ismVal == null ? 'Mangler ISM PMI' : 'Henter data…';
+    document.getElementById('sig-rec').style.color = 'var(--amber)';
+    document.getElementById('sig-amount').textContent = ismVal == null ? 'Brug feltet nedenfor' : '';
+    return;
+  }
+
+  const sig = computeSignal({ fg, sp500Price: spPrice, sp500_52wHigh: spHigh, ism: ismVal, sahm: sahmVal });
+  document.getElementById('sig-score').textContent = sig.score;
+  const recEl = document.getElementById('sig-rec');
+  recEl.textContent  = sig.label;
+  recEl.style.color  = sig.color;
+  document.getElementById('sig-amount').textContent = sig.amount;
+
+  const panel = document.getElementById('signal-panel');
+  if (sig.score >= 3) panel.classList.add('active-buy');
+  else panel.classList.remove('active-buy');
+
+  const ddPct = sig.drawdownPct * 100;
+  document.getElementById('score-tbody').innerHTML = `
+    <tr>
+      <td class="col-metric">S&amp;P 500</td>
+      <td class="col-value">${ddPct >= 0.1 ? '−' + ddPct.toFixed(1) + '% fra high' : 'Nær high'}</td>
+      <td class="col-pts ${sig.pts.sp > 0 ? 'pts-pos' : 'pts-zero'}">${sig.pts.sp > 0 ? '+' + sig.pts.sp : '0'}</td>
+    </tr>
+    <tr>
+      <td class="col-metric">Fear &amp; Greed</td>
+      <td class="col-value">${fg != null ? fg + ' · ' + (fgLabel ?? '') : '—'}</td>
+      <td class="col-pts ${sig.pts.fg > 0 ? 'pts-pos' : 'pts-zero'}">${sig.pts.fg > 0 ? '+' + sig.pts.fg : '0'}</td>
+    </tr>
+    <tr>
+      <td class="col-metric">ISM PMI</td>
+      <td class="col-value">${ismVal.toFixed(1)}</td>
+      <td class="col-pts ${sig.pts.ism > 0 ? 'pts-pos' : 'pts-zero'}">${sig.pts.ism > 0 ? '+' + sig.pts.ism : '0'}</td>
+    </tr>
+    <tr>
+      <td class="col-metric">Sahm-regel</td>
+      <td class="col-value">${sahmVal != null ? sahmVal.toFixed(2).replace('.', ',') : '—'}</td>
+      <td class="col-pts ${sig.pts.sahm > 0 ? 'pts-pos' : 'pts-zero'}">${sig.pts.sahm > 0 ? '+' + sig.pts.sahm : '0'}</td>
+    </tr>
+  `;
+}
+
+/* ── PMI reminder ─────────────────────────────────────────────────── */
+
+function isWeekday(d) { return d.getDay() !== 0 && d.getDay() !== 6; }
+
+function nthWeekdayOfMonth(n) {
+  const today = new Date();
+  const d = new Date(today.getFullYear(), today.getMonth(), 1);
+  let count = 0;
+  while (true) {
+    if (isWeekday(d)) { count++; if (count === n) return new Date(d); }
+    d.setDate(d.getDate() + 1);
+  }
+}
+
+function isAmongFirstWeekdays(n) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = 1; i <= n; i++) {
+    const wd = nthWeekdayOfMonth(i);
+    if (wd.getTime() === today.getTime()) return true;
+  }
+  return false;
+}
+
+function isPMIStale() {
+  const ism = loadISM();
+  if (!ism) return true;
+  const s = new Date(ism.savedAt), n = new Date();
+  return s.getFullYear() !== n.getFullYear() || s.getMonth() !== n.getMonth();
+}
+
+function checkPMIReminder() {
+  const dismissed = localStorage.getItem(REMINDER_KEY);
+  if (dismissed === new Date().toDateString()) return;
+  if (isAmongFirstWeekdays(3) && isPMIStale()) {
+    document.getElementById('pmi-reminder').classList.add('visible');
+  }
+}
+
+function checkBrowserNotification() {
+  if (!('Notification' in window)) return;
+  const wd = nthWeekdayOfMonth(1);
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (wd.getTime() !== today.getTime()) return;
+  if (!isPMIStale()) return;
+  Notification.requestPermission().then(perm => {
+    if (perm === 'granted') {
+      new Notification('Makro Signal', {
+        body: 'Nyt ISM PMI tal udkom i dag — husk at opdatere dashboardet.',
+      });
+    }
+  });
+}
+
+document.getElementById('reminder-close-btn').addEventListener('click', () => {
+  localStorage.setItem(REMINDER_KEY, new Date().toDateString());
+  document.getElementById('pmi-reminder').classList.remove('visible');
 });
 
-// ── loadData ──────────────────────────────────────────────────────────────────
-async function loadData(force = false) {
-  $('refresh-btn').disabled = true;
-  if (!force) {
-    const cached = loadCache();
-    if (cached) {
-      render(Object.assign({}, cached.data, { ism: loadISM() }), true, cached.age);
-      $('refresh-btn').disabled = false;
-      return;
-    }
-  }
-  $('loader').classList.remove('hidden');
-  $('content').classList.add('hidden');
+/* ── Data fetch ───────────────────────────────────────────────────── */
+
+function setStatus(state, text) {
+  document.getElementById('status-dot').className = 'dot ' + state;
+  document.getElementById('status-text').textContent = text;
+}
+
+function getCached() {
   try {
-    const [fg, sp, sahm] = await Promise.all([
-      fetchFearGreed(),
-      fetchSP500(),
-      fetchSahm().catch(e => { console.warn('Sahm fejl:', e.message); return null; }),
-    ]);
-    const ism  = loadISM();
-    const data = { fg, sp, sahm };
-    saveCache(data);
-    render(Object.assign({}, data, { ism }), false, 0);
-  } catch(err) {
-    $('loader').classList.add('hidden');
-    const cached = loadCache();
-    if (cached) {
-      render(Object.assign({}, cached.data, { ism: loadISM() }), true, cached.age);
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj.data || !obj.ts || Date.now() - obj.ts > CACHE_TTL_MS) return null;
+    return obj.data;
+  } catch { return null; }
+}
+
+function setCached(data) {
+  localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }));
+}
+
+function fmtTime(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  return d.toLocaleDateString('da-DK', { day:'numeric', month:'short' }) +
+         ' kl. ' + d.toLocaleTimeString('da-DK', { hour:'2-digit', minute:'2-digit' });
+}
+
+async function loadData(force) {
+  const cached = getCached();
+  if (!force && cached) {
+    setStatus('live', 'Cache · opdateret ' + fmtTime(cached.updatedAt));
+    renderDashboard(cached);
+    return;
+  }
+
+  setStatus('', 'Henter data…');
+  document.getElementById('refresh-btn').disabled = true;
+
+  try {
+    const res = await fetch('/api/data');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    setCached(data);
+    setStatus('live', 'Live · ' + fmtTime(data.updatedAt));
+    renderDashboard(data);
+  } catch (err) {
+    console.error('[loadData]', err.message);
+    let stale = null;
+    try { const r = localStorage.getItem(CACHE_KEY); if (r) stale = JSON.parse(r).data; } catch {}
+    if (stale) {
+      setStatus('stale', 'Forældet data · ' + fmtTime(stale.updatedAt) + ' (' + err.message + ')');
+      renderDashboard(stale);
     } else {
-      $('content').classList.remove('hidden');
-      alert(`Datafejl: ${err.message}`);
+      setStatus('error', 'Fejl: ' + err.message);
+      renderDashboard(null);
     }
   } finally {
-    $('refresh-btn').disabled = false;
+    document.getElementById('refresh-btn').disabled = false;
   }
 }
 
-$('refresh-btn').addEventListener('click', () => loadData(true));
-loadData();
+/* ── Enter key ────────────────────────────────────────────────────── */
+document.getElementById('ism-val-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveISM();
+});
+
+/* ── Init ─────────────────────────────────────────────────────────── */
+window._lastData = null;
+updateISMDisplay();
+checkPMIReminder();
+checkBrowserNotification();
+loadData(false);
 </script>
 </body>
 </html>
