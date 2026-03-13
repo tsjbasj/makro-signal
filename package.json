@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "description": "Investeringssignal dashboard — S&P 500, Fear & Greed, ISM PMI, Sahm Rule",
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0"
-  },
   "engines": {
     "node": ">=18"
   }
