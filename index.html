@@ -1036,50 +1036,6 @@ function fmtTime(isoStr) {
          ' kl. ' + d.toLocaleTimeString('da-DK', { hour:'2-digit', minute:'2-digit' });
 }
 
-function proxy(url) {
-  return fetch('/api/fetch?url=' + encodeURIComponent(url)).then(r => r.json());
-}
-
-async function fetchFearGreed() {
-  const json = await proxy('https://production.dataviz.cnn.io/index/fearandgreed/graphdata');
-  const fg = json?.fear_and_greed;
-  if (!fg) throw new Error('Ingen F&G data fra CNN');
-  const score = Math.round(Number(fg.score));
-  const raw   = (fg.rating || '').toLowerCase();
-  const label = raw.includes('extreme') && raw.includes('fear')  ? 'Extreme Fear'
-              : raw.includes('extreme') && raw.includes('greed') ? 'Extreme Greed'
-              : raw.includes('fear')  ? 'Fear'
-              : raw.includes('greed') ? 'Greed'
-              : 'Neutral';
-  return { fearGreedIndex: score, fearGreedLabel: label };
-}
-
-async function fetchSP500() {
-  // FRED SP500 serie — api/fetch.js injekterer FRED-nøglen automatisk
-  // Henter de seneste 260 handelsdage (≈ 1 år) og beregner 52-ugers high
-  const url = 'https://api.stlouisfed.org/fred/series/observations' +
-              '?series_id=SP500&limit=260&sort_order=desc&file_type=json';
-  const json = await proxy(url);
-  const obs = (json?.observations || [])
-    .map(o => parseFloat(o.value))
-    .filter(v => !isNaN(v));
-  if (!obs.length) throw new Error('Ingen S&P 500 data fra FRED');
-  return {
-    sp500Price:    Math.round(obs[0]),               // Seneste kurs
-    sp500_52wHigh: Math.round(Math.max(...obs)),     // Max over ~1 år
-  };
-}
-
-async function fetchSahm() {
-  // api/fetch.js injekterer automatisk FRED API-nøglen server-side
-  const url = 'https://api.stlouisfed.org/fred/series/observations' +
-              '?series_id=SAHMREALTIME&limit=1&sort_order=desc&file_type=json';
-  const json = await proxy(url);
-  const val  = parseFloat(json?.observations?.[0]?.value);
-  if (isNaN(val)) throw new Error('Ingen SAHMREALTIME data fra FRED');
-  return val;
-}
-
 async function loadData(force) {
   const cached = getCached();
   if (!force && cached) {
@@ -1092,39 +1048,16 @@ async function loadData(force) {
   document.getElementById('refresh-btn').disabled = true;
 
   try {
-    // allSettled: fortsæt selv om én kilde fejler
-    const [fgR, spR, sahmR] = await Promise.allSettled([
-      fetchFearGreed(),
-      fetchSP500(),
-      fetchSahm(),
-    ]);
-
-    const fg      = fgR.status   === 'fulfilled' ? fgR.value   : null;
-    const sp      = spR.status   === 'fulfilled' ? spR.value   : null;
-    const sahmVal = sahmR.status === 'fulfilled' ? sahmR.value : null;
-
-    const errors = [fgR, spR, sahmR]
-      .filter(r => r.status === 'rejected')
-      .map(r => r.reason?.message || 'ukendt fejl');
-
-    if (!fg && !sp && sahmVal === null) {
-      throw new Error(errors.join(' · '));
-    }
-
-    const data = {
-      fearGreedIndex: fg?.fearGreedIndex ?? null,
-      fearGreedLabel: fg?.fearGreedLabel ?? null,
-      sp500Price:     sp?.sp500Price     ?? null,
-      sp500_52wHigh:  sp?.sp500_52wHigh  ?? null,
-      sahmRule:       sahmVal,
-      updatedAt:      new Date().toISOString(),
-    };
+    const res  = await fetch('/api/data');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
 
     setCached(data);
-    const statusTxt = errors.length
-      ? 'Delvis data · ' + errors.join(', ')
-      : 'Live · ' + fmtTime(data.updatedAt);
-    setStatus(errors.length ? 'stale' : 'live', statusTxt);
+    const partial = !data.fearGreedIndex || !data.sp500Price || data.sahmRule === null;
+    setStatus(
+      partial ? 'stale' : 'live',
+      partial ? 'Delvis data · ' + fmtTime(data.updatedAt) : 'Live · ' + fmtTime(data.updatedAt)
+    );
     renderDashboard(data);
   } catch (err) {
     console.error('[loadData]', err.message);
