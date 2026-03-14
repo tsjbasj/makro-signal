@@ -4,7 +4,7 @@
  * API keys are injected server-side (never exposed to client).
  */
 
-const FRED_API_KEY = '538458b1617e021d8e44ef6fa7ac5d36';
+const FRED_API_KEY = '61026cb5f11d98af5bc80a81e9860406';
 const AV_API_KEY   = process.env.AV_API_KEY || 'demo'; // Set AV_API_KEY in Vercel env variables (free at alphavantage.co)
 
 function isAllowed(url) {
