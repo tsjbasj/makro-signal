@@ -1008,7 +1008,7 @@ document.getElementById('reminder-close-btn').addEventListener('click', () => {
   document.getElementById('pmi-reminder').classList.remove('visible');
 });
 
-/* ── Data fetch ───────────────────────────────────────────────────── */
+/* ── Data fetch (via /api/fetch proxy) ────────────────────────────── */
 
 function setStatus(state, text) {
   document.getElementById('status-dot').className = 'dot ' + state;
@@ -1036,6 +1036,46 @@ function fmtTime(isoStr) {
          ' kl. ' + d.toLocaleTimeString('da-DK', { hour:'2-digit', minute:'2-digit' });
 }
 
+function proxy(url) {
+  return fetch('/api/fetch?url=' + encodeURIComponent(url)).then(r => r.json());
+}
+
+async function fetchFearGreed() {
+  const json = await proxy('https://production.dataviz.cnn.io/index/fearandgreed/graphdata');
+  const fg = json?.fear_and_greed;
+  if (!fg) throw new Error('Ingen F&G data fra CNN');
+  const score = Math.round(Number(fg.score));
+  const raw   = (fg.rating || '').toLowerCase();
+  const label = raw.includes('extreme') && raw.includes('fear')  ? 'Extreme Fear'
+              : raw.includes('extreme') && raw.includes('greed') ? 'Extreme Greed'
+              : raw.includes('fear')  ? 'Fear'
+              : raw.includes('greed') ? 'Greed'
+              : 'Neutral';
+  return { fearGreedIndex: score, fearGreedLabel: label };
+}
+
+async function fetchSP500() {
+  const url = 'https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC' +
+              '?range=1y&interval=1d&includePrePost=false';
+  const json = await proxy(url);
+  const meta = json?.chart?.result?.[0]?.meta;
+  if (!meta) throw new Error('Ingen S&P 500 data fra Yahoo');
+  return {
+    sp500Price:    Math.round(Number(meta.regularMarketPrice || meta.chartPreviousClose)),
+    sp500_52wHigh: Math.round(Number(meta.fiftyTwoWeekHigh)),
+  };
+}
+
+async function fetchSahm() {
+  // api/fetch.js injekterer automatisk FRED API-nøglen server-side
+  const url = 'https://api.stlouisfed.org/fred/series/observations' +
+              '?series_id=SAHMREALTIME&limit=1&sort_order=desc&file_type=json';
+  const json = await proxy(url);
+  const val  = parseFloat(json?.observations?.[0]?.value);
+  if (isNaN(val)) throw new Error('Ingen SAHMREALTIME data fra FRED');
+  return val;
+}
+
 async function loadData(force) {
   const cached = getCached();
   if (!force && cached) {
@@ -1048,10 +1088,21 @@ async function loadData(force) {
   document.getElementById('refresh-btn').disabled = true;
 
   try {
-    const res = await fetch('/api/data');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
+    const [fg, sp, sahmRule] = await Promise.all([
+      fetchFearGreed(),
+      fetchSP500(),
+      fetchSahm(),
+    ]);
+
+    const data = {
+      fearGreedIndex: fg.fearGreedIndex,
+      fearGreedLabel: fg.fearGreedLabel,
+      sp500Price:     sp.sp500Price,
+      sp500_52wHigh:  sp.sp500_52wHigh,
+      sahmRule,
+      updatedAt:      new Date().toISOString(),
+    };
+
     setCached(data);
     setStatus('live', 'Live · ' + fmtTime(data.updatedAt));
     renderDashboard(data);
