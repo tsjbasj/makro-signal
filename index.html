@@ -1092,23 +1092,39 @@ async function loadData(force) {
   document.getElementById('refresh-btn').disabled = true;
 
   try {
-    const [fg, sp, sahmRule] = await Promise.all([
+    // allSettled: fortsæt selv om én kilde fejler
+    const [fgR, spR, sahmR] = await Promise.allSettled([
       fetchFearGreed(),
       fetchSP500(),
       fetchSahm(),
     ]);
 
+    const fg      = fgR.status   === 'fulfilled' ? fgR.value   : null;
+    const sp      = spR.status   === 'fulfilled' ? spR.value   : null;
+    const sahmVal = sahmR.status === 'fulfilled' ? sahmR.value : null;
+
+    const errors = [fgR, spR, sahmR]
+      .filter(r => r.status === 'rejected')
+      .map(r => r.reason?.message || 'ukendt fejl');
+
+    if (!fg && !sp && sahmVal === null) {
+      throw new Error(errors.join(' · '));
+    }
+
     const data = {
-      fearGreedIndex: fg.fearGreedIndex,
-      fearGreedLabel: fg.fearGreedLabel,
-      sp500Price:     sp.sp500Price,
-      sp500_52wHigh:  sp.sp500_52wHigh,
-      sahmRule,
+      fearGreedIndex: fg?.fearGreedIndex ?? null,
+      fearGreedLabel: fg?.fearGreedLabel ?? null,
+      sp500Price:     sp?.sp500Price     ?? null,
+      sp500_52wHigh:  sp?.sp500_52wHigh  ?? null,
+      sahmRule:       sahmVal,
       updatedAt:      new Date().toISOString(),
     };
 
     setCached(data);
-    setStatus('live', 'Live · ' + fmtTime(data.updatedAt));
+    const statusTxt = errors.length
+      ? 'Delvis data · ' + errors.join(', ')
+      : 'Live · ' + fmtTime(data.updatedAt);
+    setStatus(errors.length ? 'stale' : 'live', statusTxt);
     renderDashboard(data);
   } catch (err) {
     console.error('[loadData]', err.message);
