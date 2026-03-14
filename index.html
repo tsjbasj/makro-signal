@@ -1055,14 +1055,18 @@ async function fetchFearGreed() {
 }
 
 async function fetchSP500() {
-  const url = 'https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC' +
-              '?range=1y&interval=1d&includePrePost=false';
+  // FRED SP500 serie — api/fetch.js injekterer FRED-nøglen automatisk
+  // Henter de seneste 260 handelsdage (≈ 1 år) og beregner 52-ugers high
+  const url = 'https://api.stlouisfed.org/fred/series/observations' +
+              '?series_id=SP500&limit=260&sort_order=desc&file_type=json';
   const json = await proxy(url);
-  const meta = json?.chart?.result?.[0]?.meta;
-  if (!meta) throw new Error('Ingen S&P 500 data fra Yahoo');
+  const obs = (json?.observations || [])
+    .map(o => parseFloat(o.value))
+    .filter(v => !isNaN(v));
+  if (!obs.length) throw new Error('Ingen S&P 500 data fra FRED');
   return {
-    sp500Price:    Math.round(Number(meta.regularMarketPrice || meta.chartPreviousClose)),
-    sp500_52wHigh: Math.round(Number(meta.fiftyTwoWeekHigh)),
+    sp500Price:    Math.round(obs[0]),               // Seneste kurs
+    sp500_52wHigh: Math.round(Math.max(...obs)),     // Max over ~1 år
   };
 }
 
