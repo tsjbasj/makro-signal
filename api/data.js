@@ -1,144 +1,117 @@
 /**
  * api/data.js — Vercel serverless function
+ * Ingen npm-pakker. Ingen env vars nødvendige. Alt hardcodet.
  *
- * Henter:
- *   • Fear & Greed Index via CNN (gratis, ingen nøgle)
- *   • S&P 500 pris + 52-ugers high via Yahoo Finance (gratis, ingen nøgle)
- *   • Sahm Rule (SAHMREALTIME) via FRED API
- *
- * Eneste env var: FRED_API_KEY
- *
- * Response: { fearGreedIndex, fearGreedLabel, sp500Price, sp500_52wHigh, sahmRule, updatedAt }
+ * Returnerer:
+ * { fearGreedIndex, fearGreedLabel, sp500Price, sp500_52wHigh, sahmRule, updatedAt }
  */
 
 const https = require('https');
+const { parse } = require('url');
 
-/* ─── HTTP helper ───────────────────────────────────────────────────── */
+const FRED_KEY = '61026cb5f11d98af5bc80a81e9860406';
 
-function httpsGet(url, headers) {
+/* ── simpel HTTPS GET → JSON ─────────────────────────────── */
+function get(url, extraHeaders) {
   return new Promise((resolve, reject) => {
-    const opts = Object.assign(
-      require('url').parse(url),
-      {
-        headers: Object.assign(
-          {
-            'User-Agent':
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-            'Accept': 'application/json',
-          },
-          headers || {}
-        ),
-      }
-    );
-    https.get(opts, res => {
-      // Follow redirects
+    const opts = {
+      ...parse(url),
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'application/json, */*',
+        ...extraHeaders,
+      },
+    };
+    const req = https.get(opts, res => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        return httpsGet(res.headers.location, headers).then(resolve).catch(reject);
+        return get(res.headers.location, extraHeaders).then(resolve).catch(reject);
       }
-      if (res.statusCode >= 400) {
-        return reject(new Error('HTTP ' + res.statusCode + ' fra ' + url.slice(0, 60)));
-      }
-      let data = '';
-      res.on('data', c => (data += c));
+      let body = '';
+      res.on('data', c => (body += c));
       res.on('end', () => {
-        try { resolve(JSON.parse(data)); }
-        catch (e) { reject(new Error('JSON parse-fejl: ' + data.slice(0, 120))); }
+        if (res.statusCode >= 400) return reject(new Error(`HTTP ${res.statusCode}`));
+        try { resolve(JSON.parse(body)); }
+        catch { reject(new Error('JSON-fejl: ' + body.slice(0, 80))); }
       });
-    }).on('error', reject);
+    });
+    req.on('error', reject);
+    req.setTimeout(8000, () => { req.destroy(); reject(new Error('Timeout')); });
   });
 }
 
-/* ─── Fear & Greed (CNN) ────────────────────────────────────────────── */
-
-async function fetchFearGreed() {
-  const json = await httpsGet(
+/* ── Fear & Greed (CNN) ──────────────────────────────────── */
+async function fearGreed() {
+  const j = await get(
     'https://production.dataviz.cnn.io/index/fearandgreed/graphdata',
     { Referer: 'https://edition.cnn.com/' }
   );
-
-  const fg = json?.fear_and_greed;
-  if (!fg) throw new Error('Uventet CNN F&G struktur');
-
-  const score = Math.round(Number(fg.score));
-  const raw   = (fg.rating || '').trim();
-
-  // Normaliser label
-  const label = (() => {
-    const l = raw.toLowerCase();
-    if (l.includes('extreme') && l.includes('fear')) return 'Extreme Fear';
-    if (l.includes('extreme') && l.includes('greed')) return 'Extreme Greed';
-    if (l.includes('fear'))   return 'Fear';
-    if (l.includes('greed'))  return 'Greed';
-    return 'Neutral';
-  })();
-
+  const score = Math.round(Number(j?.fear_and_greed?.score));
+  if (isNaN(score)) throw new Error('CNN F&G: uventet struktur');
+  const r = (j.fear_and_greed.rating || '').toLowerCase();
+  const label =
+    r.includes('extreme') && r.includes('fear')  ? 'Extreme Fear'  :
+    r.includes('extreme') && r.includes('greed') ? 'Extreme Greed' :
+    r.includes('fear')  ? 'Fear'  :
+    r.includes('greed') ? 'Greed' : 'Neutral';
   return { fearGreedIndex: score, fearGreedLabel: label };
 }
 
-/* ─── S&P 500 (Yahoo Finance) ───────────────────────────────────────── */
-
-async function fetchSP500() {
-  const url =
-    'https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC' +
-    '?range=1y&interval=1d&includePrePost=false&events=div%7Csplit';
-
-  const json = await httpsGet(url);
-
-  const result = json?.chart?.result?.[0];
-  if (!result) throw new Error('Uventet Yahoo Finance struktur');
-
-  const meta    = result.meta;
-  const price   = Number(meta.regularMarketPrice  || meta.chartPreviousClose);
-  const high52w = Number(meta.fiftyTwoWeekHigh);
-
-  if (!price || !high52w) throw new Error('Mangler S&P 500 data fra Yahoo');
-
-  return { sp500Price: Math.round(price), sp500_52wHigh: Math.round(high52w) };
-}
-
-/* ─── Sahm Rule (FRED) ──────────────────────────────────────────────── */
-
-async function fetchSahm(apiKey) {
-  const json = await httpsGet(
-    `https://api.stlouisfed.org/fred/series/observations` +
-    `?series_id=SAHMREALTIME&api_key=${apiKey}&limit=1&sort_order=desc&file_type=json`
+/* ── S&P 500 via FRED (SP500 serie) ──────────────────────── */
+async function sp500() {
+  const j = await get(
+    `https://api.stlouisfed.org/fred/series/observations?series_id=SP500&limit=260&sort_order=desc&file_type=json&api_key=${FRED_KEY}`
   );
-  const val = parseFloat(json?.observations?.[0]?.value);
-  if (isNaN(val)) throw new Error('SAHMREALTIME returnerede ingen gyldig værdi');
-  return val;
+  const vals = (j?.observations || [])
+    .map(o => parseFloat(o.value))
+    .filter(v => !isNaN(v));
+  if (!vals.length) throw new Error('FRED SP500: ingen data');
+  return {
+    sp500Price:    Math.round(vals[0]),
+    sp500_52wHigh: Math.round(Math.max(...vals)),
+  };
 }
 
-/* ─── Handler ───────────────────────────────────────────────────────── */
+/* ── Sahm Rule via FRED ───────────────────────────────────── */
+async function sahm() {
+  const j = await get(
+    `https://api.stlouisfed.org/fred/series/observations?series_id=SAHMREALTIME&limit=1&sort_order=desc&file_type=json&api_key=${FRED_KEY}`
+  );
+  const v = parseFloat(j?.observations?.[0]?.value);
+  if (isNaN(v)) throw new Error('FRED SAHM: ingen data');
+  return v;
+}
 
-module.exports = async function handler(req, res) {
+/* ── Handler ─────────────────────────────────────────────── */
+module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=1800');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // Cache 1 time på CDN
-  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=1800');
+  const [fgR, spR, sahmR] = await Promise.allSettled([fearGreed(), sp500(), sahm()]);
 
-  const fredKey = process.env.FRED_API_KEY;
-  if (!fredKey) return res.status(500).json({ error: 'FRED_API_KEY mangler i Vercel env vars' });
+  const fg   = fgR.status   === 'fulfilled' ? fgR.value   : null;
+  const sp   = spR.status   === 'fulfilled' ? spR.value   : null;
+  const sahmV = sahmR.status === 'fulfilled' ? sahmR.value : null;
 
-  try {
-    // Hent alle tre parallelt
-    const [fg, sp, sahmRule] = await Promise.all([
-      fetchFearGreed(),
-      fetchSP500(),
-      fetchSahm(fredKey),
-    ]);
+  // Log fejl til Vercel logs
+  if (fgR.status   === 'rejected') console.error('[F&G]',  fgR.reason?.message);
+  if (spR.status   === 'rejected') console.error('[SP500]', spR.reason?.message);
+  if (sahmR.status === 'rejected') console.error('[SAHM]',  sahmR.reason?.message);
 
-    return res.status(200).json({
-      fearGreedIndex: fg.fearGreedIndex,
-      fearGreedLabel: fg.fearGreedLabel,
-      sp500Price:     sp.sp500Price,
-      sp500_52wHigh:  sp.sp500_52wHigh,
-      sahmRule,
-      updatedAt:      new Date().toISOString(),
-    });
-  } catch (err) {
-    console.error('[api/data]', err.message);
-    return res.status(500).json({ error: err.message });
+  if (!fg && !sp && sahmV === null) {
+    const msgs = [fgR, spR, sahmR]
+      .filter(r => r.status === 'rejected')
+      .map(r => r.reason?.message)
+      .join(' | ');
+    return res.status(500).json({ error: msgs });
   }
+
+  return res.status(200).json({
+    fearGreedIndex: fg?.fearGreedIndex ?? null,
+    fearGreedLabel: fg?.fearGreedLabel ?? null,
+    sp500Price:     sp?.sp500Price     ?? null,
+    sp500_52wHigh:  sp?.sp500_52wHigh  ?? null,
+    sahmRule:       sahmV,
+    updatedAt:      new Date().toISOString(),
+  });
 };
