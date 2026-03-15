@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
-export const maxDuration = 60          // Vercel Pro: up to 60s for Anthropic web_search
+export const maxDuration = 10          // Vercel Hobby max
 export const revalidate = 3600         // Cache response 1h on Vercel CDN
 
 export async function GET() {
@@ -57,9 +57,9 @@ Search: 1) CNN Fear Greed Index current value 2) S&P 500 current price and 52-we
 
     const market = JSON.parse(match[0])
 
+    // ── 2. Sahm Rule via FRED ────────────────────────────────────
     const fredRes = await fetch(
-      `https://api.stlouisfed.org/fred/series/observations?series_id=SAHMREALTIME&api_key=${fredKey}&limit=1&sort_order=desc&file_type=json`,
-      { next: { revalidate: 3600 } }
+      `https://api.stlouisfed.org/fred/series/observations?series_id=SAHMREALTIME&api_key=${fredKey}&limit=1&sort_order=desc&file_type=json`
     )
     const fredData = await fredRes.json()
     const sahmRule = parseFloat(fredData.observations?.[0]?.value)
