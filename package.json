@@ -1,9 +1,24 @@
 {
   "name": "makro-signal",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Investeringssignal dashboard — S&P 500, Fear & Greed, ISM PMI, Sahm Rule",
-  "engines": {
-    "node": ">=18"
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8",
+    "autoprefixer": "^10"
   }
 }
