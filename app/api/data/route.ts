@@ -57,7 +57,6 @@ Search: 1) CNN Fear Greed Index current value 2) S&P 500 current price and 52-we
 
     const market = JSON.parse(match[0])
 
-    // ── 2. Sahm Rule via FRED ────────────────────────────────────
     const fredRes = await fetch(
       `https://api.stlouisfed.org/fred/series/observations?series_id=SAHMREALTIME&api_key=${fredKey}&limit=1&sort_order=desc&file_type=json`,
       { next: { revalidate: 3600 } }
