@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
    TYPES
-âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
 
 interface MarketData {
   fearGreedIndex: number
@@ -21,9 +21,9 @@ interface ScoreResult {
   drawdownPct: number
 }
 
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
    SCORE LOGIC
-âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
 
 function computeScore(data: MarketData | null, ism: number | null): ScoreResult {
   if (!data) return { score: 0, pts: { sp: 0, fg: 0, ism: 0, sahm: 0 }, drawdownPct: 0 }
@@ -48,14 +48,14 @@ function computeScore(data: MarketData | null, ism: number | null): ScoreResult 
 }
 
 function getSignal(score: number) {
-  if (score >= 7) return { label: 'STORT KÃB',  amount: '25.000 kr', emoji: 'ð¢', color: '#22c55e' }
-  if (score >= 4) return { label: 'MEDIUM KÃB', amount: '12.500 kr', emoji: 'ð¡', color: '#f59e0b' }
-  if (score === 3) return { label: 'LILLE KÃB',  amount: '6.250 kr',  emoji: 'ð ', color: '#f97316' }
-  return             { label: 'AFVENT',      amount: 'â',          emoji: 'ð´', color: '#ef4444' }
+  if (score >= 7) return { label: 'STORT KÃÂB',  amount: '25.000 kr', emoji: 'Ã°ÂÂÂ¢', color: '#22c55e' }
+  if (score >= 4) return { label: 'MEDIUM KÃÂB', amount: '12.500 kr', emoji: 'Ã°ÂÂÂ¡', color: '#f59e0b' }
+  if (score === 3) return { label: 'LILLE KÃÂB',  amount: '6.250 kr',  emoji: 'Ã°ÂÂÂ ', color: '#f97316' }
+  return             { label: 'AFVENT',      amount: 'Ã¢ÂÂ',          emoji: 'Ã°ÂÂÂ´', color: '#ef4444' }
 }
 
 function getGapLines(data: MarketData | null, ism: number | null, ddPct: number): string[] {
-  if (!data) return ['Afventer dataâ¦']
+  if (!data) return ['Afventer dataÃ¢ÂÂ¦']
   const lines: string[] = []
   const sp   = data.sp500Price
   const high = data.sp500_52wHigh
@@ -65,38 +65,38 @@ function getGapLines(data: MarketData | null, ism: number | null, ddPct: number)
   if (dd < 15) {
     const target = Math.round(high * 0.85)
     const pct    = ((sp - target) / sp * 100).toFixed(1)
-    lines.push(`S&P 500 skal falde ${pct}% mere (til ${target.toLocaleString('da-DK')}) for de fÃ¸rste +2 point.`)
+    lines.push(`S&P 500 skal falde ${pct}% mere (til ${target.toLocaleString('da-DK')}) for de fÃÂ¸rste +2 point.`)
   } else if (dd < 25) {
     const target = Math.round(high * 0.75)
     const pct    = ((sp - target) / sp * 100).toFixed(1)
     lines.push(`S&P 500 har faldet ${dd.toFixed(1)}% (+2 point). Skal falde ${pct}% mere (til ${target.toLocaleString('da-DK')}) for +2 point til.`)
   } else {
-    lines.push(`S&P 500 har faldet ${dd.toFixed(1)}% â maks S&P point opnÃ¥et (+4).`)
+    lines.push(`S&P 500 har faldet ${dd.toFixed(1)}% Ã¢ÂÂ maks S&P point opnÃÂ¥et (+4).`)
   }
 
   // F&G
   const fg = data.fearGreedIndex
-  if (fg > 35)      lines.push(`Fear & Greed pÃ¥ ${fg} â skal under 35 for +1 point.`)
-  else if (fg > 20) lines.push(`Fear & Greed pÃ¥ ${fg} (+1 point). Skal under 20 for +1 point til.`)
-  else              lines.push(`Fear & Greed pÃ¥ ${fg} â maks F&G point opnÃ¥et (+2).`)
+  if (fg > 35)      lines.push(`Fear & Greed pÃÂ¥ ${fg} Ã¢ÂÂ skal under 35 for +1 point.`)
+  else if (fg > 20) lines.push(`Fear & Greed pÃÂ¥ ${fg} (+1 point). Skal under 20 for +1 point til.`)
+  else              lines.push(`Fear & Greed pÃÂ¥ ${fg} Ã¢ÂÂ maks F&G point opnÃÂ¥et (+2).`)
 
   // ISM
-  if (ism === null)    lines.push('ISM PMI ikke indlÃ¦st â indtast det seneste tal nedenfor.')
-  else if (ism >= 49)  lines.push(`ISM PMI pÃ¥ ${ism.toFixed(1)} â skal under 49 for +1 point.`)
-  else if (ism >= 47)  lines.push(`ISM PMI pÃ¥ ${ism.toFixed(1)} (+1 point). Skal under 47 for +1 point til.`)
-  else                 lines.push(`ISM PMI pÃ¥ ${ism.toFixed(1)} â maks ISM point opnÃ¥et (+2).`)
+  if (ism === null)    lines.push('ISM PMI ikke indlÃÂ¦st Ã¢ÂÂ indtast det seneste tal nedenfor.')
+  else if (ism >= 49)  lines.push(`ISM PMI pÃÂ¥ ${ism.toFixed(1)} Ã¢ÂÂ skal under 49 for +1 point.`)
+  else if (ism >= 47)  lines.push(`ISM PMI pÃÂ¥ ${ism.toFixed(1)} (+1 point). Skal under 47 for +1 point til.`)
+  else                 lines.push(`ISM PMI pÃÂ¥ ${ism.toFixed(1)} Ã¢ÂÂ maks ISM point opnÃÂ¥et (+2).`)
 
   // Sahm
   const s = data.sahmRule
-  if (s < 0.5) lines.push(`Sahm-reglen pÃ¥ ${s.toFixed(2)} â skal op pÃ¥ 0,50 for +2 point.`)
-  else         lines.push(`Sahm-reglen pÃ¥ ${s.toFixed(2)} â over grÃ¦nsen, +2 point aktiveret.`)
+  if (s < 0.5) lines.push(`Sahm-reglen pÃÂ¥ ${s.toFixed(2)} Ã¢ÂÂ skal op pÃÂ¥ 0,50 for +2 point.`)
+  else         lines.push(`Sahm-reglen pÃÂ¥ ${s.toFixed(2)} Ã¢ÂÂ over grÃÂ¦nsen, +2 point aktiveret.`)
 
   return lines
 }
 
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
    SVG GAUGE
-âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
 
 function FGGauge({ value }: { value: number | null }) {
   const v   = value ?? 50
@@ -122,8 +122,8 @@ function FGGauge({ value }: { value: number | null }) {
       <line x1="100" y1="100" x2={nx} y2={ny} stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
       <circle cx="100" cy="100" r="4.5" fill="white" opacity="0.9" />
       {value !== null && (
-        <text x="100" y="92" textAnchor="middle" fill="#f1f5f9" fontSize="28"
-              fontFamily="var(--font-cormorant), Cormorant Garamond, serif" fontWeight="500">
+        <text x="100" y="112" textAnchor="middle" fill="#f1f5f9" fontSize="36"
+              fontFamily="var(--font-cormorant), Cormorant Garamond, serif" fontWeight="600">
           {Math.round(value)}
         </text>
       )}
@@ -131,9 +131,9 @@ function FGGauge({ value }: { value: number | null }) {
   )
 }
 
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
    SAHM PROGRESS BAR
-âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
 
 function SahmBar({ value }: { value: number | null }) {
   const v    = value ?? 0
@@ -154,9 +154,9 @@ function SahmBar({ value }: { value: number | null }) {
   )
 }
 
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
    CARD WRAPPER
-âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
 
 const ACCENT: Record<string, string> = {
   purple: '#6366f1',
@@ -191,9 +191,9 @@ function Card({ children, accent = 'purple', className = '', style }: {
   )
 }
 
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
    HELPERS
-âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
 
 const CACHE_KEY    = 'mks2_data'
 const ISM_KEY      = 'mks2_ism'
@@ -219,9 +219,9 @@ function fmtDate(iso: string) {
     ' kl. ' + new Date(iso).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })
 }
 
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
    PAGE
-âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
 
 export default function Page() {
   const [data,    setData]    = useState<MarketData | null>(null)
@@ -286,7 +286,7 @@ export default function Page() {
   }
 
   function registerBuy() {
-    if (!confirm(`RegistrÃ©r kÃ¸b i dag (${new Date().toLocaleDateString('da-DK')})?`)) return
+    if (!confirm(`RegistrÃÂ©r kÃÂ¸b i dag (${new Date().toLocaleDateString('da-DK')})?`)) return
     const d = new Date().toISOString()
     localStorage.setItem(COOLDOWN_KEY, d)
     setLastBuy(d)
@@ -327,16 +327,16 @@ export default function Page() {
     <main style={{ minHeight: '100vh', padding: '0 0 40px' }}>
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px' }}>
 
-        {/* ââ HEADER ââ */}
+        {/* Ã¢ÂÂÃ¢ÂÂ HEADER Ã¢ÂÂÃ¢ÂÂ */}
         <header style={{ marginBottom: 32 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
             <div>
               <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6366f1', marginBottom: 10 }}>
-                â MARKEDSBAROMETER
+                Ã¢ÂÂ MARKEDSBAROMETER
               </div>
               <h1 style={{ fontFamily: 'var(--font-cormorant), Cormorant Garamond, serif', fontSize: 'clamp(2rem,6vw,3rem)', fontWeight: 600, lineHeight: 1, color: '#f1f5f9' }}>
                 US Marked{' '}
-                <em style={{ fontStyle: 'italic', fontWeight: 400 }}>KÃ¸bsstrategi</em>
+                <em style={{ fontStyle: 'italic', fontWeight: 400 }}>KÃÂ¸bsstrategi</em>
               </h1>
             </div>
             <button
@@ -355,21 +355,21 @@ export default function Page() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {loading ? 'Henterâ¦' : 'â» Opdater data'}
+              {loading ? 'HenterÃ¢ÂÂ¦' : 'Ã¢ÂÂ» Opdater data'}
             </button>
           </div>
 
           {/* Status bar */}
           <div style={{ marginTop: 12, fontSize: 11, color: '#475569', fontFamily: 'var(--font-dm-mono)' }}>
-            {loading && <span>â Henter live dataâ¦</span>}
-            {!loading && error && <span style={{ color: '#ef4444' }}>â Fejl: {error}</span>}
+            {loading && <span>Ã¢ÂÂ Henter live dataÃ¢ÂÂ¦</span>}
+            {!loading && error && <span style={{ color: '#ef4444' }}>Ã¢ÂÂ Fejl: {error}</span>}
             {!loading && !error && data && (
-              <span style={{ color: '#4ade80' }}>â Live data Â· opdateret {fmtDate(data.updatedAt)}</span>
+              <span style={{ color: '#4ade80' }}>Ã¢ÂÂ Live data ÃÂ· opdateret {fmtDate(data.updatedAt)}</span>
             )}
           </div>
         </header>
 
-        {/* ââ SIGNAL PANEL ââ */}
+        {/* Ã¢ÂÂÃ¢ÂÂ SIGNAL PANEL Ã¢ÂÂÃ¢ÂÂ */}
         <Card accent={signalAccent} className="" style={{ marginBottom: 20 }}>
           <div style={{ marginBottom: 20 }}>
             {/* Top row: emoji + score + recommendation */}
@@ -384,7 +384,7 @@ export default function Page() {
                     {signal.label}
                   </div>
                   <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 3 }}>
-                    {signal.amount !== 'â' ? signal.amount : 'Afvent bedre indgang'}
+                    {signal.amount !== 'Ã¢ÂÂ' ? signal.amount : 'Afvent bedre indgang'}
                   </div>
                 </div>
               </div>
@@ -393,7 +393,7 @@ export default function Page() {
                   SCORE
                 </div>
                 <div style={{ fontFamily: 'var(--font-cormorant), Cormorant Garamond, serif', fontSize: 52, fontWeight: 600, lineHeight: 1, color: '#f1f5f9' }}>
-                  {data ? score : 'â'}
+                  {data ? score : 'Ã¢ÂÂ'}
                   <span style={{ fontSize: 20, color: '#475569' }}> / 10</span>
                 </div>
               </div>
@@ -403,7 +403,7 @@ export default function Page() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, marginBottom: 20 }}>
               <thead>
                 <tr>
-                  {['Indikator', 'Aktuel vÃ¦rdi', 'Trigger-niveauer', 'Point'].map(h => (
+                  {['Indikator', 'Aktuel vÃÂ¦rdi', 'Trigger-niveauer', 'Point'].map(h => (
                     <th key={h} style={{ textAlign: h === 'Point' ? 'right' : 'left', padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.07)', color: '#475569', fontWeight: 400, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-dm-mono)' }}>
                       {h}
                     </th>
@@ -415,36 +415,36 @@ export default function Page() {
                 <tr style={{ background: pts.sp > 0 ? 'rgba(99,102,241,0.06)' : 'transparent' }}>
                   <td style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#94a3b8', fontSize: 11 }}>S&amp;P 500</td>
                   <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#f1f5f9', fontFamily: 'var(--font-cormorant), serif', fontSize: 16 }}>
-                    {data ? (drawdownPct >= 0.001 ? `â${ddPctDisplay}% fra high` : 'NÃ¦r all-time high') : 'â'}
+                    {data ? (drawdownPct >= 0.001 ? `Ã¢ÂÂ${ddPctDisplay}% fra high` : 'NÃÂ¦r all-time high') : 'Ã¢ÂÂ'}
                   </td>
                   <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#64748b', fontSize: 10 }}>
-                    â¥â15%: +2 &nbsp;Â·&nbsp; â¥â25%: +4
+                    Ã¢ÂÂ¥Ã¢ÂÂ15%: +2 &nbsp;ÃÂ·&nbsp; Ã¢ÂÂ¥Ã¢ÂÂ25%: +4
                   </td>
                   <td style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', textAlign: 'right', color: pts.sp > 0 ? '#4ade80' : '#334155', fontWeight: 600 }}>
-                    {data ? (pts.sp > 0 ? `+${pts.sp}` : '0') : 'â'}
+                    {data ? (pts.sp > 0 ? `+${pts.sp}` : '0') : 'Ã¢ÂÂ'}
                   </td>
                 </tr>
                 {/* Fear & Greed */}
                 <tr style={{ background: pts.fg > 0 ? 'rgba(99,102,241,0.06)' : 'transparent' }}>
                   <td style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#94a3b8', fontSize: 11 }}>Fear &amp; Greed</td>
                   <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#f1f5f9', fontFamily: 'var(--font-cormorant), serif', fontSize: 16 }}>
-                    {data ? `${data.fearGreedIndex} Â· ${data.fearGreedLabel}` : 'â'}
+                    {data ? `${data.fearGreedIndex} ÃÂ· ${data.fearGreedLabel}` : 'Ã¢ÂÂ'}
                   </td>
                   <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#64748b', fontSize: 10 }}>
-                    â¤35: +1 &nbsp;Â·&nbsp; â¤20: +2
+                    Ã¢ÂÂ¤35: +1 &nbsp;ÃÂ·&nbsp; Ã¢ÂÂ¤20: +2
                   </td>
                   <td style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', textAlign: 'right', color: pts.fg > 0 ? '#4ade80' : '#334155', fontWeight: 600 }}>
-                    {data ? (pts.fg > 0 ? `+${pts.fg}` : '0') : 'â'}
+                    {data ? (pts.fg > 0 ? `+${pts.fg}` : '0') : 'Ã¢ÂÂ'}
                   </td>
                 </tr>
                 {/* ISM PMI */}
                 <tr style={{ background: pts.ism > 0 ? 'rgba(99,102,241,0.06)' : 'transparent' }}>
                   <td style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#94a3b8', fontSize: 11 }}>ISM PMI</td>
                   <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: ism !== null ? '#f1f5f9' : '#475569', fontFamily: 'var(--font-cormorant), serif', fontSize: 16 }}>
-                    {ism !== null ? ism.toFixed(1) : 'â  ikke indlÃ¦st'}
+                    {ism !== null ? ism.toFixed(1) : 'Ã¢ÂÂ  ikke indlÃÂ¦st'}
                   </td>
                   <td style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#64748b', fontSize: 10 }}>
-                    â¤49: +1 &nbsp;Â·&nbsp; â¤47: +2
+                    Ã¢ÂÂ¤49: +1 &nbsp;ÃÂ·&nbsp; Ã¢ÂÂ¤47: +2
                   </td>
                   <td style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', textAlign: 'right', color: pts.ism > 0 ? '#4ade80' : '#334155', fontWeight: 600 }}>
                     {pts.ism > 0 ? `+${pts.ism}` : '0'}
@@ -454,13 +454,13 @@ export default function Page() {
                 <tr style={{ background: pts.sahm > 0 ? 'rgba(99,102,241,0.06)' : 'transparent' }}>
                   <td style={{ padding: '10px 0', color: '#94a3b8', fontSize: 11 }}>Sahm-regel</td>
                   <td style={{ padding: '10px 12px', color: '#f1f5f9', fontFamily: 'var(--font-cormorant), serif', fontSize: 16 }}>
-                    {data ? data.sahmRule.toFixed(2).replace('.', ',') : 'â'}
+                    {data ? data.sahmRule.toFixed(2).replace('.', ',') : 'Ã¢ÂÂ'}
                   </td>
                   <td style={{ padding: '10px 12px', color: '#64748b', fontSize: 10 }}>
-                    â¥0,50: +2
+                    Ã¢ÂÂ¥0,50: +2
                   </td>
                   <td style={{ padding: '10px 0', textAlign: 'right', color: pts.sahm > 0 ? '#4ade80' : '#334155', fontWeight: 600 }}>
-                    {data ? (pts.sahm > 0 ? `+${pts.sahm}` : '0') : 'â'}
+                    {data ? (pts.sahm > 0 ? `+${pts.sahm}` : '0') : 'Ã¢ÂÂ'}
                   </td>
                 </tr>
               </tbody>
@@ -483,10 +483,10 @@ export default function Page() {
               <div style={{ fontSize: 12, color: '#64748b', fontFamily: 'var(--font-dm-mono)' }}>
                 {cooldownInfo ? (
                   cooldownInfo.within
-                    ? <span>Seneste kÃ¸b: {cooldownInfo.last.toLocaleDateString('da-DK')} Â· <span style={{ color: '#f59e0b' }}>â  Cooldown: {cooldownInfo.days} dage siden (90-dages regel)</span></span>
-                    : <span>Seneste kÃ¸b: {cooldownInfo.last.toLocaleDateString('da-DK')} Â· <span style={{ color: '#4ade80' }}>Cooldown udlÃ¸bet</span></span>
+                    ? <span>Seneste kÃÂ¸b: {cooldownInfo.last.toLocaleDateString('da-DK')} ÃÂ· <span style={{ color: '#f59e0b' }}>Ã¢ÂÂ  Cooldown: {cooldownInfo.days} dage siden (90-dages regel)</span></span>
+                    : <span>Seneste kÃÂ¸b: {cooldownInfo.last.toLocaleDateString('da-DK')} ÃÂ· <span style={{ color: '#4ade80' }}>Cooldown udlÃÂ¸bet</span></span>
                 ) : (
-                  'Ingen registreret kÃ¸b'
+                  'Ingen registreret kÃÂ¸b'
                 )}
               </div>
               <button
@@ -504,13 +504,13 @@ export default function Page() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                RegistrÃ©r kÃ¸b i dag
+                RegistrÃÂ©r kÃÂ¸b i dag
               </button>
             </div>
           </div>
         </Card>
 
-        {/* ââ METRIC CARDS 2Ã2 ââ */}
+        {/* Ã¢ÂÂÃ¢ÂÂ METRIC CARDS 2ÃÂ2 Ã¢ÂÂÃ¢ÂÂ */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, marginBottom: 40 }}>
 
           {/* Fear & Greed */}
@@ -544,7 +544,7 @@ export default function Page() {
                 </span>
               </div>
             ) : (
-              <div style={{ textAlign: 'center', color: '#334155', fontSize: 12 }}>Henterâ¦</div>
+              <div style={{ textAlign: 'center', color: '#334155', fontSize: 12 }}>HenterÃ¢ÂÂ¦</div>
             )}
           </Card>
 
@@ -554,10 +554,10 @@ export default function Page() {
               S&amp;P 500
             </div>
             <div style={{ fontFamily: 'var(--font-cormorant), Cormorant Garamond, serif', fontSize: 42, fontWeight: 500, lineHeight: 1, color: '#f1f5f9', marginBottom: 6 }}>
-              {data ? data.sp500Price.toLocaleString('da-DK') : 'â'}
+              {data ? data.sp500Price.toLocaleString('da-DK') : 'Ã¢ÂÂ'}
             </div>
             <div style={{ fontSize: 11, color: '#64748b', marginBottom: 8 }}>
-              52-ugers high: {data ? data.sp500_52wHigh.toLocaleString('da-DK') : 'â'}
+              52-ugers high: {data ? data.sp500_52wHigh.toLocaleString('da-DK') : 'Ã¢ÂÂ'}
             </div>
             {data && drawdownPct >= 0.001 && (
               <span style={{
@@ -569,12 +569,12 @@ export default function Page() {
                 background: drawdownPct >= 0.25 ? 'rgba(34,197,94,0.12)' : drawdownPct >= 0.15 ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.12)',
                 color: drawdownPct >= 0.15 ? '#4ade80' : '#fcd34d',
               }}>
-                â{ddPctDisplay}% fra high
+                Ã¢ÂÂ{ddPctDisplay}% fra high
               </span>
             )}
             {data && drawdownPct < 0.001 && (
               <span style={{ display: 'inline-block', fontSize: 11, padding: '3px 10px', borderRadius: 4, background: 'rgba(71,85,105,0.2)', color: '#94a3b8' }}>
-                NÃ¦r all-time high
+                NÃÂ¦r all-time high
               </span>
             )}
           </Card>
@@ -585,10 +585,10 @@ export default function Page() {
               ISM MANUFACTURING PMI <span style={{ color: '#334155' }}>(manuelt)</span>
             </div>
             <div style={{ fontFamily: 'var(--font-cormorant), Cormorant Garamond, serif', fontSize: 42, fontWeight: 500, lineHeight: 1, color: '#f1f5f9', marginBottom: 6 }}>
-              {ism !== null ? ism.toFixed(1) : 'â'}
+              {ism !== null ? ism.toFixed(1) : 'Ã¢ÂÂ'}
             </div>
             <div style={{ fontSize: 10, color: '#475569', marginBottom: 12 }}>
-              {ismSavedDate ? `Opdateret ${ismSavedDate}` : 'Ikke indlÃ¦st'} Â· Opdateres 1. hverdag/md
+              {ismSavedDate ? `Opdateret ${ismSavedDate}` : 'Ikke indlÃÂ¦st'} ÃÂ· Opdateres 1. hverdag/md
             </div>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 8 }}>
               <input
@@ -633,7 +633,7 @@ export default function Page() {
               rel="noopener noreferrer"
               style={{ fontSize: 11, color: '#6366f1', opacity: 0.8, textDecoration: 'none' }}
             >
-              â Se seneste tal pÃ¥ TradingEconomics
+              Ã¢ÂÂ Se seneste tal pÃÂ¥ TradingEconomics
             </a>
           </Card>
 
@@ -643,10 +643,10 @@ export default function Page() {
               SAHM-REGEL
             </div>
             <div style={{ fontFamily: 'var(--font-cormorant), Cormorant Garamond, serif', fontSize: 42, fontWeight: 500, lineHeight: 1, color: '#f1f5f9', marginBottom: 6 }}>
-              {data ? data.sahmRule.toFixed(2).replace('.', ',') : 'â'}
+              {data ? data.sahmRule.toFixed(2).replace('.', ',') : 'Ã¢ÂÂ'}
             </div>
             <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>
-              TÃ¦rskel: 0,50 Â· Recessionsindikator
+              TÃÂ¦rskel: 0,50 ÃÂ· Recessionsindikator
             </div>
             {data && (
               <span style={{
@@ -659,7 +659,7 @@ export default function Page() {
                 color: data.sahmRule >= 0.5 ? '#fca5a5' : '#4ade80',
                 marginBottom: 8,
               }}>
-                {data.sahmRule >= 0.5 ? 'Recessionsadvarsel â¥0,5' : 'Ingen signal <0,5'}
+                {data.sahmRule >= 0.5 ? 'Recessionsadvarsel Ã¢ÂÂ¥0,5' : 'Ingen signal <0,5'}
               </span>
             )}
             <SahmBar value={data?.sahmRule ?? null} />
@@ -667,9 +667,9 @@ export default function Page() {
 
         </div>
 
-        {/* ââ FOOTER ââ */}
+        {/* Ã¢ÂÂÃ¢ÂÂ FOOTER Ã¢ÂÂÃ¢ÂÂ */}
         <footer style={{ textAlign: 'center', fontSize: 10, color: '#334155', fontFamily: 'var(--font-dm-mono)', lineHeight: 1.6 }}>
-          Data via Anthropic API + FRED Â· Kun til informationsformÃ¥l Â· Ikke finansiel rÃ¥dgivning
+          Data via Anthropic API + FRED ÃÂ· Kun til informationsformÃÂ¥l ÃÂ· Ikke finansiel rÃÂ¥dgivning
         </footer>
 
       </div>
