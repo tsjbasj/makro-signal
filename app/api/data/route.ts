@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
-export const maxDuration = 10          // Vercel Hobby max
+export const maxDuration = 30          // Vercel Hobby max 30s
 export const revalidate = 3600         // Cache response 1h on Vercel CDN
 
 export async function GET() {
@@ -10,13 +10,13 @@ export async function GET() {
 
   if (!anthropicKey) {
     return NextResponse.json(
-      { error: 'ANTHROPIC_API_KEY mangler — tilføj den i Vercel → Settings → Environment Variables' },
+      { error: 'ANTHROPIC_API_KEY mangler â tilfÃ¸j den i Vercel â Settings â Environment Variables' },
       { status: 500 }
     )
   }
 
   try {
-    // ── 1. Markedsdata via Anthropic web_search ──────────────────
+    // ââ 1. Markedsdata via Anthropic web_search ââââââââââââââââââ
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -26,7 +26,7 @@ export async function GET() {
         'anthropic-beta': 'web-search-2025-03-05',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-3-7-sonnet-20250219',
         max_tokens: 1000,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{
@@ -57,14 +57,14 @@ Search: 1) CNN Fear Greed Index current value 2) S&P 500 current price and 52-we
 
     const market = JSON.parse(match[0])
 
-    // ── 2. Sahm Rule via FRED ────────────────────────────────────
+    // ââ 2. Sahm Rule via FRED ââââââââââââââââââââââââââââââââââââ
     const fredRes = await fetch(
       `https://api.stlouisfed.org/fred/series/observations?series_id=SAHMREALTIME&api_key=${fredKey}&limit=1&sort_order=desc&file_type=json`
     )
     const fredData = await fredRes.json()
     const sahmRule = parseFloat(fredData.observations?.[0]?.value)
 
-    if (isNaN(sahmRule)) throw new Error('FRED SAHMREALTIME returnerede ingen gyldig værdi')
+    if (isNaN(sahmRule)) throw new Error('FRED SAHMREALTIME returnerede ingen gyldig vÃ¦rdi')
 
     return NextResponse.json(
       {
