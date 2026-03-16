@@ -108,24 +108,20 @@ function FGGauge({ value }: { value: number | null }) {
 
   return (
     <div style={{ textAlign: 'center' }}>
-    <svg viewBox="0 0 200 112" style={{ width: '100%', maxWidth: 180 }}>
-      <defs>
-        <linearGradient id="fg-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%"   stopColor="#ef4444" />
-          <stop offset="25%"  stopColor="#f59e0b" />
-          <stop offset="50%"  stopColor="#eab308" />
-          <stop offset="75%"  stopColor="#84cc16" />
-          <stop offset="100%" stopColor="#22c55e" />
-        </linearGradient>
-      </defs>
-      <path d="M 18 100 A 82 82 0 0 1 182 100" stroke="rgba(255,255,255,0.07)" strokeWidth="14" fill="none" strokeLinecap="round" />
-      <path d="M 18 100 A 82 82 0 0 1 182 100" stroke="url(#fg-grad)" strokeWidth="14" fill="none" strokeLinecap="round" />
-      <line x1="100" y1="100" x2={nx} y2={ny} stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
-      <circle cx="100" cy="100" r="4.5" fill="white" opacity="0.9" />
-      {value !== null && (
-
-      )}
-    </svg>
+      <svg viewBox="0 0 200 112" style={{ width: '100%', maxWidth: 180 }}>
+        <defs>
+          <linearGradient id="fg-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stopColor="#ef4444" />
+            <stop offset="25%"  stopColor="#f59e0b" />
+            <stop offset="50%"  stopColor="#eab308" />
+            <stop offset="75%"  stopColor="#84cc16" />
+            <stop offset="100%" stopColor="#22c55e" />
+          </linearGradient>
+        </defs>
+        <path d="M 18 100 A 82 82 0 0 1 182 100" stroke="rgba(255,255,255,0.07)" strokeWidth="14" fill="none" strokeLinecap="round" />
+        <path d="M 18 100 A 82 82 0 0 1 182 100" stroke="url(#fg-grad)" strokeWidth="14" fill="none" strokeLinecap="round" opacity="0.9" />
+        <line x1="100" y1="100" x2={nx} y2={ny} stroke="white" strokeWidth="2" strokeLinecap="round" />
+      </svg>
       {value !== null && (
         <div style={{ fontFamily: 'Georgia, serif', fontSize: 42, fontWeight: 600, color: '#f1f5f9', lineHeight: 1, marginTop: -4 }}>
           {Math.round(value)}
@@ -134,11 +130,6 @@ function FGGauge({ value }: { value: number | null }) {
     </div>
   )
 }
-
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-   SAHM PROGRESS BAR
-âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
-
 function SahmBar({ value }: { value: number | null }) {
   const v    = value ?? 0
   const pct  = Math.min(100, (v / 1.5) * 100)
