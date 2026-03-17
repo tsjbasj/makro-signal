@@ -21,7 +21,7 @@ const INITIAL_TRADES: Trade[] = [
   { date: '17/03/2026', ticker: 'CELC', action: 'KØB', shares: 12,  price: 114.00, dkk: 9171.81 },
 ]
 
-const START_CAPITAL = 30000
+const START_CAPITAL = 29887.97
 const END_DATE   = new Date('2026-12-31')
 const START_DATE = new Date('2026-03-17')
 
