@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Link from 'next/link'
 
 /* ═══════════════════════════════════════════════════════════
    TYPES
@@ -319,7 +320,13 @@ export default function Page() {
   })()
 
   return (
-    <main style={{ minHeight: '100vh', padding: '0 0 40px' }}>
+    <>
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '10px 24px', background: 'rgba(7,9,15,0.97)', borderBottom: '1px solid rgba(255,255,255,0.05)', fontFamily: 'var(--font-dm-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 100 }}>
+        <span style={{ color: '#334155' }}>◈</span>
+        <Link href="/" style={{ color: '#f1f5f9', textDecoration: 'none', borderBottom: '1px solid #6366f1', paddingBottom: 2 }}>Makro Signal</Link>
+        <Link href="/portfolio" style={{ color: '#475569', textDecoration: 'none' }}>The 2026 Run</Link>
+      </nav>
+      <main style={{ minHeight: '100vh', padding: '0 0 40px' }}>
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px' }}>
 
         {/* ── HEADER ── */}
@@ -696,5 +703,6 @@ export default function Page() {
 
       </div>
     </main>
+    </>
   )
 }
