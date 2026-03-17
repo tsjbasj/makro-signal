@@ -11,14 +11,14 @@ interface Trade { date: string; ticker: string; action: string; shares: number; 
 
 const POSITIONS = [
   { ticker: 'OXY',  name: 'Occidental Petroleum', shares: 31,  buy: 57.90,  stop: 46,  target: 68,  dkk: 11769.03 },
-  { ticker: 'PLTR', name: 'Palantir Technologies',  shares: 9,   buy: 151.40, stop: 110, target: 200, dkk: 10000 },
-  { ticker: 'CELC', name: 'Celcuity',               shares: 10,  buy: 114.00, stop: 80,  target: 180, dkk: 8000  },
+  { ticker: 'PLTR', name: 'Palantir Technologies',  shares: 9,   buy: 151.40, stop: 110, target: 200, dkk: 8947.13 },
+  { ticker: 'CELC', name: 'Celcuity',               shares: 12,  buy: 114.00, stop: 80,  target: 180, dkk: 9171.81 },
 ]
 
 const INITIAL_TRADES: Trade[] = [
   { date: '17/03/2026', ticker: 'OXY',  action: 'KØB', shares: 31,  price: 57.90,  dkk: 11769.03 },
-  { date: '17/03/2026', ticker: 'PLTR', action: 'KØB', shares: 9,   price: 151.40, dkk: 10000 },
-  { date: '17/03/2026', ticker: 'CELC', action: 'KØB', shares: 10,  price: 114.00, dkk: 8000  },
+  { date: '17/03/2026', ticker: 'PLTR', action: 'KØB', shares: 9,   price: 151.40, dkk: 8947.13 },
+  { date: '17/03/2026', ticker: 'CELC', action: 'KØB', shares: 12,  price: 114.00, dkk: 9171.81 },
 ]
 
 const START_CAPITAL = 30000
