@@ -267,14 +267,15 @@ export default function Page() {
     if (!data) return
     const sp = data.sp500Price
     const today = new Date().toISOString().slice(0, 10)
+    const { score: sc } = computeScore(data, ism)
     setPeriod(prev => {
       const p: PeriodState = prev ?? {
         startDate: today, invested: 0, levelsTriggered: [], lowSp500: sp, scoreZeroSince: null,
       }
       const newLow = sp > 0 ? Math.min(p.lowSp500 > 0 ? p.lowSp500 : sp, sp) : p.lowSp500
       let szs = p.scoreZeroSince
-      if (score <= 2 && szs === null) szs = today
-      if (score > 2) szs = null
+      if (sc <= 2 && szs === null) szs = today
+      if (sc > 2) szs = null
       let shouldReset = false
       if (szs !== null && sp > 0 && p.lowSp500 > 0) {
         const dz = (Date.now() - new Date(szs).getTime()) / 86_400_000
@@ -286,7 +287,7 @@ export default function Page() {
       localStorage.setItem(PERIOD_KEY, JSON.stringify(updated))
       return updated
     })
-  }, [data, score])
+  }, [data, ism])
 
   // Fetch market data
   const fetchData = useCallback(async (force = false) => {
