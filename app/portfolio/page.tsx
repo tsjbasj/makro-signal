@@ -176,7 +176,7 @@ export default function PortfolioPage() {
               <div key={pos.ticker} style={{ marginBottom: 20, padding: '16px 18px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 8 }}>
                 <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 20, color: '#e2e8f0', marginBottom: 14 }}>{pos.name}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  {([ ['buy', 'K\u00F8bekurs ($)'], ['shares', 'Antal aktier'], ['stop', 'Tage stilling nedad ($)'], ['sellLow', 'S\u00E6lg altid nedad ($)'], ['target', 'Tage stilling opad ($)'], ['sellHigh', 'S\u00E6lg altid opad ($)'] ] as Array<[keyof PosEntry, string]>).map(([field, label]) => (
+                  {([ ['buy', 'K\u00F8bekurs ($)'], ['shares', 'Antal aktier'], ['stop', 'Tage stilling nedad ($)'], ['sellLow', 'S\u00E6lg altid nedad ($)'], ['target', 'Tage stilling opad ($)'], ['sellHigh', 'S\u00E6lg altid opad ($)'] ] as [keyof PosEntry, string][]).map(([field, label]) => (
                     <div key={String(field)}>
                       <div style={{ fontSize: 9, color: '#475569', fontFamily: 'var(--font-dm-mono)', letterSpacing: '0.08em', marginBottom: 5 }}>{label}</div>
                       <input
