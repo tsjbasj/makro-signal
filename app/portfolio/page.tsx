@@ -10,15 +10,15 @@ interface AnalysisResult { analyses: StockAnalysis[]; portfolioComment: string }
 interface Trade { date: string; ticker: string; action: string; shares: number; price: number; dkk: number }
 
 const POSITIONS = [
-  { ticker: 'OXY',  name: 'Occidental Petroleum', shares: 222, buy: 54, stop: 46, target: 68,  dkk: 12000 },
-  { ticker: 'PLTR', name: 'Palantir Technologies',  shares: 119, buy: 84, stop: 72, target: 130, dkk: 10000 },
-  { ticker: 'CELC', name: 'Celcuity',               shares: 285, buy: 28, stop: 17, target: 70,  dkk: 8000  },
+  { ticker: 'OXY',  name: 'Occidental Petroleum', shares: 29,  buy: 57.90,  stop: 46,  target: 68,  dkk: 12000 },
+  { ticker: 'PLTR', name: 'Palantir Technologies',  shares: 9,   buy: 151.40, stop: 110, target: 200, dkk: 10000 },
+  { ticker: 'CELC', name: 'Celcuity',               shares: 10,  buy: 114.00, stop: 80,  target: 180, dkk: 8000  },
 ]
 
 const INITIAL_TRADES: Trade[] = [
-  { date: '17/03/2026', ticker: 'OXY',  action: 'KØB', shares: 222, price: 54, dkk: 12000 },
-  { date: '17/03/2026', ticker: 'PLTR', action: 'KØB', shares: 119, price: 84, dkk: 10000 },
-  { date: '17/03/2026', ticker: 'CELC', action: 'KØB', shares: 285, price: 28, dkk: 8000  },
+  { date: '17/03/2026', ticker: 'OXY',  action: 'KØB', shares: 29,  price: 57.90,  dkk: 12000 },
+  { date: '17/03/2026', ticker: 'PLTR', action: 'KØB', shares: 9,   price: 151.40, dkk: 10000 },
+  { date: '17/03/2026', ticker: 'CELC', action: 'KØB', shares: 10,  price: 114.00, dkk: 8000  },
 ]
 
 const START_CAPITAL = 30000
