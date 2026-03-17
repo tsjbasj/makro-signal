@@ -7,6 +7,14 @@ import Link from 'next/link'
    TYPES
 ═══════════════════════════════════════════════════════════ */
 
+interface PeriodState {
+  startDate: string
+  invested: number
+  levelsTriggered: number[]
+  lowSp500: number
+  scoreZeroSince: string | null
+}
+
 interface MarketData {
   fearGreedIndex: number
   fearGreedLabel: string
@@ -193,7 +201,9 @@ function Card({ children, accent = 'purple', className = '', style }: {
 
 const CACHE_KEY    = 'mks2_data'
 const ISM_KEY      = 'mks2_ism'
-const COOLDOWN_KEY = 'mks2_last_buy'
+const COOLDOWN_KEY   = 'mks2_last_buy'
+const PERIOD_KEY     = 'mks2_period'
+const KRIGSKASSE_KEY = 'mks2_krigskasse'
 const CACHE_TTL    = 3_600_000
 
 function getCached(): MarketData | null {
@@ -226,6 +236,9 @@ export default function Page() {
   const [ism,     setIsm]     = useState<number | null>(null)
   const [ismInput,setIsmInput]= useState('')
   const [lastBuy, setLastBuy] = useState<string | null>(null)
+  const [period,  setPeriod]  = useState<PeriodState | null>(null)
+  const [krigskasse, setKrigskasse] = useState<number>(45000)
+  const [kkInput, setKkInput] = useState<string>('')
   const ismRef = useRef<HTMLInputElement>(null)
 
   // Load ISM + cooldown from localStorage
@@ -238,7 +251,42 @@ export default function Page() {
       const r = localStorage.getItem(COOLDOWN_KEY)
       if (r) setLastBuy(r)
     } catch {}
+    try {
+      const r = localStorage.getItem(PERIOD_KEY)
+      if (r) setPeriod(JSON.parse(r))
+    } catch {}
+    try {
+      const r = localStorage.getItem(KRIGSKASSE_KEY)
+      if (r) setKrigskasse(Number(r))
+    } catch {}
   }, [])
+
+  // Period tracking – updates low S&P, scoreZeroSince; auto-resets when rally + greed + prolonged low score
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!data) return
+    const sp = data.sp500Price
+    const today = new Date().toISOString().slice(0, 10)
+    setPeriod(prev => {
+      const p: PeriodState = prev ?? {
+        startDate: today, invested: 0, levelsTriggered: [], lowSp500: sp, scoreZeroSince: null,
+      }
+      const newLow = sp > 0 ? Math.min(p.lowSp500 > 0 ? p.lowSp500 : sp, sp) : p.lowSp500
+      let szs = p.scoreZeroSince
+      if (score <= 2 && szs === null) szs = today
+      if (score > 2) szs = null
+      let shouldReset = false
+      if (szs !== null && sp > 0 && p.lowSp500 > 0) {
+        const dz = (Date.now() - new Date(szs).getTime()) / 86_400_000
+        if (dz >= 30 && sp > p.lowSp500 * 1.10 && data.fearGreedIndex > 45) shouldReset = true
+      }
+      const updated: PeriodState = shouldReset
+        ? { startDate: today, invested: 0, levelsTriggered: [], lowSp500: sp, scoreZeroSince: null }
+        : { ...p, lowSp500: newLow, scoreZeroSince: szs }
+      localStorage.setItem(PERIOD_KEY, JSON.stringify(updated))
+      return updated
+    })
+  }, [data, score])
 
   // Fetch market data
   const fetchData = useCallback(async (force = false) => {
@@ -281,26 +329,47 @@ export default function Page() {
     setIsmInput('')
   }
 
-  function registerBuy() {
-    if (!confirm(`Registrér køb i dag (${new Date().toLocaleDateString('da-DK')})?`)) return
+  function handleBuy(level: number, amount: number) {
+    if (!confirm('Registrér køb på ' + amount.toLocaleString('da-DK') + ' kr (niveau ' + level + ')?')) return
+    const today = new Date().toISOString().slice(0, 10)
     const d = new Date().toISOString()
     localStorage.setItem(COOLDOWN_KEY, d)
     setLastBuy(d)
+    setPeriod(prev => {
+      const sp = data?.sp500Price ?? 0
+      const p: PeriodState = prev ?? {
+        startDate: today, invested: 0, levelsTriggered: [], lowSp500: sp, scoreZeroSince: null,
+      }
+      const updated: PeriodState = {
+        ...p, invested: p.invested + amount, levelsTriggered: [...p.levelsTriggered, level],
+      }
+      localStorage.setItem(PERIOD_KEY, JSON.stringify(updated))
+      return updated
+    })
   }
 
-  // Score
+    // Score
   const { score, pts, drawdownPct } = computeScore(data, ism)
   const signal   = getSignal(score)
   const gapLines = getGapLines(data, ism, drawdownPct)
 
-  // Cooldown info
-  const cooldownInfo = (() => {
-    if (!lastBuy) return null
-    const last    = new Date(lastBuy)
-    const elapsed = (Date.now() - last.getTime()) / 86_400_000
-    const days    = Math.ceil(elapsed)
-    const within  = days <= 90
-    return { last, days, within }
+  // Period info
+  const periodInfo = (() => {
+    if (!period) return { invested: 0, daysLeft: 90, pct: 0, expiry: null as Date | null }
+    const start  = new Date(period.startDate)
+    const expiry = new Date(start.getTime() + 90 * 86_400_000)
+    const daysLeft = Math.max(0, Math.ceil((expiry.getTime() - Date.now()) / 86_400_000))
+    const pct    = Math.min(100, (period.invested / 45000) * 100)
+    return { invested: period.invested, daysLeft, pct, expiry }
+  })()
+
+  // Available buy level this period
+  const availableLevel = (() => {
+    const trig = period?.levelsTriggered ?? []
+    if (score >= 7 && !trig.includes(7)) return { level: 7, amount: 22500 }
+    if (score >= 4 && score <= 6 && !trig.includes(4)) return { level: 4, amount: 15000 }
+    if (score === 3 && !trig.includes(3)) return { level: 3, amount: 7500 }
+    return null
   })()
 
   // S&P drawdown display
@@ -507,34 +576,60 @@ export default function Page() {
               </div>
             )}
 
-            {/* Cooldown */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-              <div style={{ fontSize: 12, color: '#64748b', fontFamily: 'var(--font-dm-mono)' }}>
-                {cooldownInfo ? (
-                  cooldownInfo.within
-                    ? <span>Seneste køb: {cooldownInfo.last.toLocaleDateString('da-DK')} · <span style={{ color: '#f59e0b' }}>⚠ Cooldown: {cooldownInfo.days} dage siden (90-dages regel)</span></span>
-                    : <span>Seneste køb: {cooldownInfo.last.toLocaleDateString('da-DK')} · <span style={{ color: '#4ade80' }}>Cooldown udløbet</span></span>
-                ) : (
-                  'Ingen registreret køb'
-                )}
+            {/* Krigskasse */}
+            <div style={{ paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+              <div style={{ fontSize: 10, color: '#64748b', fontFamily: 'var(--font-dm-mono)', letterSpacing: '0.1em', marginBottom: 10 }}>KRIGSKASSE · INDEVÆRENDE PERIODE</div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
+                <div style={{ fontSize: 12, color: '#94a3b8', fontFamily: 'var(--font-dm-mono)', lineHeight: 1.8 }}>
+                  <div>Investeret: <span style={{ color: '#e2e8f0' }}>{(period?.invested ?? 0).toLocaleString('da-DK')} kr</span> / 45.000 kr</div>
+                  {periodInfo.expiry && <div>Udløber: <span style={{ color: periodInfo.daysLeft < 14 ? '#f59e0b' : '#94a3b8' }}>{periodInfo.expiry.toLocaleDateString('da-DK')} ({periodInfo.daysLeft}d)</span></div>}
+                  {availableLevel
+                    ? <div style={{ color: '#4ade80' }}>Niveau {availableLevel.level} klar: {availableLevel.amount.toLocaleString('da-DK')} kr</div>
+                    : <div style={{ color: '#475569' }}>Score {score} – intet niveau klar</div>}
+                </div>
+                <button
+                  onClick={() => { if (availableLevel) handleBuy(availableLevel.level, availableLevel.amount) }}
+                  disabled={!availableLevel}
+                  style={{
+                    background: availableLevel ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.04)',
+                    border: '1px solid ' + (availableLevel ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.1)'),
+                    color: availableLevel ? '#a5b4fc' : '#475569',
+                    fontFamily: 'var(--font-dm-mono)',
+                    fontSize: 11,
+                    padding: '7px 14px',
+                    borderRadius: 6,
+                    cursor: availableLevel ? 'pointer' : 'not-allowed',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {availableLevel ? 'Køb ' + availableLevel.amount.toLocaleString('da-DK') + ' kr' : 'Intet niveau'}
+                </button>
               </div>
-              <button
-                onClick={registerBuy}
-                disabled={cooldownInfo?.within ?? false}
-                style={{
-                  background: cooldownInfo?.within ? 'rgba(255,255,255,0.04)' : 'rgba(99,102,241,0.15)',
-                  border: '1px solid ' + (cooldownInfo?.within ? 'rgba(255,255,255,0.1)' : 'rgba(99,102,241,0.3)'),
-                  color: cooldownInfo?.within ? '#475569' : '#a5b4fc',
-                  fontFamily: 'var(--font-dm-mono)',
-                  fontSize: 11,
-                  padding: '7px 14px',
-                  borderRadius: 6,
-                  cursor: cooldownInfo?.within ? 'not-allowed' : 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Registrér køb i dag
-              </button>
+              <div style={{ marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#64748b', fontFamily: 'var(--font-dm-mono)', marginBottom: 4 }}>
+                  <span>0 kr</span>
+                  <span>{(period?.invested ?? 0).toLocaleString('da-DK')} / 45.000 kr</span>
+                </div>
+                <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: periodInfo.pct + '%', background: 'linear-gradient(90deg, #6366f1, #8b5cf6)', borderRadius: 2, transition: 'width 0.3s ease' }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: '#64748b', fontFamily: 'var(--font-dm-mono)' }}>
+                <span>Buffer:</span>
+                <input
+                  type='number'
+                  value={kkInput !== '' ? kkInput : krigskasse}
+                  onChange={e => setKkInput(e.target.value)}
+                  onBlur={() => {
+                    const v = Number(kkInput)
+                    if (!isNaN(v) && v > 0) { setKrigskasse(v); localStorage.setItem(KRIGSKASSE_KEY, String(v)) }
+                    setKkInput('')
+                  }}
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '3px 8px', color: '#94a3b8', fontFamily: 'var(--font-dm-mono)', fontSize: 11, width: 90, textAlign: 'right' }}
+                />
+                <span>kr tilgængelig</span>
+                {krigskasse < (period?.invested ?? 0) && <span style={{ color: '#f59e0b' }}>⚠ Under investeret!</span>}
+              </div>
             </div>
           </div>
         </Card>
