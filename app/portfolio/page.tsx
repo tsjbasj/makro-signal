@@ -46,7 +46,7 @@ const SIG_LBL: Record<string, string> = {
   'SELL': 'SÆLG', 'SAELG': 'SÆLG',
 }
 
-const inp: React.CSSProperties = {
+const inp = {
   background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
   color: '#f1f5f9', borderRadius: 6, padding: '6px 10px',
   fontFamily: 'var(--font-dm-mono)', fontSize: 11, width: '100%', outline: 'none',
@@ -154,7 +154,7 @@ export default function PortfolioPage() {
   const progress = prog(START_DATE, END_DATE)
   const dLeft   = daysTo(END_DATE)
 
-  const card: React.CSSProperties = {
+  const card = {
     background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
     borderRadius: 12, padding: 20, marginBottom: 16,
   }
