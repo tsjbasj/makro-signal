@@ -60,7 +60,7 @@ function Nav() {
       <Link href="/portfolio" style={{ color: '#f1f5f9', textDecoration: 'none', borderBottom: '1px solid #6366f1', paddingBottom: 2 }}>The 2026 Run</Link>
     
       <Link href="/radar" style={{ color: '#475569', textDecoration: 'none' }}>Aktie Radar</Link>
-      <Link href="/portefolje" style={{ color: '#475569', textDecoration: 'none' }}>Min Portefølje</Link>
+      <Link href="/portefolje" style={{ color: '#475569', textDecoration: 'none' }}>Min Portefolje</Link>
     </nav>
   )
 }
