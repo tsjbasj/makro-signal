@@ -13,15 +13,17 @@ const POSITIONS = [
   { ticker: 'OXY',  name: 'Occidental Petroleum', shares: 31,  buy: 57.50,  stop: 46,  target: 68,  dkk: 11769.03 },
   { ticker: 'PLTR', name: 'Palantir Technologies',  shares: 9,   buy: 152.30, stop: 110, target: 200, dkk: 8947.13 },
   { ticker: 'CELC', name: 'Celcuity',               shares: 12,  buy: 115.00, stop: 80,  target: 180, dkk: 9171.81 },
+  { ticker: 'UIE',  name: 'UIE A/S',                 shares: 13,  buy: 369.15, stop: 300, target: 500, dkk: 4799.95, currency: 'DKK' },
 ]
 
 const INITIAL_TRADES: Trade[] = [
   { date: '17/03/2026', ticker: 'OXY',  action: 'KØB', shares: 31,  price: 57.50,  dkk: 11769.03 },
   { date: '17/03/2026', ticker: 'PLTR', action: 'KØB', shares: 9,   price: 152.30, dkk: 8947.13 },
   { date: '17/03/2026', ticker: 'CELC', action: 'KØB', shares: 12,  price: 115.00, dkk: 9171.81 },
+  { date: '20/03/2026', ticker: 'UIE',  action: 'KØB', shares: 13,  price: 369.15, dkk: 4799.95 },
 ]
 
-const START_CAPITAL = 29887.97
+const START_CAPITAL = 34687.92
 const END_DATE   = new Date('2026-12-31')
 const START_DATE = new Date('2026-03-17')
 
@@ -57,7 +59,7 @@ function Nav() {
   )
 }
 
-function Bar({ stop, buy, target, current }: { stop: number; buy: number; target: number; current: number | null }) {
+function Bar({ stop, buy, target, current, currency }: { stop: number; buy: number; target: number; current: number | null; currency?: string }) {
   const range = target - stop
   const bPct  = (buy - stop) / range * 100
   const cPct  = current !== null ? Math.max(2, Math.min(98, (current - stop) / range * 100)) : null
@@ -73,9 +75,9 @@ function Bar({ stop, buy, target, current }: { stop: number; buy: number; target
         )}
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#334155', marginTop: 4 }}>
-        <span style={{ color: '#ef4444' }}>{'$' + stop + ' stop'}</span>
-        <span style={{ color: '#94a3b8' }}>{'$' + buy + ' købt'}</span>
-        <span style={{ color: '#22c55e' }}>{'$' + target + ' mål'}</span>
+        <span style={{ color: '#ef4444' }}>{(currency === 'DKK' ? '' : '$') + stop + (currency === 'DKK' ? ' kr' : '') + ' stop'}</span>
+        <span style={{ color: '#94a3b8' }}>{(currency === 'DKK' ? '' : '$') + buy  + (currency === 'DKK' ? ' kr' : '') + ' købt'}</span>
+        <span style={{ color: '#22c55e' }}>{(currency === 'DKK' ? '' : '$') + target + (currency === 'DKK' ? ' kr' : '') + ' mål'}</span>
       </div>
     </div>
   )
@@ -227,8 +229,8 @@ export default function PortfolioPage() {
                 <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 30, fontWeight: 600, color: '#f1f5f9' }}>
                   {cur !== null ? '$' + cur.toFixed(2) : '—'}
                 </div>
-                <div style={{ fontSize: 9, color: '#475569', marginTop: 2 }}>{'Købt: $' + pos.buy + ' · ' + pos.shares + ' aktier'}</div>
-                <Bar stop={pos.stop} buy={pos.buy} target={pos.target} current={cur} />
+                <div style={{ fontSize: 9, color: '#475569', marginTop: 2 }}>{(pos as any).currency === 'DKK' ? 'Købt: ' + pos.buy + ' kr · ' + pos.shares + ' aktier' : 'Købt: $' + pos.buy + ' · ' + pos.shares + ' aktier'}</div>
+                <Bar stop={pos.stop} buy={pos.buy} target={pos.target} current={cur} currency={(pos as any).currency} />
                 {retP !== null && (
                   <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                     <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: 14, fontWeight: 600, color: retP >= 0 ? '#22c55e' : '#ef4444' }}>{pct(retP)}</span>
@@ -285,7 +287,7 @@ export default function PortfolioPage() {
           {addTrade && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr auto', gap: 8, marginBottom: 12 }}>
               <select value={newT.ticker} onChange={e => setNewT({ ...newT, ticker: e.target.value })} style={inp}>
-                <option>OXY</option><option>PLTR</option><option>CELC</option>
+                <option>OXY</option><option>PLTR</option><option>CELC</option><option>UIE</option>
               </select>
               <select value={newT.action} onChange={e => setNewT({ ...newT, action: e.target.value })} style={inp}>
                 <option value="KØB">KØB</option><option value="SÆLG">SÆLG</option>
