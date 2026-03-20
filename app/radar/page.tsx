@@ -473,7 +473,83 @@ export default function RadarPage() {
           })}
         </div>
 
-        {/* Footer */}
+                {/* ── ROTATIONSREGEL ──────────────────────────────────────── */}
+        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '20px 24px', marginTop: 16 }}>
+          <div style={{ fontSize: 10, color: '#6366f1', letterSpacing: '0.1em', marginBottom: 16 }}>ROTATIONSREGEL</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+            {/* Rotér IND */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: 16 }}>
+              <div style={{ fontSize: 9, color: '#22c55e', letterSpacing: '0.08em', marginBottom: 10 }}>↓ ROTÉR IND I VÆKST</div>
+              {[
+                { label: 'Fear & Greed under 25', active: true, value: 'F&G = 16' },
+                { label: 'S&P 500 faldet over 10% fra high', active: true, value: '−5.4% fra high' },
+                { label: 'Fald under 2 uger (overreaktion)', active: false, value: '—' },
+              ].map((c, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: c.active ? '#22c55e' : '#334155', flexShrink: 0 }} />
+                  <span style={{ fontSize: 9, color: c.active ? '#94a3b8' : '#475569', flex: 1 }}>{c.label}</span>
+                  <span style={{ fontSize: 9, color: c.active ? '#22c55e' : '#334155' }}>{c.value}</span>
+                </div>
+              ))}
+              <div style={{ fontSize: 9, color: '#334155', marginTop: 8 }}>Min. 2 af 3 skal være opfyldt</div>
+            </div>
+
+            {/* Rotér UD */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: 16 }}>
+              <div style={{ fontSize: 9, color: '#ef4444', letterSpacing: '0.08em', marginBottom: 10 }}>↑ ROTÉR UD AF VÆKST</div>
+              {[
+                { label: 'Fear & Greed over 75', active: false, value: 'F&G = 16' },
+                { label: 'S&P 500 under 5% fra ATH', active: false, value: '−5.4% fra high' },
+                { label: 'Mindst én aktie nær exit mål', active: false, value: '—' },
+              ].map((c, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: c.active ? '#22c55e' : '#334155', flexShrink: 0 }} />
+                  <span style={{ fontSize: 9, color: c.active ? '#94a3b8' : '#475569', flex: 1 }}>{c.label}</span>
+                  <span style={{ fontSize: 9, color: c.active ? '#22c55e' : '#334155' }}>{c.value}</span>
+                </div>
+              ))}
+              <div style={{ fontSize: 9, color: '#334155', marginTop: 8 }}>Min. 2 af 3 skal være opfyldt</div>
+            </div>
+          </div>
+
+          {/* Status bar */}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+            {[
+              { label: 'Rotationer brugt i år', value: '1 af 3', color: '#22c55e' },
+              { label: 'Sidst roteret', value: 'Apr 2026', color: '#94a3b8' },
+              { label: 'Cooldown opfyldt', value: 'Nej (+15pt mangler)', color: '#f59e0b' },
+              { label: 'Max pr. rotation', value: '2 aktier', color: '#64748b' },
+            ].map((s, i) => (
+              <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 6, padding: '6px 12px' }}>
+                <div style={{ fontSize: 8, color: '#475569', marginBottom: 2 }}>{s.label}</div>
+                <div style={{ fontSize: 10, color: s.color, fontFamily: 'var(--font-dm-mono)' }}>{s.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Aktuel rotation */}
+          <div style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: 8, padding: '10px 14px', marginBottom: 14 }}>
+            <div style={{ fontSize: 9, color: '#22c55e', marginBottom: 4 }}>◈ AKTUEL ROTATION — APRIL 2026</div>
+            <div style={{ fontSize: 10, color: '#94a3b8' }}>NU + DLO købt som rotationskøb under Extreme Fear (Fear & Greed = 16)</div>
+          </div>
+
+          {/* Regler */}
+          <div style={{ fontSize: 9, color: '#334155', lineHeight: 1.7 }}>
+            {[
+              'Max 2 aktier per rotation · Max 3 rotationer per år',
+              'Cooldown: F&G skal stige +15 point siden sidste rotation',
+              'Kerneaktier (NOVO, UIE, DSV, CCJ, ETN) må aldrig roteres ud',
+              'Kun aktier på godkendt watchlist — aldrig nye under panik',
+              'Stop loss gælder altid uanset rotationsstatus',
+            ].map((r, i) => (
+              <div key={i}>· {r}</div>
+            ))}
+          </div>
+        </div>
+
+
+{/* Footer */}
         <div style={{ textAlign: 'center', fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#334155', letterSpacing: '0.06em', paddingBottom: 40 }}>
           ANALYSER BASERET PÅ AI-RESEARCH · IKKE FINANSIEL RÅDGIVNING · OPDATERES UGENTLIGT
         </div>
