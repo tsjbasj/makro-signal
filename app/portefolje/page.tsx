@@ -90,7 +90,7 @@ const PLANNED_BUYS: PlannedBuy[] = [
 ]
 
 /* ─── Helpers ────────────────────────────────────────────────────────── */
-const CAT_COLOR = { Kerne: '#6366f1', Vækst: '#22c55e', Spekulativ: '#f59e0b' }
+const CAT_COLOR = { Kerne: '#111111', Vækst: '#2d6a3f', Spekulativ: '#8a6a00' }
 
 function fmtMonth(ym: string) {
   const [y, m] = ym.split('-')
@@ -119,12 +119,12 @@ function nextMonthlyCheck() {
 /* ─── Navigation ─────────────────────────────────────────────────────── */
 function Nav() {
   return (
-    <nav style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '10px 24px', background: 'rgba(248,247,244,0.97)', borderBottom: '1px solid rgba(0,0,0,0.09)', fontFamily: 'var(--font-dm-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 100 }}>
-      <span style={{ color: '#9ca3af' }}>◈</span>
-      <Link href="/" style={{ color: '#9ca3af', textDecoration: 'none' }}>Makro Signal</Link>
-      <Link href="/portfolio" style={{ color: '#9ca3af', textDecoration: 'none' }}>The 2026 Run</Link>
-      <Link href="/radar" style={{ color: '#9ca3af', textDecoration: 'none' }}>Aktie Radar</Link>
-      <Link href="/portefolje" style={{ color: '#1e293b', textDecoration: 'none', borderBottom: '1px solid #6366f1', paddingBottom: 2 }}>Min Portefølje</Link>
+    <nav style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '10px 24px', background: 'rgba(242,239,230,0.97)', borderBottom: '1px solid rgba(0,0,0,0.09)', fontFamily: 'var(--font-dm-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 100 }}>
+      <span style={{ color: '#999999' }}>◈</span>
+      <Link href="/" style={{ color: '#999999', textDecoration: 'none' }}>Makro Signal</Link>
+      <Link href="/portfolio" style={{ color: '#999999', textDecoration: 'none' }}>The 2026 Run</Link>
+      <Link href="/radar" style={{ color: '#999999', textDecoration: 'none' }}>Aktie Radar</Link>
+      <Link href="/portefolje" style={{ color: '#111111', textDecoration: 'none', borderBottom: '1px solid #111111', paddingBottom: 2 }}>Min Portefølje</Link>
     </nav>
   )
 }
@@ -132,17 +132,17 @@ function Nav() {
 /* ─── Price Bar ──────────────────────────────────────────────────────── */
 function PriceBar({ stopLoss, exitTarget, currentPrice }: { stopLoss: number; exitTarget: number; currentPrice: number }) {
   const pct = Math.max(0, Math.min(100, ((currentPrice - stopLoss) / (exitTarget - stopLoss)) * 100))
-  const zone = pct < 30 ? '#ef4444' : pct < 70 ? '#f59e0b' : '#22c55e'
+  const zone = pct < 30 ? '#8b1c1c' : pct < 70 ? '#8a6a00' : '#2d6a3f'
   return (
     <div style={{ marginTop: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#9ca3af', marginBottom: 6 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#999999', marginBottom: 6 }}>
         <span>STOP {stopLoss}</span>
         <span style={{ color: zone, fontWeight: 500 }}>Kurs ~{currentPrice}</span>
         <span>MÅL {exitTarget}</span>
       </div>
       <div style={{ height: 4, background: 'rgba(255,255,255,0.10)', borderRadius: 4, position: 'relative' }}>
-        <div style={{ height: '100%', width: `${pct}%`, background: `linear-gradient(90deg, #ef4444, ${zone})`, borderRadius: 4 }} />
-        <div style={{ position: 'absolute', top: -4, left: `${pct}%`, transform: 'translateX(-50%)', width: 12, height: 12, borderRadius: '50%', background: zone, border: '2px solid #f8f7f4' }} />
+        <div style={{ height: '100%', width: `${pct}%`, background: `linear-gradient(90deg, #8b1c1c, ${zone})`, borderRadius: 4 }} />
+        <div style={{ position: 'absolute', top: -4, left: `${pct}%`, transform: 'translateX(-50%)', width: 12, height: 12, borderRadius: '50%', background: zone, border: '2px solid #f2efe6' }} />
       </div>
     </div>
   )
@@ -163,19 +163,19 @@ function PositionCard({
     <div style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, overflow: 'hidden' }}>
       <div style={{ height: 2, background: accent }} />
       <div style={{ padding: '14px 16px 16px', position: 'relative' }}>
-        <button onClick={() => onEdit(pos)} title="Rediger" style={{ position: 'absolute', top: 14, right: 12, background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 13 }}>✏</button>
+        <button onClick={() => onEdit(pos)} title="Rediger" style={{ position: 'absolute', top: 14, right: 12, background: 'none', border: 'none', color: '#999999', cursor: 'pointer', fontSize: 13 }}>✏</button>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10, paddingRight: 28 }}>
           <input type="checkbox" checked={pos.checked} onChange={() => onToggleCheck(pos.id)} style={{ marginTop: 3, accentColor: accent }} />
           <div>
-            <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 16, fontWeight: 500, color: '#1e293b' }}>{pos.ticker}</span>
-            <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 13, color: '#6b7280', marginTop: 2 }}>{pos.name}</div>
+            <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 16, fontWeight: 500, color: '#111111' }}>{pos.ticker}</span>
+            <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 13, color: '#777777', marginTop: 2 }}>{pos.name}</div>
           </div>
           <div style={{ marginLeft: 'auto', background: accent + '22', border: '1px solid ' + accent + '44', borderRadius: 4, padding: '2px 8px', fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: accent, letterSpacing: '0.06em' }}>{pos.category.toUpperCase()}</div>
         </div>
         <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 10, display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
-          <div><span style={{ color: '#9ca3af' }}>Investeret: </span><span style={{ color: '#4a5568' }}>{pos.invested.toLocaleString('da-DK')} DKK</span></div>
-          <div style={{ color: '#ef4444' }}>⬇ Sælg altid under: {pos.stopLoss} {pos.currency}</div>
-          <div style={{ color: '#22c55e' }}>⬆ Tag gevinst ved: {pos.exitTarget} {pos.currency}</div>
+          <div><span style={{ color: '#999999' }}>Investeret: </span><span style={{ color: '#555555' }}>{pos.invested.toLocaleString('da-DK')} DKK</span></div>
+          <div style={{ color: '#8b1c1c' }}>⬇ Sælg altid under: {pos.stopLoss} {pos.currency}</div>
+          <div style={{ color: '#2d6a3f' }}>⬆ Tag gevinst ved: {pos.exitTarget} {pos.currency}</div>
         </div>
         <PriceBar stopLoss={pos.stopLoss} exitTarget={pos.exitTarget} currentPrice={pos.currentPrice} />
       </div>
@@ -189,14 +189,14 @@ function EditModal({ pos, onClose, onSave }: { pos: ActivePosition; onClose: () 
   const [exitTarget, setExitTarget] = useState(pos.exitTarget.toString())
   const [currentPrice, setCurrentPrice] = useState(pos.currentPrice.toString())
   const [invested, setInvested] = useState(pos.invested.toString())
-  const inp = { width: '100%', background: 'rgba(0,0,0,0.09)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 6, padding: '8px 12px', color: '#1e293b', fontFamily: 'var(--font-dm-mono)', fontSize: 12, outline: 'none' }
-  const lbl = { fontSize: 10, color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: 4, display: 'block', fontFamily: 'var(--font-dm-mono)' }
+  const inp = { width: '100%', background: 'rgba(0,0,0,0.09)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 6, padding: '8px 12px', color: '#111111', fontFamily: 'var(--font-dm-mono)', fontSize: 12, outline: 'none' }
+  const lbl = { fontSize: 10, color: '#999999', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: 4, display: 'block', fontFamily: 'var(--font-dm-mono)' }
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: '#141824', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 12, padding: 28, width: '100%', maxWidth: 480 }}>
+      <div style={{ background: '#0d0d0d', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 12, padding: 28, width: '100%', maxWidth: 480 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: 20, fontWeight: 600 }}>Rediger {pos.ticker}</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 20 }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#999999', cursor: 'pointer', fontSize: 20 }}>✕</button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
           {[
@@ -212,8 +212,8 @@ function EditModal({ pos, onClose, onSave }: { pos: ActivePosition; onClose: () 
           ))}
         </div>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
-          <button onClick={onClose} style={{ background: 'none', border: '1px solid rgba(0,0,0,0.08)', color: '#9ca3af', borderRadius: 6, padding: '10px 20px', fontFamily: 'var(--font-dm-mono)', fontSize: 11, cursor: 'pointer' }}>Annuller</button>
-          <button onClick={() => onSave({ ...pos, currentPrice: parseFloat(currentPrice) || 0, stopLoss: parseFloat(stopLoss) || 0, exitTarget: parseFloat(exitTarget) || 0, invested: parseFloat(invested) || 0 })} style={{ background: 'rgba(99,102,241,0.25)', border: '1px solid rgba(99,102,241,0.4)', color: '#a78bfa', borderRadius: 6, padding: '10px 20px', fontFamily: 'var(--font-dm-mono)', fontSize: 11, cursor: 'pointer' }}>Gem</button>
+          <button onClick={onClose} style={{ background: 'none', border: '1px solid rgba(0,0,0,0.08)', color: '#999999', borderRadius: 6, padding: '10px 20px', fontFamily: 'var(--font-dm-mono)', fontSize: 11, cursor: 'pointer' }}>Annuller</button>
+          <button onClick={() => onSave({ ...pos, currentPrice: parseFloat(currentPrice) || 0, stopLoss: parseFloat(stopLoss) || 0, exitTarget: parseFloat(exitTarget) || 0, invested: parseFloat(invested) || 0 })} style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid rgba(0,0,0,0.18)', color: '#666666', borderRadius: 6, padding: '10px 20px', fontFamily: 'var(--font-dm-mono)', fontSize: 11, cursor: 'pointer' }}>Gem</button>
         </div>
       </div>
     </div>
@@ -227,21 +227,21 @@ function PlannedCard({ buy }: { buy: PlannedBuy }) {
   const accent = CAT_COLOR[buy.category]
   const isTbd = buy.ticker.startsWith('TBD')
   return (
-    <div style={{ background: past ? 'rgba(99,102,241,0.07)' : 'rgba(0,0,0,0.09)', border: `1px solid ${past ? 'rgba(99,102,241,0.25)' : 'rgba(0,0,0,0.09)'}`, borderRadius: 8, padding: '12px 14px', opacity: isTbd ? 0.45 : 1 }}>
+    <div style={{ background: past ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.09)', border: `1px solid ${past ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.09)'}`, borderRadius: 8, padding: '12px 14px', opacity: isTbd ? 0.45 : 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
         <div>
-          <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 13, fontWeight: 500, color: past ? '#a78bfa' : '#6b7280' }}>{buy.ticker}</span>
-          <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 12, color: '#9ca3af', marginTop: 1 }}>{buy.name}</div>
+          <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 13, fontWeight: 500, color: past ? '#666666' : '#777777' }}>{buy.ticker}</span>
+          <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 12, color: '#999999', marginTop: 1 }}>{buy.name}</div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 11, color: past ? '#a78bfa' : '#9ca3af' }}>{fmtMonth(buy.plannedMonth)}</div>
-          {!past && <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#9ca3af', marginTop: 2 }}>{days}d</div>}
-          {past && <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#6366f1', marginTop: 2 }}>KØB NU</div>}
+          <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 11, color: past ? '#666666' : '#999999' }}>{fmtMonth(buy.plannedMonth)}</div>
+          {!past && <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#999999', marginTop: 2 }}>{days}d</div>}
+          {past && <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#111111', marginTop: 2 }}>KØB NU</div>}
         </div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ background: accent + '18', border: '1px solid ' + accent + '33', borderRadius: 3, padding: '1px 6px', fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: accent }}>{buy.category.toUpperCase()}</div>
-        <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 10, color: '#9ca3af' }}>{buy.amount.toLocaleString('da-DK')} {buy.currency}</span>
+        <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 10, color: '#999999' }}>{buy.amount.toLocaleString('da-DK')} {buy.currency}</span>
       </div>
     </div>
   )
@@ -264,7 +264,7 @@ function DonutChart({ slices, title }: { slices: DonutSlice[]; title: string }) 
   })
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ fontSize: 10, color: '#4a5568', letterSpacing: '0.08em', marginBottom: 10, textTransform: 'uppercase' }}>{title}</div>
+      <div style={{ fontSize: 10, color: '#555555', letterSpacing: '0.08em', marginBottom: 10, textTransform: 'uppercase' }}>{title}</div>
       <svg width="140" height="140" viewBox="0 0 140 140">
         {segments.map((s, i) => (
           <circle key={i} cx={cx} cy={cy} r={r} fill="none"
@@ -275,15 +275,15 @@ function DonutChart({ slices, title }: { slices: DonutSlice[]; title: string }) 
             style={{ transition: 'stroke-dasharray 0.3s' }}
           />
         ))}
-        <text x={cx} y={cy - 7} textAnchor="middle" fill="#1e293b" fontSize="18" fontWeight="600">{total}</text>
-        <text x={cx} y={cy + 10} textAnchor="middle" fill="#9ca3af" fontSize="9">aktier</text>
+        <text x={cx} y={cy - 7} textAnchor="middle" fill="#111111" fontSize="18" fontWeight="600">{total}</text>
+        <text x={cx} y={cy + 10} textAnchor="middle" fill="#999999" fontSize="9">aktier</text>
       </svg>
       <div style={{ width: '100%', marginTop: 8 }}>
         {slices.map((s, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
-            <span style={{ fontSize: 9, color: '#4a5568', flex: 1 }}>{s.label}</span>
-            <span style={{ fontSize: 9, color: '#6b7280' }}>{Math.round(s.value / total * 100)}%</span>
+            <span style={{ fontSize: 9, color: '#555555', flex: 1 }}>{s.label}</span>
+            <span style={{ fontSize: 9, color: '#777777' }}>{Math.round(s.value / total * 100)}%</span>
           </div>
         ))}
       </div>
@@ -292,31 +292,31 @@ function DonutChart({ slices, title }: { slices: DonutSlice[]; title: string }) 
 }
 
 const LAG_SLICES: DonutSlice[] = [
-  { label: 'Kerne', value: 5, color: '#185FA5' },
-  { label: 'Vækst', value: 6, color: '#3B6D11' },
-  { label: 'Spekulativ', value: 2, color: '#A32D2D' },
+  { label: 'Kerne', value: 5, color: '#1a1a1a' },
+  { label: 'Vækst', value: 6, color: '#404040' },
+  { label: 'Spekulativ', value: 2, color: '#606060' },
 ]
 const LAND_SLICES: DonutSlice[] = [
-  { label: 'Danmark', value: 5, color: '#C0521C' },
-  { label: 'USA', value: 4, color: '#185FA5' },
-  { label: 'Canada', value: 1, color: '#854F0B' },
-  { label: 'Brasilien', value: 1, color: '#3B6D11' },
-  { label: 'Indien', value: 1, color: '#534AB7' },
-  { label: 'Åben', value: 1, color: '#888780' },
+  { label: 'Danmark', value: 5, color: '#777777' },
+  { label: 'USA', value: 4, color: '#1a1a1a' },
+  { label: 'Canada', value: 1, color: '#606060' },
+  { label: 'Brasilien', value: 1, color: '#404040' },
+  { label: 'Indien', value: 1, color: '#333333' },
+  { label: 'Åben', value: 1, color: '#aaaaaa' },
 ]
 const BRANCHE_SLICES: DonutSlice[] = [
-  { label: 'Pharma', value: 1, color: '#185FA5' },
-  { label: 'Høreapparater', value: 2, color: '#0F6E56' },
-  { label: 'Råvarer/Palmolie', value: 1, color: '#854F0B' },
-  { label: 'Fintech/Bank EM', value: 1, color: '#3B6D11' },
-  { label: 'Datacentre', value: 1, color: '#534AB7' },
-  { label: 'Uran/Energi', value: 1, color: '#C0521C' },
-  { label: 'Logistik', value: 1, color: '#A32D2D' },
-  { label: 'Betalinger EM', value: 1, color: '#D85A30' },
-  { label: 'AI netværk', value: 1, color: '#1D9E75' },
-  { label: 'AI strøm/Elinfra', value: 1, color: '#378ADD' },
-  { label: 'Indien bank', value: 1, color: '#7F77DD' },
-  { label: 'Åben', value: 1, color: '#888780' },
+  { label: 'Pharma', value: 1, color: '#1a1a1a' },
+  { label: 'Høreapparater', value: 2, color: '#1a1a1a' },
+  { label: 'Råvarer/Palmolie', value: 1, color: '#606060' },
+  { label: 'Fintech/Bank EM', value: 1, color: '#404040' },
+  { label: 'Datacentre', value: 1, color: '#333333' },
+  { label: 'Uran/Energi', value: 1, color: '#777777' },
+  { label: 'Logistik', value: 1, color: '#606060' },
+  { label: 'Betalinger EM', value: 1, color: '#909090' },
+  { label: 'AI netværk', value: 1, color: '#3d3d3d' },
+  { label: 'AI strøm/Elinfra', value: 1, color: '#555555' },
+  { label: 'Indien bank', value: 1, color: '#555555' },
+  { label: 'Åben', value: 1, color: '#aaaaaa' },
 ]
 
 interface TimelineStock {
@@ -344,16 +344,16 @@ interface BuyPlan {
   currency: string; status: string; statusColor: string
 }
 const BUY_PLAN: BuyPlan[] = [
-  { ticker: 'NU',     buyMonth: 'Apr 2026', priceNow: '$13,89',      stop: '$10,50',  exit: '$22',       currency: 'USD', status: 'Rotationskøb — Extreme Fear', statusColor: '#22c55e' },
-  { ticker: 'DLO',    buyMonth: 'Apr 2026', priceNow: '$11,45',      stop: '$8,50',   exit: '$20',       currency: 'USD', status: 'Rotationskøb — Extreme Fear', statusColor: '#22c55e' },
-  { ticker: 'DEMANT', buyMonth: 'Maj 2026', priceNow: '~187 DKK',    stop: '155 DKK', exit: '280 DKK',   currency: 'DKK', status: 'Afvent Q1 5. maj',            statusColor: '#f59e0b' },
-  { ticker: 'EQIX',   buyMonth: 'Jun 2026', priceNow: '~$974',       stop: '$760',    exit: '$1.300',    currency: 'USD', status: 'OK',                          statusColor: '#22c55e' },
-  { ticker: 'CCJ',    buyMonth: 'Jul 2026', priceNow: '$110',         stop: '$82',     exit: '$165',      currency: 'USD', status: 'OK',                          statusColor: '#22c55e' },
-  { ticker: 'DSV',    buyMonth: 'Aug 2026', priceNow: '~1.588 DKK',  stop: '950 DKK', exit: '2.000 DKK', currency: 'DKK', status: 'OK',                          statusColor: '#22c55e' },
-  { ticker: 'CRDO',   buyMonth: 'Nov 2026', priceNow: '~$102',        stop: '$80',     exit: '$160',      currency: 'USD', status: 'Hold øje — nær stop',         statusColor: '#ef4444' },
-  { ticker: 'ETN',    buyMonth: 'Nov 2026', priceNow: '~$360',        stop: '$275',    exit: '$480',      currency: 'USD', status: 'OK',                          statusColor: '#22c55e' },
-  { ticker: 'IBN',    buyMonth: 'Dec 2026', priceNow: '~$26,80',      stop: '$21',     exit: '$45',       currency: 'USD', status: 'OK — Indien',                 statusColor: '#22c55e' },
-  { ticker: '??',     buyMonth: 'Jan 2027', priceNow: '—',            stop: '—',       exit: '—',         currency: '',    status: 'Åben',                        statusColor: '#9ca3af' },
+  { ticker: 'NU',     buyMonth: 'Apr 2026', priceNow: '$13,89',      stop: '$10,50',  exit: '$22',       currency: 'USD', status: 'Rotationskøb — Extreme Fear', statusColor: '#2d6a3f' },
+  { ticker: 'DLO',    buyMonth: 'Apr 2026', priceNow: '$11,45',      stop: '$8,50',   exit: '$20',       currency: 'USD', status: 'Rotationskøb — Extreme Fear', statusColor: '#2d6a3f' },
+  { ticker: 'DEMANT', buyMonth: 'Maj 2026', priceNow: '~187 DKK',    stop: '155 DKK', exit: '280 DKK',   currency: 'DKK', status: 'Afvent Q1 5. maj',            statusColor: '#8a6a00' },
+  { ticker: 'EQIX',   buyMonth: 'Jun 2026', priceNow: '~$974',       stop: '$760',    exit: '$1.300',    currency: 'USD', status: 'OK',                          statusColor: '#2d6a3f' },
+  { ticker: 'CCJ',    buyMonth: 'Jul 2026', priceNow: '$110',         stop: '$82',     exit: '$165',      currency: 'USD', status: 'OK',                          statusColor: '#2d6a3f' },
+  { ticker: 'DSV',    buyMonth: 'Aug 2026', priceNow: '~1.588 DKK',  stop: '950 DKK', exit: '2.000 DKK', currency: 'DKK', status: 'OK',                          statusColor: '#2d6a3f' },
+  { ticker: 'CRDO',   buyMonth: 'Nov 2026', priceNow: '~$102',        stop: '$80',     exit: '$160',      currency: 'USD', status: 'Hold øje — nær stop',         statusColor: '#8b1c1c' },
+  { ticker: 'ETN',    buyMonth: 'Nov 2026', priceNow: '~$360',        stop: '$275',    exit: '$480',      currency: 'USD', status: 'OK',                          statusColor: '#2d6a3f' },
+  { ticker: 'IBN',    buyMonth: 'Dec 2026', priceNow: '~$26,80',      stop: '$21',     exit: '$45',       currency: 'USD', status: 'OK — Indien',                 statusColor: '#2d6a3f' },
+  { ticker: '??',     buyMonth: 'Jan 2027', priceNow: '—',            stop: '—',       exit: '—',         currency: '',    status: 'Åben',                        statusColor: '#999999' },
 ]
 
 
@@ -416,7 +416,7 @@ export default function PortefoeljePage() {
   const corm = 'var(--font-cormorant)'
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f0eeea' }}>
+    <div style={{ minHeight: '100vh', background: '#e9e5da' }}>
       <Nav />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px 0' }}>
@@ -424,27 +424,27 @@ export default function PortefoeljePage() {
         {/* Page Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 36 }}>
           <div>
-            <div style={{ fontFamily: mono, fontSize: 10, color: '#6366f1', letterSpacing: '0.12em', marginBottom: 8 }}>◈ MIN PORTEFØLJE</div>
+            <div style={{ fontFamily: mono, fontSize: 10, color: '#111111', letterSpacing: '0.12em', marginBottom: 8 }}>◈ MIN PORTEFØLJE</div>
             <div style={{ marginBottom: 6 }}>
-              <h1 style={{ fontFamily: corm, fontSize: 42, fontWeight: 600, color: '#1e293b', margin: 0, lineHeight: 1.1 }}>
+              <h1 style={{ fontFamily: corm, fontSize: 42, fontWeight: 600, color: '#111111', margin: 0, lineHeight: 1.1 }}>
                 Enkeltaktier <em>Langsigtet</em>
               </h1>
             </div>
-            <div style={{ fontFamily: mono, fontSize: 11, color: '#9ca3af' }}>
+            <div style={{ fontFamily: mono, fontSize: 11, color: '#999999' }}>
               20 aktier · 1 køb om måneden · Fuldt investeret januar 2028
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, paddingTop: 8 }}>
-            <button onClick={fetchKurser} disabled={loading} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(0,0,0,0.08)', color: loading ? '#9ca3af' : '#4a5568', borderRadius: 8, padding: '8px 16px', fontFamily: 'var(--font-dm-mono)', fontSize: 11, cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '0.06em' }}>
+            <button onClick={fetchKurser} disabled={loading} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(0,0,0,0.08)', color: loading ? '#999999' : '#555555', borderRadius: 8, padding: '8px 16px', fontFamily: 'var(--font-dm-mono)', fontSize: 11, cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '0.06em' }}>
               {loading ? '↻ Henter…' : '↻ Opdater kurser'}
             </button>
-            {kursError && <div style={{ fontSize: 9, color: '#ef4444', maxWidth: 220, textAlign: 'right' }}>{kursError}</div>}
+            {kursError && <div style={{ fontSize: 9, color: '#8b1c1c', maxWidth: 220, textAlign: 'right' }}>{kursError}</div>}
           </div>
         </div>
 
         {/* ── SEKTION 1: Overblik ──────────────────────────────────────── */}
         <div style={{ background: 'rgba(0,0,0,0.09)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '22px 24px', marginBottom: 32 }}>
-          <div style={{ fontFamily: mono, fontSize: 9, color: '#9ca3af', letterSpacing: '0.1em', marginBottom: 18 }}>PORTEFØLJEOVERBLIK</div>
+          <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 18 }}>PORTEFØLJEOVERBLIK</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
             {[
               { label: 'Pladser brugt', value: `${usedSlots}/20`, sub: `${totalSlots - usedSlots} ledige` },
@@ -453,9 +453,9 @@ export default function PortefoeljePage() {
               { label: 'Dage til næste', value: daysToNext > 0 ? `${daysToNext}d` : 'NU', sub: daysToNext <= 0 ? 'Klar til køb' : 'fra i dag' },
             ].map(({ label, value, sub }) => (
               <div key={label}>
-                <div style={{ fontFamily: mono, fontSize: 9, color: '#9ca3af', letterSpacing: '0.08em', marginBottom: 6 }}>{label.toUpperCase()}</div>
-                <div style={{ fontFamily: corm, fontSize: 24, fontWeight: 600, color: '#1e293b', lineHeight: 1 }}>{value}</div>
-                <div style={{ fontFamily: mono, fontSize: 9, color: '#9ca3af', marginTop: 4 }}>{sub}</div>
+                <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.08em', marginBottom: 6 }}>{label.toUpperCase()}</div>
+                <div style={{ fontFamily: corm, fontSize: 24, fontWeight: 600, color: '#111111', lineHeight: 1 }}>{value}</div>
+                <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', marginTop: 4 }}>{sub}</div>
               </div>
             ))}
           </div>
@@ -463,21 +463,21 @@ export default function PortefoeljePage() {
           {/* Progress bar */}
           <div style={{ marginBottom: 20 }}>
             <div style={{ height: 4, background: 'rgba(255,255,255,0.10)', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${(usedSlots / 20) * 100}%`, background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }} />
+              <div style={{ height: '100%', width: `${(usedSlots / 20) * 100}%`, background: 'linear-gradient(90deg, #111111, #444444)' }} />
             </div>
-            <div style={{ fontFamily: mono, fontSize: 9, color: '#9ca3af', marginTop: 4 }}>{usedSlots} af 20 pladser fyldt</div>
+            <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', marginTop: 4 }}>{usedSlots} af 20 pladser fyldt</div>
           </div>
 
           {/* Sub-categories */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
             {[
-              { label: 'Kerne', filled: kerne, total: 6, color: '#6366f1' },
-              { label: 'Vækst', filled: vaekst, total: 9, color: '#22c55e' },
-              { label: 'Spekulativ', filled: spek, total: 5, color: '#f59e0b' },
+              { label: 'Kerne', filled: kerne, total: 6, color: '#111111' },
+              { label: 'Vækst', filled: vaekst, total: 9, color: '#2d6a3f' },
+              { label: 'Spekulativ', filled: spek, total: 5, color: '#8a6a00' },
             ].map(({ label, filled, total, color }) => (
               <div key={label} style={{ background: color + '10', border: '1px solid ' + color + '25', borderRadius: 8, padding: '10px 14px' }}>
                 <div style={{ fontFamily: mono, fontSize: 9, color, letterSpacing: '0.08em', marginBottom: 4 }}>{label.toUpperCase()}</div>
-                <div style={{ fontFamily: corm, fontSize: 18, fontWeight: 600, color: '#1e293b' }}>{filled}/{total}</div>
+                <div style={{ fontFamily: corm, fontSize: 18, fontWeight: 600, color: '#111111' }}>{filled}/{total}</div>
                 <div style={{ height: 2, background: 'rgba(255,255,255,0.10)', borderRadius: 2, marginTop: 6 }}>
                   <div style={{ height: '100%', width: `${(filled / total) * 100}%`, background: color }} />
                 </div>
@@ -488,7 +488,7 @@ export default function PortefoeljePage() {
 
         {/* ── SEKTION 2: Aktive Positioner ─────────────────────────────── */}
         <div style={{ marginBottom: 32 }}>
-          <div style={{ fontFamily: mono, fontSize: 9, color: '#9ca3af', letterSpacing: '0.1em', marginBottom: 16 }}>AKTIVE POSITIONER</div>
+          <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>AKTIVE POSITIONER</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
             {positions.map(pos => (
               <PositionCard key={pos.id} pos={pos} onEdit={setEditPos} onToggleCheck={toggleCheck} />
@@ -498,7 +498,7 @@ export default function PortefoeljePage() {
 
         {/* ── SEKTION 3: Købeplan ──────────────────────────────────────── */}
         <div style={{ marginBottom: 32 }}>
-          <div style={{ fontFamily: mono, fontSize: 9, color: '#9ca3af', letterSpacing: '0.1em', marginBottom: 16 }}>KØBEPLAN · MAJ 2026 – JAN 2028</div>
+          <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>KØBEPLAN · MAJ 2026 – JAN 2028</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
             {PLANNED_BUYS.map((buy, i) => (
               <PlannedCard key={i} buy={buy} />
@@ -511,27 +511,27 @@ export default function PortefoeljePage() {
 
           {/* Reglerne */}
           <div style={{ background: 'rgba(0,0,0,0.09)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '20px 22px' }}>
-            <div style={{ fontFamily: mono, fontSize: 9, color: '#9ca3af', letterSpacing: '0.1em', marginBottom: 16 }}>REGLERNE</div>
+            <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>REGLERNE</div>
             {[
               { emoji: '🔴', title: 'Stop loss er hellig', body: 'Alarm udløser = sælg inden 24 timer. Ingen undtagelser.' },
               { emoji: '🟡', title: 'Ingen beslutninger på røde dage', body: 'Markedet falder voldsomt = vent 48 timer.' },
               { emoji: '🔵', title: 'Max 20 enkeltaktier', body: 'Vil du købe nummer 21 skal du sælge én af de 20 først.' },
             ].map(({ emoji, title, body }) => (
               <div key={title} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                <div style={{ fontFamily: corm, fontSize: 15, fontWeight: 600, color: '#1e293b', marginBottom: 3 }}>{emoji} {title}</div>
-                <div style={{ fontFamily: corm, fontStyle: 'italic', fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>{body}</div>
+                <div style={{ fontFamily: corm, fontSize: 15, fontWeight: 600, color: '#111111', marginBottom: 3 }}>{emoji} {title}</div>
+                <div style={{ fontFamily: corm, fontStyle: 'italic', fontSize: 13, color: '#777777', lineHeight: 1.5 }}>{body}</div>
               </div>
             ))}
           </div>
 
           {/* Ved markedskrak */}
           <div style={{ background: 'rgba(0,0,0,0.09)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '20px 22px' }}>
-            <div style={{ fontFamily: mono, fontSize: 9, color: '#9ca3af', letterSpacing: '0.1em', marginBottom: 16 }}>VED MARKEDSKRAK</div>
+            <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>VED MARKEDSKRAK</div>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th style={{ fontFamily: mono, fontSize: 9, color: '#9ca3af', textAlign: 'left', paddingBottom: 10, letterSpacing: '0.06em' }}>FALD</th>
-                  <th style={{ fontFamily: mono, fontSize: 9, color: '#9ca3af', textAlign: 'left', paddingBottom: 10, letterSpacing: '0.06em' }}>HANDLING</th>
+                  <th style={{ fontFamily: mono, fontSize: 9, color: '#999999', textAlign: 'left', paddingBottom: 10, letterSpacing: '0.06em' }}>FALD</th>
+                  <th style={{ fontFamily: mono, fontSize: 9, color: '#999999', textAlign: 'left', paddingBottom: 10, letterSpacing: '0.06em' }}>HANDLING</th>
                 </tr>
               </thead>
               <tbody>
@@ -541,8 +541,8 @@ export default function PortefoeljePage() {
                   { fald: 'Op 15% fra bund', handling: 'Køb ind igen' },
                 ].map(({ fald, handling }) => (
                   <tr key={fald} style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-                    <td style={{ fontFamily: corm, fontStyle: 'italic', fontSize: 13, color: '#6b7280', padding: '9px 0', paddingRight: 16, lineHeight: 1.4 }}>{fald}</td>
-                    <td style={{ fontFamily: corm, fontSize: 13, color: '#4a5568', padding: '9px 0', lineHeight: 1.4 }}>{handling}</td>
+                    <td style={{ fontFamily: corm, fontStyle: 'italic', fontSize: 13, color: '#777777', padding: '9px 0', paddingRight: 16, lineHeight: 1.4 }}>{fald}</td>
+                    <td style={{ fontFamily: corm, fontSize: 13, color: '#555555', padding: '9px 0', lineHeight: 1.4 }}>{handling}</td>
                   </tr>
                 ))}
               </tbody>
@@ -551,22 +551,22 @@ export default function PortefoeljePage() {
         </div>
 
         {/* ── SEKTION 6: Månedligt tjek ────────────────────────────────── */}
-        <div style={{ background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 12, padding: '20px 24px', marginBottom: 48 }}>
+        <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.12)', borderRadius: 12, padding: '20px 24px', marginBottom: 48 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
             <div>
-              <div style={{ fontFamily: mono, fontSize: 9, color: '#6366f1', letterSpacing: '0.1em', marginBottom: 6 }}>MÅNEDLIGT TJEK</div>
-              <div style={{ fontFamily: corm, fontSize: 16, color: '#1e293b' }}>📅 Er dine aktier over 200-dages gennemsnit?</div>
+              <div style={{ fontFamily: mono, fontSize: 9, color: '#111111', letterSpacing: '0.1em', marginBottom: 6 }}>MÅNEDLIGT TJEK</div>
+              <div style={{ fontFamily: corm, fontSize: 16, color: '#111111' }}>📅 Er dine aktier over 200-dages gennemsnit?</div>
             </div>
-            <div style={{ fontFamily: mono, fontSize: 10, color: '#9ca3af', textAlign: 'right' }}>
-              <div style={{ color: '#9ca3af', marginBottom: 2 }}>Næste tjek</div>
+            <div style={{ fontFamily: mono, fontSize: 10, color: '#999999', textAlign: 'right' }}>
+              <div style={{ color: '#999999', marginBottom: 2 }}>Næste tjek</div>
               <div>{nextMonthlyCheck()}</div>
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
             {positions.map(pos => (
               <label key={pos.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 10px', background: 'rgba(0,0,0,0.09)', borderRadius: 6 }}>
-                <input type="checkbox" checked={pos.checked} onChange={() => toggleCheck(pos.id)} style={{ accentColor: '#6366f1' }} />
-                <span style={{ fontFamily: mono, fontSize: 10, color: pos.checked ? '#6366f1' : '#9ca3af' }}>{pos.ticker} — {pos.name}</span>
+                <input type="checkbox" checked={pos.checked} onChange={() => toggleCheck(pos.id)} style={{ accentColor: '#111111' }} />
+                <span style={{ fontFamily: mono, fontSize: 10, color: pos.checked ? '#111111' : '#999999' }}>{pos.ticker} — {pos.name}</span>
               </label>
             ))}
           </div>
@@ -574,7 +574,7 @@ export default function PortefoeljePage() {
 
                 {/* ── SEKTION: Fordeling ──────────────────────────────────── */}
         <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
-          <div style={{ fontSize: 10, color: '#6366f1', letterSpacing: '0.1em', marginBottom: 20 }}>FORDELING</div>
+          <div style={{ fontSize: 10, color: '#111111', letterSpacing: '0.1em', marginBottom: 20 }}>FORDELING</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32 }}>
             <DonutChart slices={LAG_SLICES} title="Lag" />
             <DonutChart slices={LAND_SLICES} title="Land / Region" />
@@ -584,7 +584,7 @@ export default function PortefoeljePage() {
 
         {/* ── SEKTION: Tidslinje ──────────────────────────────────── */}
         <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
-          <div style={{ fontSize: 10, color: '#6366f1', letterSpacing: '0.1em', marginBottom: 20 }}>TIDSLINJE</div>
+          <div style={{ fontSize: 10, color: '#111111', letterSpacing: '0.1em', marginBottom: 20 }}>TIDSLINJE</div>
           {TIMELINE.map((s) => {
             const now = new Date('2026-03-20')
             const buyD = new Date(s.buyDate + '-01')
@@ -596,8 +596,8 @@ export default function PortefoeljePage() {
             const monthsLeft = revD ? Math.max(0, Math.round(msLeft / (1000 * 60 * 60 * 24 * 30.5))) : 0
             const yearsLeft = Math.floor(monthsLeft / 12)
             const moLeft = monthsLeft % 12
-            const barColor = monthsLeft > 12 ? '#22c55e' : monthsLeft > 6 ? '#f59e0b' : '#ef4444'
-            const catColor = s.category === 'Kerne' ? '#185FA5' : s.category === 'Vækst' ? '#3B6D11' : '#A32D2D'
+            const barColor = monthsLeft > 12 ? '#2d6a3f' : monthsLeft > 6 ? '#8a6a00' : '#8b1c1c'
+            const catColor = s.category === 'Kerne' ? '#1a1a1a' : s.category === 'Vækst' ? '#404040' : '#606060'
             // ── Udskiftningsalarm (kun for købte aktier) ──
             const ABUY: {[k:string]:number} = {'NOVO-B':241.5,'GN':98,'UIE':369.15}
             const AEXIT: {[k:string]:number} = {'NOVO-B':380,'GN':145,'UIE':500}
@@ -610,21 +610,21 @@ export default function PortefoeljePage() {
             const aNow2 = new Date('2026-03-20')
             const aMo = Math.max(0, (aNow2.getFullYear()-aBuyDt.getFullYear())*12+(aNow2.getMonth()-aBuyDt.getMonth()))
             const aFallen = s.bought && aBp ? aCp < aBp : false
-            const aDot = !s.bought || !aBp ? '#22c55e' : (aFallen && aMo > 24 ? '#ef4444' : aProg < 25 && aMo > 18 ? '#ef4444' : aProg < 50 && aMo > 12 ? '#f59e0b' : '#22c55e')
+            const aDot = !s.bought || !aBp ? '#2d6a3f' : (aFallen && aMo > 24 ? '#8b1c1c' : aProg < 25 && aMo > 18 ? '#8b1c1c' : aProg < 50 && aMo > 12 ? '#8a6a00' : '#2d6a3f')
             const aLabel = !s.bought || !aBp ? '' : (aFallen && aMo > 24 ? 'Udskift nu' : aProg < 25 && aMo > 18 ? 'Overvej udskiftning' : aProg < 50 && aMo > 12 ? 'Gennemgå snart' : 'På rette spor')
             const aPulse = s.bought && aBp ? (aFallen && aMo > 24) : false
             return (
               <div key={s.ticker} style={{ marginBottom: 16, opacity: s.bought ? 1 : 0.5 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 11, color: '#1e293b', fontWeight: 600, minWidth: 52 }}>{s.ticker}</span>
-                    <span style={{ fontSize: 9, color: '#6b7280' }}>{s.name}</span>
+                    <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 11, color: '#111111', fontWeight: 600, minWidth: 52 }}>{s.ticker}</span>
+                    <span style={{ fontSize: 9, color: '#777777' }}>{s.name}</span>
                     <span style={{ fontSize: 8, color: catColor, background: catColor + '22', borderRadius: 3, padding: '1px 5px' }}>{s.category}</span>
-                    {s.note && <span style={{ fontSize: 8, color: '#f59e0b' }}>{s.note}</span>}
+                    {s.note && <span style={{ fontSize: 8, color: '#8a6a00' }}>{s.note}</span>}
                   </div>
-                  <div style={{ display: 'flex', gap: 12, fontSize: 9, color: '#9ca3af' }}>
+                  <div style={{ display: 'flex', gap: 12, fontSize: 9, color: '#999999' }}>
                     <span>{s.buyDate}</span>
-                    {s.reviewDate && <span style={{ color: '#9ca3af' }}>→ {s.reviewDate}</span>}
+                    {s.reviewDate && <span style={{ color: '#999999' }}>→ {s.reviewDate}</span>}
                   </div>
                 </div>
                 <div style={{ position: 'relative', height: 5, background: 'rgba(255,255,255,0.07)', borderRadius: 3 }}>
@@ -636,13 +636,13 @@ export default function PortefoeljePage() {
                   )}
                 </div>
                 {s.reviewDate && revD && (
-                  <div style={{ fontSize: 8, color: '#9ca3af', marginTop: 3 }}>
+                  <div style={{ fontSize: 8, color: '#999999', marginTop: 3 }}>
                     {s.bought
                       ? (yearsLeft > 0 ? `Genovervejes om ${yearsLeft} år og ${moLeft} måneder` : `Genovervejes om ${moLeft} måneder`)
                       : `Planlagt køb ${s.buyDate}`}
                   </div>
                 )}
-                {!s.reviewDate && <div style={{ fontSize: 8, color: '#9ca3af', marginTop: 3 }}>Åben slot</div>}
+                {!s.reviewDate && <div style={{ fontSize: 8, color: '#999999', marginTop: 3 }}>Åben slot</div>}
                 {s.bought && aBp > 0 && (
                   <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.10)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
@@ -652,7 +652,7 @@ export default function PortefoeljePage() {
                         outline: aPulse ? ('2px solid ' + aDot) : 'none', outlineOffset: 2
                       }} />
                       <span style={{ fontSize: 11, fontWeight: 700, color: aDot, letterSpacing: '0.02em' }}>{aLabel}</span>
-                      <span style={{ fontSize: 10, color: '#9ca3af', marginLeft: 'auto' }}>
+                      <span style={{ fontSize: 10, color: '#999999', marginLeft: 'auto' }}>
                         {aCp.toFixed(0)} → {aEg} DKK · {Math.round(aProg)}% fremgang · {aMo} mdr.
                       </span>
                     </div>
@@ -667,7 +667,7 @@ export default function PortefoeljePage() {
         </div>
 
         {/* Footer */}
-        <div style={{ textAlign: 'center', fontFamily: mono, fontSize: 9, color: '#9ca3af', letterSpacing: '0.06em', paddingBottom: 40 }}>
+        <div style={{ textAlign: 'center', fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.06em', paddingBottom: 40 }}>
           NORDNET · FRIE MIDLER DEPOT · IKKE FINANSIEL RÅDGIVNING
         </div>
       </div>
