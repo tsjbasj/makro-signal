@@ -598,6 +598,21 @@ export default function PortefoeljePage() {
             const moLeft = monthsLeft % 12
             const barColor = monthsLeft > 12 ? '#22c55e' : monthsLeft > 6 ? '#f59e0b' : '#ef4444'
             const catColor = s.category === 'Kerne' ? '#185FA5' : s.category === 'Vækst' ? '#3B6D11' : '#A32D2D'
+            // ── Udskiftningsalarm (kun for købte aktier) ──
+            const ABUY: {[k:string]:number} = {'NOVO-B':241.5,'GN':98,'UIE':369.15}
+            const AEXIT: {[k:string]:number} = {'NOVO-B':380,'GN':145,'UIE':500}
+            const aBp = ABUY[s.ticker] ?? 0
+            const aEg = AEXIT[s.ticker] ?? 0
+            const aPos = (s.bought && aBp && aEg) ? positions.find(p => p.ticker === s.ticker) : null
+            const aCp = aPos ? aPos.currentPrice : aBp
+            const aProg = (aBp && aEg) ? Math.min(100, Math.max(0, (aCp - aBp) / (aEg - aBp) * 100)) : 0
+            const aBuyDt = new Date(s.buyDate + '-01')
+            const aNow2 = new Date('2026-03-20')
+            const aMo = Math.max(0, (aNow2.getFullYear()-aBuyDt.getFullYear())*12+(aNow2.getMonth()-aBuyDt.getMonth()))
+            const aFallen = s.bought && aBp ? aCp < aBp : false
+            const aDot = !s.bought || !aBp ? '#22c55e' : (aFallen && aMo > 24 ? '#ef4444' : aProg < 25 && aMo > 18 ? '#ef4444' : aProg < 50 && aMo > 12 ? '#f59e0b' : '#22c55e')
+            const aLabel = !s.bought || !aBp ? '' : (aFallen && aMo > 24 ? 'Udskift nu' : aProg < 25 && aMo > 18 ? 'Overvej udskiftning' : aProg < 50 && aMo > 12 ? 'Gennemgå snart' : 'På rette spor')
+            const aPulse = s.bought && aBp ? (aFallen && aMo > 24) : false
             return (
               <div key={s.ticker} style={{ marginBottom: 16, opacity: s.bought ? 1 : 0.5 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -628,42 +643,30 @@ export default function PortefoeljePage() {
                   </div>
                 )}
                 {!s.reviewDate && <div style={{ fontSize: 8, color: '#9ca3af', marginTop: 3 }}>Åben slot</div>}
+                {s.bought && aBp > 0 && (
+                  <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.10)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                      <span style={{
+                        width: 8, height: 8, borderRadius: '50%', background: aDot, flexShrink: 0,
+                        boxShadow: aPulse ? ('0 0 0 3px ' + aDot + '44') : 'none',
+                        outline: aPulse ? ('2px solid ' + aDot) : 'none', outlineOffset: 2
+                      }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: aDot, letterSpacing: '0.02em' }}>{aLabel}</span>
+                      <span style={{ fontSize: 10, color: '#9ca3af', marginLeft: 'auto' }}>
+                        {aCp.toFixed(0)} → {aEg} DKK · {Math.round(aProg)}% fremgang · {aMo} mdr.
+                      </span>
+                    </div>
+                    <div style={{ height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: aProg + '%', borderRadius: 2, background: aDot, transition: 'width 0.6s ease' }} />
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}
         </div>
 
-        {/* ── SEKTION: Købeplan ───────────────────────────────────── */}
-        <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
-          <div style={{ fontSize: 10, color: '#6366f1', letterSpacing: '0.1em', marginBottom: 4 }}>KØBEPLAN</div>
-          <div style={{ fontSize: 9, color: '#9ca3af', marginBottom: 16 }}>NU + DLO fremrykket til april som rotationskøb under Extreme Fear (F&G = 16). IBN er ny — ICICI Bank, Indien/bank tema. DSV exit hævet til 2.000 DKK.</div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-dm-mono)', fontSize: 10 }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                  {['Aktie','Køb','Kurs nu','Stop','Exit','Status'].map(h => (
-                    <th key={h} style={{ textAlign: 'left', padding: '6px 10px', color: '#9ca3af', fontWeight: 400, letterSpacing: '0.06em', fontSize: 9 }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {BUY_PLAN.map((b, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td style={{ padding: '8px 10px', color: '#1e293b', fontWeight: 600 }}>{b.ticker}</td>
-                    <td style={{ padding: '8px 10px', color: '#4a5568' }}>{b.buyMonth}</td>
-                    <td style={{ padding: '8px 10px', color: '#4a5568' }}>{b.priceNow}</td>
-                    <td style={{ padding: '8px 10px', color: '#ef4444' }}>{b.stop}</td>
-                    <td style={{ padding: '8px 10px', color: '#22c55e' }}>{b.exit}</td>
-                    <td style={{ padding: '8px 10px' }}><span style={{ color: b.statusColor, fontSize: 9 }}>{b.status}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-
-{/* Footer */}
+        {/* Footer */}
         <div style={{ textAlign: 'center', fontFamily: mono, fontSize: 9, color: '#9ca3af', letterSpacing: '0.06em', paddingBottom: 40 }}>
           NORDNET · FRIE MIDLER DEPOT · IKKE FINANSIEL RÅDGIVNING
         </div>
