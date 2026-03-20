@@ -21,7 +21,7 @@ export async function GET() {
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{
           role: 'user',
-          content: 'Search for the current stock price and today percentage change for OXY (Occidental Petroleum), PLTR (Palantir Technologies), and CELC (Celcuity) stocks. Also find the current USD to DKK exchange rate. Return ONLY valid JSON with no markdown or explanation: {"stocks":[{"ticker":"OXY","price":54.0,"change1d":0.5},{"ticker":"PLTR","price":84.0,"change1d":1.2},{"ticker":"CELC","price":28.0,"change1d":-0.3}],"usdDkk":6.90,"lastUpdated":"2026-03-17"}',
+          content: 'Search for the current stock price and today percentage change for OXY (Occidental Petroleum), PLTR (Palantir Technologies), and CELC (Celcuity) stocks (prices in USD). Also find the current price of UIE (United International Enterprises, Copenhagen Stock Exchange, ticker UIE) in DKK. Also find the current USD to DKK exchange rate. Return ONLY valid JSON with no markdown or explanation: {"stocks":[{"ticker":"OXY","price":54.0,"change1d":0.5},{"ticker":"PLTR","price":84.0,"change1d":1.2},{"ticker":"CELC","price":28.0,"change1d":-0.3},{"ticker":"UIE","price":369.0,"change1d":0.0}],"usdDkk":6.90,"lastUpdated":"2026-03-20"}',
         }],
       }),
     })
