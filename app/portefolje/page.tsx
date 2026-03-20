@@ -251,6 +251,8 @@ function PlannedCard({ buy }: { buy: PlannedBuy }) {
 export default function PortefoeljePage() {
   const [positions, setPositions] = useState<ActivePosition[]>([])
   const [editPos, setEditPos] = useState<ActivePosition | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [kursError, setKursError] = useState<string|null>(null)
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -265,6 +267,25 @@ export default function PortefoeljePage() {
   function handleSave(p: ActivePosition) {
     persist(positions.map(x => x.id === p.id ? p : x))
     setEditPos(null)
+  }
+
+  async function fetchKurser() {
+    setLoading(true)
+    setKursError(null)
+    try {
+      const res = await fetch('/api/portefolje-kurser')
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      const updated = positions.map((p: ActivePosition) => {
+        const found = data.stocks?.find((s: {ticker: string; price: number}) => s.ticker === p.ticker)
+        return found ? { ...p, currentPrice: found.price } : p
+      })
+      persist(updated)
+    } catch (e) {
+      setKursError(e instanceof Error ? e.message.slice(0, 80) : 'Fejl ved hentning')
+    } finally {
+      setLoading(false)
+    }
   }
 
   function toggleCheck(id: string) {
@@ -291,14 +312,24 @@ export default function PortefoeljePage() {
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px 0' }}>
 
         {/* Page Header */}
-        <div style={{ fontFamily: mono, fontSize: 10, color: '#6366f1', letterSpacing: '0.12em', marginBottom: 8 }}>◈ MIN PORTEFØLJE</div>
-        <div style={{ marginBottom: 6 }}>
-          <h1 style={{ fontFamily: corm, fontSize: 42, fontWeight: 600, color: '#f1f5f9', margin: 0, lineHeight: 1.1 }}>
-            Enkeltaktier <em>Langsigtet</em>
-          </h1>
-        </div>
-        <div style={{ fontFamily: mono, fontSize: 11, color: '#475569', marginBottom: 36 }}>
-          20 aktier · 1 køb om måneden · Fuldt investeret januar 2028
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 36 }}>
+          <div>
+            <div style={{ fontFamily: mono, fontSize: 10, color: '#6366f1', letterSpacing: '0.12em', marginBottom: 8 }}>◈ MIN PORTEFØLJE</div>
+            <div style={{ marginBottom: 6 }}>
+              <h1 style={{ fontFamily: corm, fontSize: 42, fontWeight: 600, color: '#f1f5f9', margin: 0, lineHeight: 1.1 }}>
+                Enkeltaktier <em>Langsigtet</em>
+              </h1>
+            </div>
+            <div style={{ fontFamily: mono, fontSize: 11, color: '#475569' }}>
+              20 aktier · 1 køb om måneden · Fuldt investeret januar 2028
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, paddingTop: 8 }}>
+            <button onClick={fetchKurser} disabled={loading} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: loading ? '#475569' : '#94a3b8', borderRadius: 8, padding: '8px 16px', fontFamily: 'var(--font-dm-mono)', fontSize: 11, cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '0.06em' }}>
+              {loading ? '↻ Henter…' : '↻ Opdater kurser'}
+            </button>
+            {kursError && <div style={{ fontSize: 9, color: '#ef4444', maxWidth: 220, textAlign: 'right' }}>{kursError}</div>}
+          </div>
         </div>
 
         {/* ── SEKTION 1: Overblik ──────────────────────────────────────── */}
