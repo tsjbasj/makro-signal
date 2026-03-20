@@ -25,7 +25,7 @@ export async function GET() {
         }],
       }),
     })
-    if (!res.ok) throw new Error('Anthropic HTTP ' + res.status)
+    if (!res.ok) { const errBody = await res.text(); throw new Error('Anthropic HTTP ' + res.status + ': ' + errBody) }
     const d = await res.json()
     const text = (d.content ?? []).filter((b: { type: string }) => b.type === 'text').map((b: { text: string }) => b.text).join('')
     const m = text.replace(/```json|```/g, '').trim().match(/\{[\s\S]*\}/)
