@@ -247,6 +247,116 @@ function PlannedCard({ buy }: { buy: PlannedBuy }) {
   )
 }
 
+/* ─── Donut Chart ────────────────────────────────────────────────────── */
+interface DonutSlice { label: string; value: number; color: string }
+
+function DonutChart({ slices, title }: { slices: DonutSlice[]; title: string }) {
+  const total = slices.reduce((s, d) => s + d.value, 0)
+  const r = 54; const cx = 70; const cy = 70
+  const circ = 2 * Math.PI * r
+  let cumPct = 0
+  const segments = slices.map(d => {
+    const pct = d.value / total
+    const dash = pct * circ
+    const offset = -cumPct * circ
+    cumPct += pct
+    return { ...d, dash, offset }
+  })
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ fontSize: 10, color: '#94a3b8', letterSpacing: '0.08em', marginBottom: 10, textTransform: 'uppercase' }}>{title}</div>
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        {segments.map((s, i) => (
+          <circle key={i} cx={cx} cy={cy} r={r} fill="none"
+            stroke={s.color} strokeWidth={22}
+            strokeDasharray={`${s.dash} ${circ}`}
+            strokeDashoffset={s.offset}
+            transform={`rotate(-90 ${cx} ${cy})`}
+            style={{ transition: 'stroke-dasharray 0.3s' }}
+          />
+        ))}
+        <text x={cx} y={cy - 7} textAnchor="middle" fill="#f1f5f9" fontSize="18" fontWeight="600">{total}</text>
+        <text x={cx} y={cy + 10} textAnchor="middle" fill="#475569" fontSize="9">aktier</text>
+      </svg>
+      <div style={{ width: '100%', marginTop: 8 }}>
+        {slices.map((s, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
+            <span style={{ fontSize: 9, color: '#94a3b8', flex: 1 }}>{s.label}</span>
+            <span style={{ fontSize: 9, color: '#64748b' }}>{Math.round(s.value / total * 100)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const LAG_SLICES: DonutSlice[] = [
+  { label: 'Kerne', value: 5, color: '#185FA5' },
+  { label: 'Vækst', value: 6, color: '#3B6D11' },
+  { label: 'Spekulativ', value: 2, color: '#A32D2D' },
+]
+const LAND_SLICES: DonutSlice[] = [
+  { label: 'Danmark', value: 5, color: '#C0521C' },
+  { label: 'USA', value: 4, color: '#185FA5' },
+  { label: 'Canada', value: 1, color: '#854F0B' },
+  { label: 'Brasilien', value: 1, color: '#3B6D11' },
+  { label: 'Indien', value: 1, color: '#534AB7' },
+  { label: 'Åben', value: 1, color: '#888780' },
+]
+const BRANCHE_SLICES: DonutSlice[] = [
+  { label: 'Pharma', value: 1, color: '#185FA5' },
+  { label: 'Høreapparater', value: 2, color: '#0F6E56' },
+  { label: 'Råvarer/Palmolie', value: 1, color: '#854F0B' },
+  { label: 'Fintech/Bank EM', value: 1, color: '#3B6D11' },
+  { label: 'Datacentre', value: 1, color: '#534AB7' },
+  { label: 'Uran/Energi', value: 1, color: '#C0521C' },
+  { label: 'Logistik', value: 1, color: '#A32D2D' },
+  { label: 'Betalinger EM', value: 1, color: '#D85A30' },
+  { label: 'AI netværk', value: 1, color: '#1D9E75' },
+  { label: 'AI strøm/Elinfra', value: 1, color: '#378ADD' },
+  { label: 'Indien bank', value: 1, color: '#7F77DD' },
+  { label: 'Åben', value: 1, color: '#888780' },
+]
+
+interface TimelineStock {
+  ticker: string; name: string; category: 'Kerne' | 'Vækst' | 'Spekulativ'
+  bought: boolean; buyDate: string; reviewDate: string | null; note?: string
+}
+const TIMELINE: TimelineStock[] = [
+  { ticker: 'NOVO-B', name: 'Novo Nordisk',      category: 'Kerne',      bought: true,  buyDate: '2026-03', reviewDate: '2031-03' },
+  { ticker: 'GN',     name: 'GN Store Nord',     category: 'Vækst',      bought: true,  buyDate: '2026-03', reviewDate: '2028-03' },
+  { ticker: 'UIE',    name: 'UIE A/S',            category: 'Kerne',      bought: true,  buyDate: '2026-03', reviewDate: '2029-03' },
+  { ticker: 'NU',     name: 'NU Holdings',        category: 'Vækst',      bought: false, buyDate: '2026-04', reviewDate: '2028-04' },
+  { ticker: 'DLO',    name: 'dLocal',             category: 'Spekulativ', bought: false, buyDate: '2026-04', reviewDate: '2027-04' },
+  { ticker: 'DEMANT', name: 'Demant',             category: 'Vækst',      bought: false, buyDate: '2026-05', reviewDate: '2028-05', note: 'Afvent Q1 5. maj' },
+  { ticker: 'EQIX',   name: 'Equinix',            category: 'Vækst',      bought: false, buyDate: '2026-06', reviewDate: '2029-06' },
+  { ticker: 'CCJ',    name: 'Cameco',             category: 'Kerne',      bought: false, buyDate: '2026-07', reviewDate: '2029-07' },
+  { ticker: 'DSV',    name: 'DSV',                category: 'Kerne',      bought: false, buyDate: '2026-08', reviewDate: '2031-08' },
+  { ticker: 'CRDO',   name: 'Credo Technology',   category: 'Spekulativ', bought: false, buyDate: '2026-11', reviewDate: '2027-11' },
+  { ticker: 'ETN',    name: 'Eaton',              category: 'Kerne',      bought: false, buyDate: '2026-11', reviewDate: '2031-11' },
+  { ticker: 'IBN',    name: 'ICICI Bank',         category: 'Vækst',      bought: false, buyDate: '2026-12', reviewDate: '2028-12' },
+  { ticker: '??',     name: 'Åben',               category: 'Vækst',      bought: false, buyDate: '2027-01', reviewDate: null },
+]
+
+interface BuyPlan {
+  ticker: string; buyMonth: string; priceNow: string; stop: string; exit: string
+  currency: string; status: string; statusColor: string
+}
+const BUY_PLAN: BuyPlan[] = [
+  { ticker: 'NU',     buyMonth: 'Apr 2026', priceNow: '$13,89',      stop: '$10,50',  exit: '$22',       currency: 'USD', status: 'Rotationskøb — Extreme Fear', statusColor: '#22c55e' },
+  { ticker: 'DLO',    buyMonth: 'Apr 2026', priceNow: '$11,45',      stop: '$8,50',   exit: '$20',       currency: 'USD', status: 'Rotationskøb — Extreme Fear', statusColor: '#22c55e' },
+  { ticker: 'DEMANT', buyMonth: 'Maj 2026', priceNow: '~187 DKK',    stop: '155 DKK', exit: '280 DKK',   currency: 'DKK', status: 'Afvent Q1 5. maj',            statusColor: '#f59e0b' },
+  { ticker: 'EQIX',   buyMonth: 'Jun 2026', priceNow: '~$974',       stop: '$760',    exit: '$1.300',    currency: 'USD', status: 'OK',                          statusColor: '#22c55e' },
+  { ticker: 'CCJ',    buyMonth: 'Jul 2026', priceNow: '$110',         stop: '$82',     exit: '$165',      currency: 'USD', status: 'OK',                          statusColor: '#22c55e' },
+  { ticker: 'DSV',    buyMonth: 'Aug 2026', priceNow: '~1.588 DKK',  stop: '950 DKK', exit: '2.000 DKK', currency: 'DKK', status: 'OK',                          statusColor: '#22c55e' },
+  { ticker: 'CRDO',   buyMonth: 'Nov 2026', priceNow: '~$102',        stop: '$80',     exit: '$160',      currency: 'USD', status: 'Hold øje — nær stop',         statusColor: '#ef4444' },
+  { ticker: 'ETN',    buyMonth: 'Nov 2026', priceNow: '~$360',        stop: '$275',    exit: '$480',      currency: 'USD', status: 'OK',                          statusColor: '#22c55e' },
+  { ticker: 'IBN',    buyMonth: 'Dec 2026', priceNow: '~$26,80',      stop: '$21',     exit: '$45',       currency: 'USD', status: 'OK — Indien',                 statusColor: '#22c55e' },
+  { ticker: '??',     buyMonth: 'Jan 2027', priceNow: '—',            stop: '—',       exit: '—',         currency: '',    status: 'Åben',                        statusColor: '#475569' },
+]
+
+
 /* ─── Main Page ──────────────────────────────────────────────────────── */
 export default function PortefoeljePage() {
   const [positions, setPositions] = useState<ActivePosition[]>([])
@@ -462,7 +572,98 @@ export default function PortefoeljePage() {
           </div>
         </div>
 
-        {/* Footer */}
+                {/* ── SEKTION: Fordeling ──────────────────────────────────── */}
+        <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
+          <div style={{ fontSize: 10, color: '#6366f1', letterSpacing: '0.1em', marginBottom: 20 }}>FORDELING</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32 }}>
+            <DonutChart slices={LAG_SLICES} title="Lag" />
+            <DonutChart slices={LAND_SLICES} title="Land / Region" />
+            <DonutChart slices={BRANCHE_SLICES} title="Branche" />
+          </div>
+        </div>
+
+        {/* ── SEKTION: Tidslinje ──────────────────────────────────── */}
+        <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
+          <div style={{ fontSize: 10, color: '#6366f1', letterSpacing: '0.1em', marginBottom: 20 }}>TIDSLINJE</div>
+          {TIMELINE.map((s) => {
+            const now = new Date('2026-03-20')
+            const buyD = new Date(s.buyDate + '-01')
+            const revD = s.reviewDate ? new Date(s.reviewDate + '-01') : null
+            const totalMs = revD ? revD.getTime() - buyD.getTime() : 1
+            const elapsedMs = revD ? Math.max(0, now.getTime() - buyD.getTime()) : 0
+            const pct = revD ? Math.min(100, (elapsedMs / totalMs) * 100) : 0
+            const msLeft = revD ? revD.getTime() - now.getTime() : 0
+            const monthsLeft = revD ? Math.max(0, Math.round(msLeft / (1000 * 60 * 60 * 24 * 30.5))) : 0
+            const yearsLeft = Math.floor(monthsLeft / 12)
+            const moLeft = monthsLeft % 12
+            const barColor = monthsLeft > 12 ? '#22c55e' : monthsLeft > 6 ? '#f59e0b' : '#ef4444'
+            const catColor = s.category === 'Kerne' ? '#185FA5' : s.category === 'Vækst' ? '#3B6D11' : '#A32D2D'
+            return (
+              <div key={s.ticker} style={{ marginBottom: 16, opacity: s.bought ? 1 : 0.5 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 11, color: '#f1f5f9', fontWeight: 600, minWidth: 52 }}>{s.ticker}</span>
+                    <span style={{ fontSize: 9, color: '#64748b' }}>{s.name}</span>
+                    <span style={{ fontSize: 8, color: catColor, background: catColor + '22', borderRadius: 3, padding: '1px 5px' }}>{s.category}</span>
+                    {s.note && <span style={{ fontSize: 8, color: '#f59e0b' }}>{s.note}</span>}
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, fontSize: 9, color: '#475569' }}>
+                    <span>{s.buyDate}</span>
+                    {s.reviewDate && <span style={{ color: '#334155' }}>→ {s.reviewDate}</span>}
+                  </div>
+                </div>
+                <div style={{ position: 'relative', height: 5, background: 'rgba(255,255,255,0.07)', borderRadius: 3 }}>
+                  {s.reviewDate && (
+                    <div style={{ position: 'absolute', left: 0, width: pct + '%', height: '100%', background: barColor, borderRadius: 3, transition: 'width 0.3s' }} />
+                  )}
+                  {!s.reviewDate && (
+                    <div style={{ position: 'absolute', left: 0, width: '100%', height: '100%', background: 'rgba(255,255,255,0.1)', borderRadius: 3 }} />
+                  )}
+                </div>
+                {s.reviewDate && revD && (
+                  <div style={{ fontSize: 8, color: '#334155', marginTop: 3 }}>
+                    {s.bought
+                      ? (yearsLeft > 0 ? `Genovervejes om ${yearsLeft} år og ${moLeft} måneder` : `Genovervejes om ${moLeft} måneder`)
+                      : `Planlagt køb ${s.buyDate}`}
+                  </div>
+                )}
+                {!s.reviewDate && <div style={{ fontSize: 8, color: '#334155', marginTop: 3 }}>Åben slot</div>}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* ── SEKTION: Købeplan ───────────────────────────────────── */}
+        <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
+          <div style={{ fontSize: 10, color: '#6366f1', letterSpacing: '0.1em', marginBottom: 4 }}>KØBEPLAN</div>
+          <div style={{ fontSize: 9, color: '#334155', marginBottom: 16 }}>NU + DLO fremrykket til april som rotationskøb under Extreme Fear (F&G = 16). IBN er ny — ICICI Bank, Indien/bank tema. DSV exit hævet til 2.000 DKK.</div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-dm-mono)', fontSize: 10 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                  {['Aktie','Køb','Kurs nu','Stop','Exit','Status'].map(h => (
+                    <th key={h} style={{ textAlign: 'left', padding: '6px 10px', color: '#475569', fontWeight: 400, letterSpacing: '0.06em', fontSize: 9 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {BUY_PLAN.map((b, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    <td style={{ padding: '8px 10px', color: '#f1f5f9', fontWeight: 600 }}>{b.ticker}</td>
+                    <td style={{ padding: '8px 10px', color: '#94a3b8' }}>{b.buyMonth}</td>
+                    <td style={{ padding: '8px 10px', color: '#94a3b8' }}>{b.priceNow}</td>
+                    <td style={{ padding: '8px 10px', color: '#ef4444' }}>{b.stop}</td>
+                    <td style={{ padding: '8px 10px', color: '#22c55e' }}>{b.exit}</td>
+                    <td style={{ padding: '8px 10px' }}><span style={{ color: b.statusColor, fontSize: 9 }}>{b.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+
+{/* Footer */}
         <div style={{ textAlign: 'center', fontFamily: mono, fontSize: 9, color: '#334155', letterSpacing: '0.06em', paddingBottom: 40 }}>
           NORDNET · FRIE MIDLER DEPOT · IKKE FINANSIEL RÅDGIVNING
         </div>
