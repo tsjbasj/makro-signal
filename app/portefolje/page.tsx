@@ -119,7 +119,7 @@ function nextMonthlyCheck() {
 /* ─── Navigation ─────────────────────────────────────────────────────── */
 function Nav() {
   return (
-    <nav style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '10px 24px', background: 'rgba(7,9,15,0.97)', borderBottom: '1px solid rgba(255,255,255,0.05)', fontFamily: 'var(--font-dm-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 100 }}>
+    <nav style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '10px 24px', background: 'rgba(20,24,44,0.97)', borderBottom: '1px solid rgba(255,255,255,0.12)', fontFamily: 'var(--font-dm-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 100 }}>
       <span style={{ color: '#334155' }}>◈</span>
       <Link href="/" style={{ color: '#475569', textDecoration: 'none' }}>Makro Signal</Link>
       <Link href="/portfolio" style={{ color: '#475569', textDecoration: 'none' }}>The 2026 Run</Link>
@@ -140,7 +140,7 @@ function PriceBar({ stopLoss, exitTarget, currentPrice }: { stopLoss: number; ex
         <span style={{ color: zone, fontWeight: 500 }}>Kurs ~{currentPrice}</span>
         <span>MÅL {exitTarget}</span>
       </div>
-      <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, position: 'relative' }}>
+      <div style={{ height: 4, background: 'rgba(255,255,255,0.10)', borderRadius: 4, position: 'relative' }}>
         <div style={{ height: '100%', width: `${pct}%`, background: `linear-gradient(90deg, #ef4444, ${zone})`, borderRadius: 4 }} />
         <div style={{ position: 'absolute', top: -4, left: `${pct}%`, transform: 'translateX(-50%)', width: 12, height: 12, borderRadius: '50%', background: zone, border: '2px solid #07090f' }} />
       </div>
@@ -160,7 +160,7 @@ function PositionCard({
 }) {
   const accent = CAT_COLOR[pos.category]
   return (
-    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, overflow: 'hidden' }}>
+    <div style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, overflow: 'hidden' }}>
       <div style={{ height: 2, background: accent }} />
       <div style={{ padding: '14px 16px 16px', position: 'relative' }}>
         <button onClick={() => onEdit(pos)} title="Rediger" style={{ position: 'absolute', top: 14, right: 12, background: 'none', border: 'none', color: '#334155', cursor: 'pointer', fontSize: 13 }}>✏</button>
@@ -189,11 +189,11 @@ function EditModal({ pos, onClose, onSave }: { pos: ActivePosition; onClose: () 
   const [exitTarget, setExitTarget] = useState(pos.exitTarget.toString())
   const [currentPrice, setCurrentPrice] = useState(pos.currentPrice.toString())
   const [invested, setInvested] = useState(pos.invested.toString())
-  const inp = { width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '8px 12px', color: '#f1f5f9', fontFamily: 'var(--font-dm-mono)', fontSize: 12, outline: 'none' }
+  const inp = { width: '100%', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '8px 12px', color: '#f1f5f9', fontFamily: 'var(--font-dm-mono)', fontSize: 12, outline: 'none' }
   const lbl = { fontSize: 10, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase' as const, marginBottom: 4, display: 'block', fontFamily: 'var(--font-dm-mono)' }
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.72)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 28, width: '100%', maxWidth: 480 }}>
+      <div style={{ background: '#141824', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 28, width: '100%', maxWidth: 480 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: 20, fontWeight: 600 }}>Rediger {pos.ticker}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: 20 }}>✕</button>
@@ -227,7 +227,7 @@ function PlannedCard({ buy }: { buy: PlannedBuy }) {
   const accent = CAT_COLOR[buy.category]
   const isTbd = buy.ticker.startsWith('TBD')
   return (
-    <div style={{ background: past ? 'rgba(99,102,241,0.07)' : 'rgba(255,255,255,0.02)', border: `1px solid ${past ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.05)'}`, borderRadius: 8, padding: '12px 14px', opacity: isTbd ? 0.45 : 1 }}>
+    <div style={{ background: past ? 'rgba(99,102,241,0.07)' : 'rgba(255,255,255,0.12)', border: `1px solid ${past ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.12)'}`, borderRadius: 8, padding: '12px 14px', opacity: isTbd ? 0.45 : 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
         <div>
           <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 13, fontWeight: 500, color: past ? '#a78bfa' : '#64748b' }}>{buy.ticker}</span>
@@ -306,7 +306,7 @@ export default function PortefoeljePage() {
   const corm = 'var(--font-cormorant)'
 
   return (
-    <div style={{ minHeight: '100vh', background: '#07090f' }}>
+    <div style={{ minHeight: '100vh', background: '#1a1f2e' }}>
       <Nav />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px 0' }}>
@@ -325,7 +325,7 @@ export default function PortefoeljePage() {
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, paddingTop: 8 }}>
-            <button onClick={fetchKurser} disabled={loading} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: loading ? '#475569' : '#94a3b8', borderRadius: 8, padding: '8px 16px', fontFamily: 'var(--font-dm-mono)', fontSize: 11, cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '0.06em' }}>
+            <button onClick={fetchKurser} disabled={loading} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: loading ? '#475569' : '#94a3b8', borderRadius: 8, padding: '8px 16px', fontFamily: 'var(--font-dm-mono)', fontSize: 11, cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '0.06em' }}>
               {loading ? '↻ Henter…' : '↻ Opdater kurser'}
             </button>
             {kursError && <div style={{ fontSize: 9, color: '#ef4444', maxWidth: 220, textAlign: 'right' }}>{kursError}</div>}
@@ -333,7 +333,7 @@ export default function PortefoeljePage() {
         </div>
 
         {/* ── SEKTION 1: Overblik ──────────────────────────────────────── */}
-        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '22px 24px', marginBottom: 32 }}>
+        <div style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '22px 24px', marginBottom: 32 }}>
           <div style={{ fontFamily: mono, fontSize: 9, color: '#475569', letterSpacing: '0.1em', marginBottom: 18 }}>PORTEFØLJEOVERBLIK</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
             {[
@@ -352,7 +352,7 @@ export default function PortefoeljePage() {
 
           {/* Progress bar */}
           <div style={{ marginBottom: 20 }}>
-            <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ height: 4, background: 'rgba(255,255,255,0.10)', borderRadius: 4, overflow: 'hidden' }}>
               <div style={{ height: '100%', width: `${(usedSlots / 20) * 100}%`, background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }} />
             </div>
             <div style={{ fontFamily: mono, fontSize: 9, color: '#334155', marginTop: 4 }}>{usedSlots} af 20 pladser fyldt</div>
@@ -368,7 +368,7 @@ export default function PortefoeljePage() {
               <div key={label} style={{ background: color + '10', border: '1px solid ' + color + '25', borderRadius: 8, padding: '10px 14px' }}>
                 <div style={{ fontFamily: mono, fontSize: 9, color, letterSpacing: '0.08em', marginBottom: 4 }}>{label.toUpperCase()}</div>
                 <div style={{ fontFamily: corm, fontSize: 18, fontWeight: 600, color: '#f1f5f9' }}>{filled}/{total}</div>
-                <div style={{ height: 2, background: 'rgba(255,255,255,0.06)', borderRadius: 2, marginTop: 6 }}>
+                <div style={{ height: 2, background: 'rgba(255,255,255,0.10)', borderRadius: 2, marginTop: 6 }}>
                   <div style={{ height: '100%', width: `${(filled / total) * 100}%`, background: color }} />
                 </div>
               </div>
@@ -400,14 +400,14 @@ export default function PortefoeljePage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 32 }}>
 
           {/* Reglerne */}
-          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '20px 22px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '20px 22px' }}>
             <div style={{ fontFamily: mono, fontSize: 9, color: '#475569', letterSpacing: '0.1em', marginBottom: 16 }}>REGLERNE</div>
             {[
               { emoji: '🔴', title: 'Stop loss er hellig', body: 'Alarm udløser = sælg inden 24 timer. Ingen undtagelser.' },
               { emoji: '🟡', title: 'Ingen beslutninger på røde dage', body: 'Markedet falder voldsomt = vent 48 timer.' },
               { emoji: '🔵', title: 'Max 20 enkeltaktier', body: 'Vil du købe nummer 21 skal du sælge én af de 20 først.' },
             ].map(({ emoji, title, body }) => (
-              <div key={title} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div key={title} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
                 <div style={{ fontFamily: corm, fontSize: 15, fontWeight: 600, color: '#f1f5f9', marginBottom: 3 }}>{emoji} {title}</div>
                 <div style={{ fontFamily: corm, fontStyle: 'italic', fontSize: 13, color: '#64748b', lineHeight: 1.5 }}>{body}</div>
               </div>
@@ -415,7 +415,7 @@ export default function PortefoeljePage() {
           </div>
 
           {/* Ved markedskrak */}
-          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: '20px 22px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '20px 22px' }}>
             <div style={{ fontFamily: mono, fontSize: 9, color: '#475569', letterSpacing: '0.1em', marginBottom: 16 }}>VED MARKEDSKRAK</div>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -430,7 +430,7 @@ export default function PortefoeljePage() {
                   { fald: 'Over 20% fra toppunkt', handling: 'Sælg ved stop loss — bliv i cash' },
                   { fald: 'Op 15% fra bund', handling: 'Køb ind igen' },
                 ].map(({ fald, handling }) => (
-                  <tr key={fald} style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                  <tr key={fald} style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
                     <td style={{ fontFamily: corm, fontStyle: 'italic', fontSize: 13, color: '#64748b', padding: '9px 0', paddingRight: 16, lineHeight: 1.4 }}>{fald}</td>
                     <td style={{ fontFamily: corm, fontSize: 13, color: '#94a3b8', padding: '9px 0', lineHeight: 1.4 }}>{handling}</td>
                   </tr>
@@ -454,7 +454,7 @@ export default function PortefoeljePage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
             {positions.map(pos => (
-              <label key={pos.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 10px', background: 'rgba(255,255,255,0.02)', borderRadius: 6 }}>
+              <label key={pos.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 10px', background: 'rgba(255,255,255,0.12)', borderRadius: 6 }}>
                 <input type="checkbox" checked={pos.checked} onChange={() => toggleCheck(pos.id)} style={{ accentColor: '#6366f1' }} />
                 <span style={{ fontFamily: mono, fontSize: 10, color: pos.checked ? '#6366f1' : '#475569' }}>{pos.ticker} — {pos.name}</span>
               </label>
