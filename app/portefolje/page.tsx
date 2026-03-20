@@ -24,6 +24,10 @@ interface PlannedBuy {
   amount: number
   currency: string
   plannedMonth: string
+  price?: string
+  stop?: string
+  exit?: string
+  note?: string
 }
 
 const STORAGE_KEY = 'portefolje2026'
@@ -68,6 +72,17 @@ const INITIAL_POSITIONS: ActivePosition[] = [
   },
 ]
 const PLANNED_BUYS: PlannedBuy[] = [
+  { ticker: 'NU',     name: 'NU Holdings',       category: 'Vækst',      amount: 5000, currency: 'USD', plannedMonth: '2026-04', price: '~$13,89',    stop: '$10,50',   exit: '$22',       note: 'Rotationskøb — Extreme Fear' },
+  { ticker: 'DLO',    name: 'dLocal',             category: 'Spekulativ', amount: 4000, currency: 'USD', plannedMonth: '2026-04', price: '~$11,45',    stop: '$8,50',    exit: '$20',       note: 'Rotationskøb — Extreme Fear' },
+  { ticker: 'DEMANT', name: 'Demant',             category: 'Vækst',      amount: 5000, currency: 'DKK', plannedMonth: '2026-05', price: '~187 DKK',   stop: '155 DKK',  exit: '280 DKK',   note: 'Afvent Q1 5. maj' },
+  { ticker: 'EQIX',   name: 'Equinix',            category: 'Kerne',      amount: 6000, currency: 'USD', plannedMonth: '2026-06', price: '~$974',      stop: '$760',     exit: '$1.300',    note: 'OK' },
+  { ticker: 'CCJ',    name: 'Cameco',             category: 'Kerne',      amount: 6000, currency: 'USD', plannedMonth: '2026-07', price: '$110',       stop: '$82',      exit: '$165',      note: 'OK' },
+  { ticker: 'DSV',    name: 'DSV',                category: 'Kerne',      amount: 6000, currency: 'DKK', plannedMonth: '2026-08', price: '~1.588 DKK', stop: '950 DKK',  exit: '2.000 DKK', note: 'OK' },
+  { ticker: 'CRDO',   name: 'Credo Technology',   category: 'Spekulativ', amount: 4000, currency: 'USD', plannedMonth: '2026-11', price: '~$102',      stop: '$80',      exit: '$160',      note: 'Hold øje — nær stop' },
+  { ticker: 'ETN',    name: 'Eaton',              category: 'Kerne',      amount: 5000, currency: 'USD', plannedMonth: '2026-11', price: '~$360',      stop: '$275',     exit: '$480',      note: 'OK' },
+  { ticker: 'IBN',    name: 'ICICI Bank',         category: 'Vækst',      amount: 4000, currency: 'USD', plannedMonth: '2026-12', price: '~$26,80',    stop: '$21',      exit: '$45',       note: 'OK' },
+  { ticker: 'TBD',    name: 'Åben',               category: 'Vækst',      amount: 5000, currency: 'USD', plannedMonth: '2027-01', note: 'Åben' },
+] = [
   { ticker: 'NU', name: 'NU Holdings', category: 'Vækst', amount: 5000, currency: 'USD', plannedMonth: '2026-05' },
   { ticker: 'AMD', name: 'AMD', category: 'Vækst', amount: 5000, currency: 'USD', plannedMonth: '2026-06' },
   { ticker: 'CCJ', name: 'Cameco', category: 'Kerne', amount: 6000, currency: 'USD', plannedMonth: '2026-07' },
@@ -121,10 +136,10 @@ function Nav() {
   return (
     <nav style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '10px 24px', background: 'rgba(242,239,230,0.97)', borderBottom: '1px solid rgba(0,0,0,0.09)', fontFamily: 'var(--font-dm-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 100 }}>
       <span style={{ color: '#999999' }}>◈</span>
-      <Link href="/" style={{ color: '#999999', textDecoration: 'none' }}>Makro Signal</Link>
+      <Link href="/portefolje" style={{ color: '#111111', textDecoration: 'none', borderBottom: '1px solid #111111', paddingBottom: 2 }}>Min Portefølje</Link>
       <Link href="/portfolio" style={{ color: '#999999', textDecoration: 'none' }}>The 2026 Run</Link>
       <Link href="/radar" style={{ color: '#999999', textDecoration: 'none' }}>Aktie Radar</Link>
-      <Link href="/portefolje" style={{ color: '#111111', textDecoration: 'none', borderBottom: '1px solid #111111', paddingBottom: 2 }}>Min Portefølje</Link>
+      <Link href="/" style={{ color: '#999999', textDecoration: 'none' }}>Krisekøb ETF</Link>
     </nav>
   )
 }
@@ -226,22 +241,38 @@ function PlannedCard({ buy }: { buy: PlannedBuy }) {
   const days = daysUntil(buy.plannedMonth)
   const accent = CAT_COLOR[buy.category]
   const isTbd = buy.ticker.startsWith('TBD')
+  const mono = 'var(--font-dm-mono)'
+  const corm = 'var(--font-cormorant)'
   return (
-    <div style={{ background: past ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.09)', border: `1px solid ${past ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.09)'}`, borderRadius: 8, padding: '12px 14px', opacity: isTbd ? 0.45 : 1 }}>
+    <div style={{ background: past ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.09)', border: `1px solid ${past ? 'rgba(0,0,0,0.08)' : accent + '33'}`, borderRadius: 6, padding: '12px 14px', opacity: past ? 0.7 : 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
         <div>
-          <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 13, fontWeight: 500, color: past ? '#666666' : '#777777' }}>{buy.ticker}</span>
-          <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 12, color: '#999999', marginTop: 1 }}>{buy.name}</div>
+          <span style={{ fontFamily: mono, fontSize: 13, fontWeight: 500, color: past ? '#666666' : '#111111' }}>
+            {isTbd ? '?' : buy.ticker}
+          </span>
+          <div style={{ fontFamily: corm, fontSize: 13, color: '#777777', marginTop: 1 }}>{buy.name}</div>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 11, color: past ? '#666666' : '#999999' }}>{fmtMonth(buy.plannedMonth)}</div>
-          {!past && <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#999999', marginTop: 2 }}>{days}d</div>}
-          {past && <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#111111', marginTop: 2 }}>KØB NU</div>}
+        <div style={{ fontFamily: mono, fontSize: 9, color: accent, background: accent + '18', border: '1px solid ' + accent + '33', borderRadius: 3, padding: '2px 6px' }}>
+          {buy.category}
         </div>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ background: accent + '18', border: '1px solid ' + accent + '33', borderRadius: 3, padding: '1px 6px', fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: accent }}>{buy.category.toUpperCase()}</div>
-        <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 10, color: '#999999' }}>{buy.amount.toLocaleString('da-DK')} {buy.currency}</span>
+      {buy.price && (
+        <div style={{ fontFamily: mono, fontSize: 10, color: '#555555', marginBottom: 4 }}>
+          <span style={{ color: '#999999', marginRight: 4 }}>Kurs</span>{buy.price}
+          {buy.stop && <><span style={{ color: '#aaaaaa', margin: '0 5px' }}>·</span><span style={{ color: '#999999', marginRight: 3 }}>Stop</span>{buy.stop}</>}
+          {buy.exit && <><span style={{ color: '#aaaaaa', margin: '0 5px' }}>·</span><span style={{ color: '#999999', marginRight: 3 }}>Exit</span>{buy.exit}</>}
+        </div>
+      )}
+      {buy.note && (
+        <div style={{ fontFamily: mono, fontSize: 9, color: buy.note === 'Åben' ? '#aaaaaa' : buy.note.includes('Extreme') ? '#8b1c1c' : buy.note.includes('Hold øje') ? '#8a6a00' : '#555555', marginBottom: 4 }}>
+          {buy.note}
+        </div>
+      )}
+      <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+        <span>{buy.currency} {buy.amount.toLocaleString('da-DK')}</span>
+        <span style={{ color: past ? '#666666' : accent }}>
+          {isTbd ? buy.plannedMonth.slice(0,7) : past ? 'Gennemført' : days <= 45 ? `om ${days}d` : buy.plannedMonth.slice(0,7)}
+        </span>
       </div>
     </div>
   )
@@ -363,11 +394,25 @@ export default function PortefoeljePage() {
   const [editPos, setEditPos] = useState<ActivePosition | null>(null)
   const [loading, setLoading] = useState(false)
   const [kursError, setKursError] = useState<string|null>(null)
+  const [mkt, setMkt] = useState<{fg:number,fgLabel:string,sp:number,spHigh:number,sahm:number,pmi:number}|null>(null)
+  const [mktLoading, setMktLoading] = useState(false)
+
+  async function fetchMarket() {
+    setMktLoading(true)
+    try {
+      const r = await fetch('/api/data')
+      const j = await r.json()
+      setMkt({ fg: j.fearGreedIndex, fgLabel: j.fearGreedLabel, sp: j.sp500Price, spHigh: j.sp500_52wHigh, sahm: j.sahmRule, pmi: 49.8 })
+    } catch(e) { /* noop */ }
+    setMktLoading(false)
+  }
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
     setPositions(saved ? JSON.parse(saved) : INITIAL_POSITIONS)
   }, [])
+
+  useEffect(() => { fetchMarket() }, [])
 
   function persist(next: ActivePosition[]) {
     setPositions(next)
@@ -442,6 +487,60 @@ export default function PortefoeljePage() {
           </div>
         </div>
 
+        {/* ── Markedsstemning ─────────────────────────────────────────────── */}
+        {(() => {
+          if (!mkt) return (
+            <div style={{ fontFamily: mono, fontSize: 10, color: '#999999', marginBottom: 20 }}>
+              Henter markedsdata...
+            </div>
+          )
+          let score = 0
+          if (mkt.fg <= 25) score += 2; else if (mkt.fg <= 45) score += 1
+          const spPct = (mkt.sp - mkt.spHigh) / mkt.spHigh * 100
+          if (spPct <= -5) score += 2; else if (spPct <= -2) score += 1
+          if (mkt.pmi < 50) score += 2; else if (mkt.pmi <= 52) score += 1
+          if (mkt.sahm >= 0.1) score += 2
+          const [badge, badgeColor] = score >= 6
+            ? ['GOD TIMING', '#2d6a3f']
+            : score >= 3 ? ['OBSERVÉR', '#8a6a00']
+            : ['VENT', '#8b1c1c']
+          return (
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 6, padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 24, flex: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ fontFamily: mono, fontSize: 10, color: '#555555' }}>
+                    <span style={{ color: '#999999', marginRight: 4 }}>F&amp;G</span>{mkt.fg} · {mkt.fgLabel}
+                  </span>
+                  <span style={{ fontFamily: mono, fontSize: 10, color: '#555555' }}>
+                    <span style={{ color: '#999999', marginRight: 4 }}>S&amp;P</span>{spPct.toFixed(1)}% fra high
+                  </span>
+                  <span style={{ fontFamily: mono, fontSize: 10, color: '#555555' }}>
+                    <span style={{ color: '#999999', marginRight: 4 }}>PMI</span>{mkt.pmi.toFixed(1)}
+                  </span>
+                  <span style={{ fontFamily: mono, fontSize: 10, color: '#555555' }}>
+                    <span style={{ color: '#999999', marginRight: 4 }}>SAHM</span>{mkt.sahm.toFixed(2)}
+                  </span>
+                </div>
+                <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: badgeColor, border: '1px solid ' + badgeColor + '55', borderRadius: 3, padding: '3px 9px', whiteSpace: 'nowrap' }}>
+                  TIMING: {badge}
+                </div>
+                <button onClick={fetchMarket} disabled={mktLoading} style={{ fontFamily: mono, fontSize: 9, color: '#999999', background: 'none', border: '1px solid rgba(0,0,0,0.12)', borderRadius: 3, padding: '2px 8px', cursor: 'pointer' }}>
+                  {mktLoading ? '...' : 'Opdater'}
+                </button>
+              </div>
+              <div style={{ fontFamily: mono, fontSize: 10, color: '#777777', display: 'flex', gap: 10, flexWrap: 'wrap', padding: '8px 4px 16px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+                <span style={{ color: '#444444', fontWeight: 600, letterSpacing: '0.06em' }}>ROTATION</span>
+                <span style={{ color: '#aaaaaa' }}>·</span>
+                <span>Brugt: 1/3</span>
+                <span style={{ color: '#aaaaaa' }}>·</span>
+                <span>Cooldown aktiv (F&amp;G skal stige +15pt)</span>
+                <span style={{ color: '#aaaaaa' }}>·</span>
+                <span>Sidst: Apr 2026</span>
+              </div>
+            </div>
+          )
+        })()}
+
         {/* ── SEKTION 1: Overblik ──────────────────────────────────────── */}
         <div style={{ background: 'rgba(0,0,0,0.09)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '22px 24px', marginBottom: 32 }}>
           <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 18 }}>PORTEFØLJEOVERBLIK</div>
@@ -503,6 +602,9 @@ export default function PortefoeljePage() {
             {PLANNED_BUYS.map((buy, i) => (
               <PlannedCard key={i} buy={buy} />
             ))}
+          </div>
+          <div style={{ fontFamily: mono, fontSize: 10, color: '#777777', marginTop: 14, padding: '10px 14px', background: 'rgba(0,0,0,0.04)', borderRadius: 4, borderLeft: '2px solid #8a6a00' }}>
+            NU + DLO fremrykket til april som rotationskøb under Extreme Fear (F&amp;G = 16). IBN er ny — ICICI Bank, Indien/bank tema. DSV exit hævet til 2.000 DKK.
           </div>
         </div>
 
