@@ -1,17 +1,15 @@
 :root {
-  --bg: #f8f7f4;
+  --bg: #f2efe6;
   --surface: rgba(0,0,0,0.04);
-  --border: rgba(0,0,0,0.10);
-  --purple: #6366f1;
-  --text: #1e293b;
-  --muted: #64748b;
+  --border: rgba(0,0,0,0.12);
+  --purple: #111111;
+  --text: #111111;
+  --muted: #666666;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background:
-    radial-gradient(ellipse 90% 40% at 50% -8%, rgba(99,102,241,0.08) 0%, transparent 60%),
-    var(--bg);
+  background: var(--bg);
   color: var(--text);
   min-height: 100vh;
 }
