@@ -41,20 +41,20 @@ const SIG_LBL: Record<string, string> = {
 }
 
 const inp: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-  color: '#f1f5f9', borderRadius: 6, padding: '6px 10px',
+  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,0,0,0.06)',
+  color: '#1e293b', borderRadius: 6, padding: '6px 10px',
   fontFamily: 'var(--font-dm-mono)', fontSize: 11, width: '100%', outline: 'none',
 }
 
 function Nav() {
   return (
-    <nav style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '10px 24px', background: 'rgba(7,9,15,0.97)', borderBottom: '1px solid rgba(255,255,255,0.05)', fontFamily: 'var(--font-dm-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 100 }}>
-      <span style={{ color: '#334155' }}>◈</span>
-      <Link href="/" style={{ color: '#475569', textDecoration: 'none' }}>Makro Signal</Link>
-      <Link href="/portfolio" style={{ color: '#f1f5f9', textDecoration: 'none', borderBottom: '1px solid #6366f1', paddingBottom: 2 }}>The 2026 Run</Link>
+    <nav style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '10px 24px', background: 'rgba(7,9,15,0.97)', borderBottom: '1px solid rgba(0,0,0,0.05)', fontFamily: 'var(--font-dm-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 100 }}>
+      <span style={{ color: '#9ca3af' }}>◈</span>
+      <Link href="/" style={{ color: '#9ca3af', textDecoration: 'none' }}>Makro Signal</Link>
+      <Link href="/portfolio" style={{ color: '#1e293b', textDecoration: 'none', borderBottom: '1px solid #6366f1', paddingBottom: 2 }}>The 2026 Run</Link>
     
-      <Link href="/radar" style={{ color: '#475569', textDecoration: 'none' }}>Aktie Radar</Link>
-      <Link href="/portefolje" style={{ color: '#475569', textDecoration: 'none' }}>Min Portefolje</Link>
+      <Link href="/radar" style={{ color: '#9ca3af', textDecoration: 'none' }}>Aktie Radar</Link>
+      <Link href="/portefolje" style={{ color: '#9ca3af', textDecoration: 'none' }}>Min Portefolje</Link>
     </nav>
   )
 }
@@ -69,14 +69,14 @@ function Bar({ stop, buy, target, current, currency }: { stop: number; buy: numb
       <div style={{ position: 'relative', height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3 }}>
         <div style={{ position: 'absolute', left: 0, width: bPct + '%', height: '100%', background: 'rgba(239,68,68,0.25)', borderRadius: '3px 0 0 3px' }} />
         <div style={{ position: 'absolute', left: bPct + '%', right: 0, height: '100%', background: 'rgba(34,197,94,0.18)', borderRadius: '0 3px 3px 0' }} />
-        <div style={{ position: 'absolute', left: bPct + '%', top: -3, width: 1.5, height: 12, background: '#475569', transform: 'translateX(-50%)' }} />
+        <div style={{ position: 'absolute', left: bPct + '%', top: -3, width: 1.5, height: 12, background: '#9ca3af', transform: 'translateX(-50%)' }} />
         {cPct !== null && (
-          <div style={{ position: 'absolute', top: '50%', left: cPct + '%', transform: 'translate(-50%,-50%)', width: 10, height: 10, background: up ? '#22c55e' : '#ef4444', borderRadius: '50%', border: '2px solid #07090f', boxShadow: '0 0 7px ' + (up ? '#22c55e' : '#ef4444') + '88', zIndex: 2 }} />
+          <div style={{ position: 'absolute', top: '50%', left: cPct + '%', transform: 'translate(-50%,-50%)', width: 10, height: 10, background: up ? '#22c55e' : '#ef4444', borderRadius: '50%', border: '2px solid #f8f7f4', boxShadow: '0 0 7px ' + (up ? '#22c55e' : '#ef4444') + '88', zIndex: 2 }} />
         )}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#334155', marginTop: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#9ca3af', marginTop: 4 }}>
         <span style={{ color: '#ef4444' }}>{(currency === 'DKK' ? '' : '$') + stop + (currency === 'DKK' ? ' kr' : '') + ' stop'}</span>
-        <span style={{ color: '#94a3b8' }}>{(currency === 'DKK' ? '' : '$') + buy  + (currency === 'DKK' ? ' kr' : '') + ' købt'}</span>
+        <span style={{ color: '#4a5568' }}>{(currency === 'DKK' ? '' : '$') + buy  + (currency === 'DKK' ? ' kr' : '') + ' købt'}</span>
         <span style={{ color: '#22c55e' }}>{(currency === 'DKK' ? '' : '$') + target + (currency === 'DKK' ? ' kr' : '') + ' mål'}</span>
       </div>
     </div>
@@ -147,16 +147,16 @@ export default function PortfolioPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#07090f', color: '#f1f5f9', fontFamily: 'var(--font-dm-mono)' }}>
+    <div style={{ minHeight: '100vh', background: '#f8f7f4', color: '#1e293b', fontFamily: 'var(--font-dm-mono)' }}>
       <Nav />
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 20px 60px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
           <div>
-            <div style={{ fontSize: 10, color: '#475569', letterSpacing: '0.1em', marginBottom: 8 }}>◈ THE 2026 RUN</div>
-            <h1 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 42, fontWeight: 600, color: '#f1f5f9', margin: 0, lineHeight: 1.1 }}>
-              Portefølje <em style={{ fontWeight: 400, color: '#94a3b8', fontSize: 34 }}>31. dec 2026</em>
+            <div style={{ fontSize: 10, color: '#9ca3af', letterSpacing: '0.1em', marginBottom: 8 }}>◈ THE 2026 RUN</div>
+            <h1 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 42, fontWeight: 600, color: '#1e293b', margin: 0, lineHeight: 1.1 }}>
+              Portefølje <em style={{ fontWeight: 400, color: '#4a5568', fontSize: 34 }}>31. dec 2026</em>
             </h1>
             {data && (
               <div style={{ marginTop: 8, fontSize: 11, color: '#22c55e', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -165,7 +165,7 @@ export default function PortfolioPage() {
               </div>
             )}
           </div>
-          <button onClick={fetchPrices} disabled={loading} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: loading ? '#334155' : '#94a3b8', borderRadius: 8, padding: '8px 16px', fontFamily: 'var(--font-dm-mono)', fontSize: 11, cursor: 'pointer', letterSpacing: '0.05em' }}>
+          <button onClick={fetchPrices} disabled={loading} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,0,0,0.08)', color: loading ? '#9ca3af' : '#4a5568', borderRadius: 8, padding: '8px 16px', fontFamily: 'var(--font-dm-mono)', fontSize: 11, cursor: 'pointer', letterSpacing: '0.05em' }}>
             {loading ? '↻ Henter…' : '↻ Opdater kurser'}
           </button>
         </div>
@@ -176,27 +176,27 @@ export default function PortfolioPage() {
         <div style={{ ...card, borderTop: '2px solid #6366f1' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 20, marginBottom: 20 }}>
             <div>
-              <div style={{ fontSize: 9, color: '#475569', letterSpacing: '0.1em', marginBottom: 6 }}>SAMLET VÆRDI</div>
+              <div style={{ fontSize: 9, color: '#9ca3af', letterSpacing: '0.1em', marginBottom: 6 }}>SAMLET VÆRDI</div>
               <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 26, fontWeight: 600 }}>{totDKK ? fmt(totDKK) : '— kr'}</div>
             </div>
             <div>
-              <div style={{ fontSize: 9, color: '#475569', letterSpacing: '0.1em', marginBottom: 6 }}>AFKAST</div>
-              <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 26, fontWeight: 600, color: retDKK === null ? '#f1f5f9' : retDKK >= 0 ? '#22c55e' : '#ef4444' }}>
+              <div style={{ fontSize: 9, color: '#9ca3af', letterSpacing: '0.1em', marginBottom: 6 }}>AFKAST</div>
+              <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 26, fontWeight: 600, color: retDKK === null ? '#1e293b' : retDKK >= 0 ? '#22c55e' : '#ef4444' }}>
                 {retDKK !== null ? (retDKK >= 0 ? '+' : '') + fmt(Math.abs(retDKK)) : '—'}
               </div>
               {retPct !== null && <div style={{ fontSize: 11, color: retPct >= 0 ? '#22c55e' : '#ef4444', marginTop: 2 }}>{pct(retPct)}</div>}
             </div>
             <div>
-              <div style={{ fontSize: 9, color: '#475569', letterSpacing: '0.1em', marginBottom: 6 }}>STARTKAPITAL</div>
-              <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 26, fontWeight: 600, color: '#94a3b8' }}>{fmt(START_CAPITAL)}</div>
+              <div style={{ fontSize: 9, color: '#9ca3af', letterSpacing: '0.1em', marginBottom: 6 }}>STARTKAPITAL</div>
+              <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 26, fontWeight: 600, color: '#4a5568' }}>{fmt(START_CAPITAL)}</div>
             </div>
             <div>
-              <div style={{ fontSize: 9, color: '#475569', letterSpacing: '0.1em', marginBottom: 6 }}>DAGE TILBAGE</div>
+              <div style={{ fontSize: 9, color: '#9ca3af', letterSpacing: '0.1em', marginBottom: 6 }}>DAGE TILBAGE</div>
               <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 26, fontWeight: 600 }}>{dLeft}</div>
             </div>
           </div>
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#475569', marginBottom: 4 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#9ca3af', marginBottom: 4 }}>
               <span>17. mar 2026</span>
               <span style={{ color: '#6366f1' }}>{progress.toFixed(0)}% af perioden</span>
               <span>31. dec 2026</span>
@@ -225,16 +225,16 @@ export default function PortfolioPage() {
                     </div>
                   )}
                 </div>
-                <div style={{ fontSize: 9, color: '#475569', marginBottom: 8 }}>{pos.name}</div>
-                <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 30, fontWeight: 600, color: '#f1f5f9' }}>
+                <div style={{ fontSize: 9, color: '#9ca3af', marginBottom: 8 }}>{pos.name}</div>
+                <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 30, fontWeight: 600, color: '#1e293b' }}>
                   {cur !== null ? '$' + cur.toFixed(2) : '—'}
                 </div>
-                <div style={{ fontSize: 9, color: '#475569', marginTop: 2 }}>{(pos as any).currency === 'DKK' ? 'Købt: ' + pos.buy + ' kr · ' + pos.shares + ' aktier' : 'Købt: $' + pos.buy + ' · ' + pos.shares + ' aktier'}</div>
+                <div style={{ fontSize: 9, color: '#9ca3af', marginTop: 2 }}>{(pos as any).currency === 'DKK' ? 'Købt: ' + pos.buy + ' kr · ' + pos.shares + ' aktier' : 'Købt: $' + pos.buy + ' · ' + pos.shares + ' aktier'}</div>
                 <Bar stop={pos.stop} buy={pos.buy} target={pos.target} current={cur} currency={(pos as any).currency} />
                 {retP !== null && (
-                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.05)' }}>
                     <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: 14, fontWeight: 600, color: retP >= 0 ? '#22c55e' : '#ef4444' }}>{pct(retP)}</span>
-                    {retK !== null && <span style={{ fontSize: 9, color: '#475569', marginLeft: 8 }}>{(retK >= 0 ? '+' : '') + fmt(Math.abs(retK))}</span>}
+                    {retK !== null && <span style={{ fontSize: 9, color: '#9ca3af', marginLeft: 8 }}>{(retK >= 0 ? '+' : '') + fmt(Math.abs(retK))}</span>}
                   </div>
                 )}
               </div>
@@ -251,7 +251,7 @@ export default function PortfolioPage() {
             </button>
           </div>
           {!analy && !aLoad && (
-            <div style={{ fontSize: 11, color: '#334155', textAlign: 'center', padding: '16px 0' }}>
+            <div style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', padding: '16px 0' }}>
               Klik for at hente AI-analyse baseret på aktuelle nyheder.
             </div>
           )}
@@ -266,21 +266,21 @@ export default function PortfolioPage() {
                         {SIG_LBL[a.signal] ?? a.signal}
                       </span>
                     </div>
-                    <p style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.6, margin: 0 }}>{a.summary}</p>
+                    <p style={{ fontSize: 11, color: '#4a5568', lineHeight: 1.6, margin: 0 }}>{a.summary}</p>
                   </div>
                 ))}
               </div>
-              <p style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic', margin: '0 0 6px', paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.05)' }}>{analy.portfolioComment}</p>
-              {aTime && <div style={{ fontSize: 9, color: '#334155' }}>Analyse hentet kl. {aTime}</div>}
+              <p style={{ fontSize: 11, color: '#4a5568', fontStyle: 'italic', margin: '0 0 6px', paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.05)' }}>{analy.portfolioComment}</p>
+              {aTime && <div style={{ fontSize: 9, color: '#9ca3af' }}>Analyse hentet kl. {aTime}</div>}
             </>
           )}
         </div>
 
         {/* Trade log */}
-        <div style={{ ...card, borderTop: '2px solid #334155' }}>
+        <div style={{ ...card, borderTop: '2px solid #9ca3af' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <div style={{ fontSize: 10, color: '#475569', letterSpacing: '0.1em' }}>HANDELSLOG</div>
-            <button onClick={() => setAdd(!addTrade)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#94a3b8', borderRadius: 6, padding: '4px 12px', fontFamily: 'var(--font-dm-mono)', fontSize: 10, cursor: 'pointer' }}>
+            <div style={{ fontSize: 10, color: '#9ca3af', letterSpacing: '0.1em' }}>HANDELSLOG</div>
+            <button onClick={() => setAdd(!addTrade)} style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,0,0,0.06)', color: '#4a5568', borderRadius: 6, padding: '4px 12px', fontFamily: 'var(--font-dm-mono)', fontSize: 10, cursor: 'pointer' }}>
               {addTrade ? 'Annuller' : '+ Tilføj handel'}
             </button>
           </div>
@@ -315,19 +315,19 @@ export default function PortfolioPage() {
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 {['Dato', 'Aktie', 'Handling', 'Antal', 'Kurs', 'Beløb (DKK)'].map(h => (
-                  <th key={h} style={{ padding: '4px 8px', textAlign: 'left', fontSize: 9, color: '#475569', fontWeight: 400, letterSpacing: '0.06em' }}>{h}</th>
+                  <th key={h} style={{ padding: '4px 8px', textAlign: 'left', fontSize: 9, color: '#9ca3af', fontWeight: 400, letterSpacing: '0.06em' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {trades.map((t, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                  <td style={{ padding: '6px 8px', color: '#475569' }}>{t.date}</td>
+                <tr key={i} style={{ borderBottom: '1px solid rgba(0,0,0,0.03)' }}>
+                  <td style={{ padding: '6px 8px', color: '#9ca3af' }}>{t.date}</td>
                   <td style={{ padding: '6px 8px', fontFamily: 'var(--font-cormorant)', fontWeight: 600, fontSize: 14 }}>{t.ticker}</td>
                   <td style={{ padding: '6px 8px', color: t.action === 'KØB' ? '#22c55e' : '#ef4444' }}>{t.action}</td>
-                  <td style={{ padding: '6px 8px', color: '#94a3b8' }}>{t.shares}</td>
-                  <td style={{ padding: '6px 8px', color: '#94a3b8' }}>{'$' + t.price.toFixed(2)}</td>
-                  <td style={{ padding: '6px 8px', color: '#94a3b8' }}>{Math.round(t.dkk).toLocaleString('da-DK') + ' kr'}</td>
+                  <td style={{ padding: '6px 8px', color: '#4a5568' }}>{t.shares}</td>
+                  <td style={{ padding: '6px 8px', color: '#4a5568' }}>{'$' + t.price.toFixed(2)}</td>
+                  <td style={{ padding: '6px 8px', color: '#4a5568' }}>{Math.round(t.dkk).toLocaleString('da-DK') + ' kr'}</td>
                 </tr>
               ))}
             </tbody>
@@ -335,13 +335,13 @@ export default function PortfolioPage() {
         </div>
 
         {/* Next review */}
-        <div style={{ textAlign: 'center', fontSize: 11, color: '#475569', marginBottom: 24 }}>
-          Næste planlagte gennemgang: <span style={{ color: '#94a3b8' }}>31. marts 2026</span>
+        <div style={{ textAlign: 'center', fontSize: 11, color: '#9ca3af', marginBottom: 24 }}>
+          Næste planlagte gennemgang: <span style={{ color: '#4a5568' }}>31. marts 2026</span>
           {' — '}{daysTo(new Date('2026-03-31'))} dage
         </div>
 
         {/* Footer */}
-        <div style={{ textAlign: 'center', fontSize: 9, color: '#334155', letterSpacing: '0.06em' }}>
+        <div style={{ textAlign: 'center', fontSize: 9, color: '#9ca3af', letterSpacing: '0.06em' }}>
           DATA VIA ANTHROPIC API · KUN TIL INFORMATIONSFORMÅL · IKKE FINANSIEL RÅDGIVNING
         </div>
 
