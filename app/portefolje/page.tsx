@@ -500,10 +500,8 @@ export default function PortefoeljePage() {
           if (spPct <= -5) score += 2; else if (spPct <= -2) score += 1
           if (mkt.pmi < 50) score += 2; else if (mkt.pmi <= 52) score += 1
           if (mkt.sahm >= 0.1) score += 2
-          const [badge, badgeColor] = score >= 6
-            ? ['GOD TIMING', '#2d6a3f']
-            : score >= 3 ? ['OBSERVÉR', '#8a6a00']
-            : ['VENT', '#8b1c1c']
+          const badge = score >= 6 ? 'GOD TIMING' : score >= 3 ? 'OBSERVÉR' : 'VENT'
+          const badgeColor = score >= 6 ? '#2d6a3f' : score >= 3 ? '#8a6a00' : '#8b1c1c'
           return (
             <div style={{ marginBottom: 8 }}>
               <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 6, padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
@@ -649,38 +647,6 @@ export default function PortefoeljePage() {
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
-
-        {/* ── SEKTION 6: Månedligt tjek ────────────────────────────────── */}
-        <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.12)', borderRadius: 12, padding: '20px 24px', marginBottom: 48 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-            <div>
-              <div style={{ fontFamily: mono, fontSize: 9, color: '#111111', letterSpacing: '0.1em', marginBottom: 6 }}>MÅNEDLIGT TJEK</div>
-              <div style={{ fontFamily: corm, fontSize: 16, color: '#111111' }}>📅 Er dine aktier over 200-dages gennemsnit?</div>
-            </div>
-            <div style={{ fontFamily: mono, fontSize: 10, color: '#999999', textAlign: 'right' }}>
-              <div style={{ color: '#999999', marginBottom: 2 }}>Næste tjek</div>
-              <div>{nextMonthlyCheck()}</div>
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-            {positions.map(pos => (
-              <label key={pos.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 10px', background: 'rgba(0,0,0,0.09)', borderRadius: 6 }}>
-                <input type="checkbox" checked={pos.checked} onChange={() => toggleCheck(pos.id)} style={{ accentColor: '#111111' }} />
-                <span style={{ fontFamily: mono, fontSize: 10, color: pos.checked ? '#111111' : '#999999' }}>{pos.ticker} — {pos.name}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-                {/* ── SEKTION: Fordeling ──────────────────────────────────── */}
-        <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
-          <div style={{ fontSize: 10, color: '#111111', letterSpacing: '0.1em', marginBottom: 20 }}>FORDELING</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32 }}>
-            <DonutChart slices={LAG_SLICES} title="Lag" />
-            <DonutChart slices={LAND_SLICES} title="Land / Region" />
-            <DonutChart slices={BRANCHE_SLICES} title="Branche" />
           </div>
         </div>
 
