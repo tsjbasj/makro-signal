@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import Link from 'next/link'
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
@@ -81,27 +81,7 @@ const PLANNED_BUYS: PlannedBuy[] = [
   { ticker: 'CRDO',   name: 'Credo Technology',   category: 'Spekulativ', amount: 4000, currency: 'USD', plannedMonth: '2026-11', price: '~$102',      stop: '$80',      exit: '$160',      note: 'Hold øje — nær stop' },
   { ticker: 'ETN',    name: 'Eaton',              category: 'Kerne',      amount: 5000, currency: 'USD', plannedMonth: '2026-11', price: '~$360',      stop: '$275',     exit: '$480',      note: 'OK' },
   { ticker: 'IBN',    name: 'ICICI Bank',         category: 'Vækst',      amount: 4000, currency: 'USD', plannedMonth: '2026-12', price: '~$26,80',    stop: '$21',      exit: '$45',       note: 'OK' },
-  { ticker: 'TBD',    name: 'Åben',               category: 'Vækst',      amount: 5000, currency: 'USD', plannedMonth: '2027-01', note: 'Åben' },
-] = [
-  { ticker: 'NU', name: 'NU Holdings', category: 'Vækst', amount: 5000, currency: 'USD', plannedMonth: '2026-05' },
-  { ticker: 'AMD', name: 'AMD', category: 'Vækst', amount: 5000, currency: 'USD', plannedMonth: '2026-06' },
-  { ticker: 'CCJ', name: 'Cameco', category: 'Kerne', amount: 6000, currency: 'USD', plannedMonth: '2026-07' },
-  { ticker: 'DEMANT', name: 'Demant', category: 'Vækst', amount: 5000, currency: 'DKK', plannedMonth: '2026-08' },
-  { ticker: 'DSV', name: 'DSV', category: 'Kerne', amount: 6000, currency: 'DKK', plannedMonth: '2026-10' },
-  { ticker: 'DLO', name: 'dLocal', category: 'Spekulativ', amount: 4000, currency: 'USD', plannedMonth: '2026-11' },
-  { ticker: 'UIE', name: 'UIE', category: 'Kerne', amount: 6000, currency: 'DKK', plannedMonth: '2027-01' },
-  { ticker: 'METC', name: 'METC Ramaco', category: 'Spekulativ', amount: 4000, currency: 'USD', plannedMonth: '2027-02' },
-  { ticker: 'NVDA', name: 'Nvidia', category: 'Kerne', amount: 6000, currency: 'USD', plannedMonth: '2027-03' },
-  { ticker: 'NXE', name: 'NexGen Energy', category: 'Vækst', amount: 5000, currency: 'USD', plannedMonth: '2027-04' },
-  { ticker: 'NETC', name: 'Netcompany', category: 'Vækst', amount: 5000, currency: 'DKK', plannedMonth: '2027-05' },
-  { ticker: 'GOLD', name: 'Barrick Gold', category: 'Vækst', amount: 5000, currency: 'USD', plannedMonth: '2027-06' },
-  { ticker: '005930', name: 'Samsung', category: 'Kerne', amount: 6000, currency: 'KRW', plannedMonth: '2027-08' },
-  { ticker: 'UUUU', name: 'Energy Fuels', category: 'Spekulativ', amount: 4000, currency: 'USD', plannedMonth: '2027-09' },
-  { ticker: 'YCA', name: 'Yellow Cake', category: 'Spekulativ', amount: 4000, currency: 'GBp', plannedMonth: '2027-10' },
-  { ticker: 'NEM', name: 'Newmont', category: 'Vækst', amount: 5000, currency: 'USD', plannedMonth: '2027-11' },
-  { ticker: 'HDB', name: 'HDFC Bank', category: 'Vækst', amount: 5000, currency: 'USD', plannedMonth: '2027-12' },
-  { ticker: 'TBD1', name: 'Ny aktie TBD', category: 'Vækst', amount: 5000, currency: 'USD', plannedMonth: '2028-01' },
-  { ticker: 'TBD2', name: 'Ny aktie TBD', category: 'Spekulativ', amount: 4000, currency: 'USD', plannedMonth: '2028-01' },
+  { ticker: 'TBD',    name: 'Åben',          category: 'Vækst',      amount: 5000, currency: 'USD', plannedMonth: '2027-01', note: 'Åben' },
 ]
 
 /* ─── Helpers ────────────────────────────────────────────────────────── */
@@ -241,36 +221,28 @@ function PlannedCard({ buy }: { buy: PlannedBuy }) {
   const days = daysUntil(buy.plannedMonth)
   const accent = CAT_COLOR[buy.category]
   const isTbd = buy.ticker.startsWith('TBD')
-  const mono = 'var(--font-dm-mono)'
-  const corm = 'var(--font-cormorant)'
   return (
     <div style={{ background: past ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.09)', border: `1px solid ${past ? 'rgba(0,0,0,0.08)' : accent + '33'}`, borderRadius: 6, padding: '12px 14px', opacity: past ? 0.7 : 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
         <div>
-          <span style={{ fontFamily: mono, fontSize: 13, fontWeight: 500, color: past ? '#666666' : '#111111' }}>
-            {isTbd ? '?' : buy.ticker}
-          </span>
-          <div style={{ fontFamily: corm, fontSize: 13, color: '#777777', marginTop: 1 }}>{buy.name}</div>
+          <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 13, fontWeight: 700, color: isTbd ? '#999999' : '#111111', marginRight: 8 }}>{buy.ticker}</span>
+          <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: 14, color: '#444444' }}>{buy.name}</span>
         </div>
-        <div style={{ fontFamily: mono, fontSize: 9, color: accent, background: accent + '18', border: '1px solid ' + accent + '33', borderRadius: 3, padding: '2px 6px' }}>
-          {buy.category}
-        </div>
+        <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#ffffff', background: accent, borderRadius: 3, padding: '2px 6px' }}>{buy.category.toUpperCase()}</span>
       </div>
       {buy.price && (
-        <div style={{ fontFamily: mono, fontSize: 10, color: '#555555', marginBottom: 4 }}>
-          <span style={{ color: '#999999', marginRight: 4 }}>Kurs</span>{buy.price}
-          {buy.stop && <><span style={{ color: '#aaaaaa', margin: '0 5px' }}>·</span><span style={{ color: '#999999', marginRight: 3 }}>Stop</span>{buy.stop}</>}
-          {buy.exit && <><span style={{ color: '#aaaaaa', margin: '0 5px' }}>·</span><span style={{ color: '#999999', marginRight: 3 }}>Exit</span>{buy.exit}</>}
+        <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 10, color: '#555555', marginBottom: 4, display: 'flex', gap: 10, flexWrap: 'wrap' as const }}>
+          <span><span style={{ color: '#999999' }}>Kurs </span>{buy.price}</span>
+          {buy.stop && <span><span style={{ color: '#999999' }}>Stop </span>{buy.stop}</span>}
+          {buy.exit && <span><span style={{ color: '#999999' }}>Exit </span>{buy.exit}</span>}
         </div>
       )}
       {buy.note && (
-        <div style={{ fontFamily: mono, fontSize: 9, color: buy.note === 'Åben' ? '#aaaaaa' : buy.note.includes('Extreme') ? '#8b1c1c' : buy.note.includes('Hold øje') ? '#8a6a00' : '#555555', marginBottom: 4 }}>
-          {buy.note}
-        </div>
+        <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: buy.note.includes('Extreme') ? '#8b1c1c' : buy.note.includes('Hold') ? '#8a6a00' : '#666666', marginBottom: 6 }}>{buy.note}</div>
       )}
-      <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-        <span>{buy.currency} {buy.amount.toLocaleString('da-DK')}</span>
-        <span style={{ color: past ? '#666666' : accent }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+        <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 10, color: '#999999' }}>{buy.amount.toLocaleString('da-DK')} {buy.currency}</span>
+        <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 10, color: past ? '#666666' : accent }}>
           {isTbd ? buy.plannedMonth.slice(0,7) : past ? 'Gennemført' : days <= 45 ? `om ${days}d` : buy.plannedMonth.slice(0,7)}
         </span>
       </div>
@@ -394,6 +366,7 @@ export default function PortefoeljePage() {
   const [editPos, setEditPos] = useState<ActivePosition | null>(null)
   const [loading, setLoading] = useState(false)
   const [kursError, setKursError] = useState<string|null>(null)
+
   const [mkt, setMkt] = useState<{fg:number,fgLabel:string,sp:number,spHigh:number,sahm:number,pmi:number}|null>(null)
   const [mktLoading, setMktLoading] = useState(false)
 
@@ -402,17 +375,17 @@ export default function PortefoeljePage() {
     try {
       const r = await fetch('/api/data')
       const j = await r.json()
-      setMkt({ fg: j.fearGreedIndex, fgLabel: j.fearGreedLabel, sp: j.sp500Price, spHigh: j.sp500_52wHigh, sahm: j.sahmRule, pmi: 49.8 })
-    } catch(e) { /* noop */ }
+      setMkt({ fg: j.fearGreedIndex as number, fgLabel: j.fearGreedLabel as string, sp: j.sp500Price as number, spHigh: j.sp500_52wHigh as number, sahm: j.sahmRule as number, pmi: 49.8 })
+    } catch { /* noop */ }
     setMktLoading(false)
   }
+
+  useEffect(() => { void fetchMarket() }, [])
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
     setPositions(saved ? JSON.parse(saved) : INITIAL_POSITIONS)
   }, [])
-
-  useEffect(() => { fetchMarket() }, [])
 
   function persist(next: ActivePosition[]) {
     setPositions(next)
@@ -487,47 +460,31 @@ export default function PortefoeljePage() {
           </div>
         </div>
 
-        {/* ── Markedsstemning ─────────────────────────────────────────────── */}
-        {(() => {
-          if (!mkt) return (
-            <div style={{ fontFamily: mono, fontSize: 10, color: '#999999', marginBottom: 20 }}>
-              Henter markedsdata...
-            </div>
-          )
+        {/* ── Markedsstemning ───────────────────────────────────────────── */}
+        {((): ReactNode => {
+          if (!mkt) return <div style={{ fontFamily: mono, fontSize: 10, color: '#999999', marginBottom: 20 }}>Henter markedsdata...</div>
           let score = 0
           if (mkt.fg <= 25) score += 2; else if (mkt.fg <= 45) score += 1
           const spPct = (mkt.sp - mkt.spHigh) / mkt.spHigh * 100
           if (spPct <= -5) score += 2; else if (spPct <= -2) score += 1
           if (mkt.pmi < 50) score += 2; else if (mkt.pmi <= 52) score += 1
           if (mkt.sahm >= 0.1) score += 2
-          const badge = score >= 6 ? 'GOD TIMING' : score >= 3 ? 'OBSERVÉR' : 'VENT'
-          const badgeColor = score >= 6 ? '#2d6a3f' : score >= 3 ? '#8a6a00' : '#8b1c1c'
+          const badge = score >= 6 ? 'GOD TIMING' : score >= 3 ? 'OBSERVERÉR' : 'VENT'
+          const badgeColor: string = score >= 6 ? '#2d6a3f' : score >= 3 ? '#8a6a00' : '#8b1c1c'
           return (
             <div style={{ marginBottom: 8 }}>
-              <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 6, padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', gap: 24, flex: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{ fontFamily: mono, fontSize: 10, color: '#555555' }}>
-                    <span style={{ color: '#999999', marginRight: 4 }}>F&amp;G</span>{mkt.fg} · {mkt.fgLabel}
-                  </span>
-                  <span style={{ fontFamily: mono, fontSize: 10, color: '#555555' }}>
-                    <span style={{ color: '#999999', marginRight: 4 }}>S&amp;P</span>{spPct.toFixed(1)}% fra high
-                  </span>
-                  <span style={{ fontFamily: mono, fontSize: 10, color: '#555555' }}>
-                    <span style={{ color: '#999999', marginRight: 4 }}>PMI</span>{mkt.pmi.toFixed(1)}
-                  </span>
-                  <span style={{ fontFamily: mono, fontSize: 10, color: '#555555' }}>
-                    <span style={{ color: '#999999', marginRight: 4 }}>SAHM</span>{mkt.sahm.toFixed(2)}
-                  </span>
+              <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 6, padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' as const }}>
+                <div style={{ display: 'flex', gap: 24, flex: 1, flexWrap: 'wrap' as const, alignItems: 'center' }}>
+                  <div style={{ fontFamily: mono, fontSize: 10 }}><span style={{ color: '#999999' }}>F&amp;G </span><span style={{ color: mkt.fg <= 25 ? '#8b1c1c' : mkt.fg <= 45 ? '#8a6a00' : '#2d6a3f' }}>{mkt.fg} {mkt.fgLabel}</span></div>
+                  <div style={{ fontFamily: mono, fontSize: 10 }}><span style={{ color: '#999999' }}>S&amp;P fra top </span><span style={{ color: spPct <= -5 ? '#8b1c1c' : spPct <= -2 ? '#8a6a00' : '#2d6a3f' }}>{spPct.toFixed(1)}%</span></div>
+                  <div style={{ fontFamily: mono, fontSize: 10 }}><span style={{ color: '#999999' }}>PMI </span><span style={{ color: mkt.pmi < 50 ? '#8b1c1c' : mkt.pmi <= 52 ? '#8a6a00' : '#2d6a3f' }}>{mkt.pmi.toFixed(1)}</span></div>
+                  <div style={{ fontFamily: mono, fontSize: 10 }}><span style={{ color: '#999999' }}>Sahm </span><span style={{ color: mkt.sahm >= 0.1 ? '#8b1c1c' : '#2d6a3f' }}>{mkt.sahm.toFixed(2)}</span></div>
                 </div>
-                <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: badgeColor, border: '1px solid ' + badgeColor + '55', borderRadius: 3, padding: '3px 9px', whiteSpace: 'nowrap' }}>
-                  TIMING: {badge}
-                </div>
-                <button onClick={fetchMarket} disabled={mktLoading} style={{ fontFamily: mono, fontSize: 9, color: '#999999', background: 'none', border: '1px solid rgba(0,0,0,0.12)', borderRadius: 3, padding: '2px 8px', cursor: 'pointer' }}>
-                  {mktLoading ? '...' : 'Opdater'}
-                </button>
+                <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: badgeColor, border: '1px solid ' + badgeColor + '55', borderRadius: 3, padding: '3px 9px' }}>TIMING: {badge}</div>
+                <button onClick={() => { void fetchMarket() }} disabled={mktLoading} style={{ fontFamily: mono, fontSize: 9, background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', borderRadius: 3, padding: '3px 8px', cursor: 'pointer', color: '#666666' }}>Opdater</button>
               </div>
-              <div style={{ fontFamily: mono, fontSize: 10, color: '#777777', display: 'flex', gap: 10, flexWrap: 'wrap', padding: '8px 4px 16px', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
-                <span style={{ color: '#444444', fontWeight: 600, letterSpacing: '0.06em' }}>ROTATION</span>
+              <div style={{ fontFamily: mono, fontSize: 9, color: '#777777', marginTop: 6, display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ color: '#aaaaaa' }}>ROTATION</span>
                 <span style={{ color: '#aaaaaa' }}>·</span>
                 <span>Brugt: 1/3</span>
                 <span style={{ color: '#aaaaaa' }}>·</span>
@@ -600,9 +557,6 @@ export default function PortefoeljePage() {
             {PLANNED_BUYS.map((buy, i) => (
               <PlannedCard key={i} buy={buy} />
             ))}
-          </div>
-          <div style={{ fontFamily: mono, fontSize: 10, color: '#777777', marginTop: 14, padding: '10px 14px', background: 'rgba(0,0,0,0.04)', borderRadius: 4, borderLeft: '2px solid #8a6a00' }}>
-            NU + DLO fremrykket til april som rotationskøb under Extreme Fear (F&amp;G = 16). IBN er ny — ICICI Bank, Indien/bank tema. DSV exit hævet til 2.000 DKK.
           </div>
         </div>
 
