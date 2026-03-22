@@ -47,7 +47,7 @@ export default function KrisekobPage() {
   const spPct = mkt ? (mkt.sp500Price - mkt.sp500_52wHigh) / mkt.sp500_52wHigh * 100 : 0
   const ind1ok = mkt ? mkt.fearGreedIndex < 25 : false
   const ind2ok = mkt ? spPct < -10 : false
-  const ind3ok = mkt ? mkt.ismPMI < 50 : false
+  const ind3ok = mkt ? mkt.ismPMI < 49 : false
   const ind4ok = mkt ? mkt.sahmRule > 0.5 : false
   const score = [ind1ok, ind2ok, ind3ok, ind4ok].filter(Boolean).length
 
@@ -98,7 +98,7 @@ export default function KrisekobPage() {
           {[
             { label: 'Fear & Greed', value: mkt ? String(mkt.fearGreedIndex) : '—', sub: mkt ? (ind1ok ? 'Under 25 ●' : 'Over 25 ●') : '—', ok: ind1ok },
             { label: 'S&P 500 fra high', value: mkt ? spPct.toFixed(1) + '%' : '—', sub: mkt ? (ind2ok ? 'Under −10% ●' : 'Over −10% ●') : '—', ok: ind2ok },
-            { label: 'ISM PMI', value: mkt ? String(mkt.ismPMI) : '—', sub: mkt ? (ind3ok ? 'Under 50 ●' : 'Over 50 ●') : '—', ok: ind3ok },
+            { label: 'ISM PMI', value: mkt ? String(mkt.ismPMI) : '—', sub: mkt ? (ind3ok ? 'Under 49 ●' : 'Over 49 ●') : '—', ok: ind3ok },
             { label: 'Sahm-regel', value: mkt ? mkt.sahmRule.toFixed(2) : '—', sub: mkt ? (ind4ok ? 'Over 0.5 ●' : 'Under 0.5 ●') : '—', ok: ind4ok },
           ].map((ind) => (
             <div key={ind.label} style={{ ...cardStyle, padding: '16px 18px' }}>
