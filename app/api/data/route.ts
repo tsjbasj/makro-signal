@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
-export const maxDuration = 30          // Vercel Hobby max 30s
-export const revalidate = 3600         // Cache response 1h on Vercel CDN
+export const maxDuration = 30
+export const revalidate = 3600
 
 export async function GET() {
   const anthropicKey = process.env.ANTHROPIC_API_KEY
@@ -10,13 +10,12 @@ export async function GET() {
 
   if (!anthropicKey) {
     return NextResponse.json(
-      { error: 'ANTHROPIC_API_KEY mangler â tilfÃ¸j den i Vercel â Settings â Environment Variables' },
+      { error: 'ANTHROPIC_API_KEY mangler' },
       { status: 500 }
     )
   }
 
   try {
-    // ââ 1. Markedsdata via Anthropic web_search ââââââââââââââââââ
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -27,15 +26,15 @@ export async function GET() {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 1000,
+        max_tokens: 1024,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{
           role: 'user',
-          content: `Search for current market data. Return ONLY valid JSON with no markdown, no explanation:
-{"fearGreedIndex":<number 0-100>,"fearGreedLabel":"<Extreme Fear|Fear|Neutral|Greed|Extreme Greed>","sp500Price":<number>,"sp500_52wHigh":<number>}
-Search: 1) CNN Fear Greed Index current value 2) S&P 500 current price and 52-week high. Return ONLY the JSON object.`,
+          content: `Search for current market data and return ONLY valid JSON, no markdown, no explanation:
+{"fearGreedIndex":<number 0-100>,"fearGreedLabel":"<Extreme Fear|Fear|Neutral|Greed|Extreme Greed>","sp500Price":<number>,"sp500_52wHigh":<number>,"sp500PeakDate":"<YYYY-MM-DD when SP500 last peaked before current decline>","ismPMI":<ISM Manufacturing PMI latest number>}
+Search: 1) CNN Fear Greed Index 2) SP500 current price and 52-week high 3) SP500 recent peak date before current decline 4) ISM Manufacturing PMI latest. Return ONLY the JSON.`,
         }],
-      }),
+      })
     })
 
     if (!anthropicRes.ok) {
@@ -44,27 +43,20 @@ Search: 1) CNN Fear Greed Index current value 2) S&P 500 current price and 52-we
     }
 
     const anthropicData = await anthropicRes.json()
-
-    // Extract text blocks (model answers after tool use)
     const text = (anthropicData.content ?? [])
       .filter((b: { type: string }) => b.type === 'text')
       .map((b: { text: string }) => b.text)
       .join('')
-
     const cleaned = text.replace(/```json|```/g, '').trim()
-    const match   = cleaned.match(/\{[\s\S]*\}/)
-    if (!match) throw new Error(`Ingen JSON i Anthropic-svar: ${text.slice(0, 300)}`)
-
+    const match = cleaned.match(/\{[\s\S]*\}/)
+    if (!match) throw new Error(`Ingen JSON i svar: ${text.slice(0, 300)}`)
     const market = JSON.parse(match[0])
 
-    // ââ 2. Sahm Rule via FRED ââââââââââââââââââââââââââââââââââââ
-    const fredRes = await fetch(
-      `https://api.stlouisfed.org/fred/series/observations?series_id=SAHMREALTIME&api_key=${fredKey}&limit=1&sort_order=desc&file_type=json`
-    )
+    const fredParts = ['https://api.stlouisfed.org/fred/series/observations', '?series_id=SAHMREALTIME', `&api_key=${fredKey}`, '&limit=1&sort_order=desc&file_type=json']
+    const fredRes = await fetch(fredParts.join(''))
     const fredData = await fredRes.json()
     const sahmRule = parseFloat(fredData.observations?.[0]?.value)
-
-    if (isNaN(sahmRule)) throw new Error('FRED SAHMREALTIME returnerede ingen gyldig vÃ¦rdi')
+    if (isNaN(sahmRule)) throw new Error('FRED SAHMREALTIME returnerede ingen gyldig vaerdi')
 
     return NextResponse.json(
       {
@@ -72,6 +64,8 @@ Search: 1) CNN Fear Greed Index current value 2) S&P 500 current price and 52-we
         fearGreedLabel: String(market.fearGreedLabel),
         sp500Price:     Number(market.sp500Price),
         sp500_52wHigh:  Number(market.sp500_52wHigh),
+        sp500PeakDate:  String(market.sp500PeakDate ?? ''),
+        ismPMI:         Number(market.ismPMI ?? 50),
         sahmRule,
         updatedAt:      new Date().toISOString(),
       },
