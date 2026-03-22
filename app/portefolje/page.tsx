@@ -626,9 +626,6 @@ export default function PortefoeljePage() {
           <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>KØBEPLAN & TIDSLINJE</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
             {[
-              { ticker: 'NOVO-B', name: 'Novo Nordisk',     lag: 'Kerne',     bought: true,  buyDate: '2026-03', stop: '200 DKK',  exit: '380 DKK',    amount: '6.000 DKK', status: null },
-              { ticker: 'GN',     name: 'GN Store Nord',    lag: 'Vækst',     bought: true,  buyDate: '2026-03', stop: '68 DKK',   exit: '145 DKK',    amount: '5.022 DKK', status: null },
-              { ticker: 'UIE',    name: 'UIE A/S',          lag: 'Kerne',     bought: true,  buyDate: '2026-03', stop: '300 DKK',  exit: '500 DKK',    amount: '6.000 DKK', status: null },
               { ticker: 'NU',     name: 'NU Holdings',      lag: 'Vækst',     bought: false, buyDate: '2026-04', stop: '$10,50',   exit: '$22',        amount: '5.000 USD', status: 'Rotationskøb' },
               { ticker: 'DL',     name: 'dLocal',           lag: 'Spekulativ',bought: false, buyDate: '2026-04', stop: '$8,50',    exit: '$20',        amount: '4.000 USD', status: 'Rotationskøb' },
               { ticker: 'DEMANT', name: 'Demant',           lag: 'Vækst',     bought: false, buyDate: '2026-05', stop: '155 DKK',  exit: '280 DKK',    amount: '5.000 DKK', status: 'Afvent Q1 5. maj' },
