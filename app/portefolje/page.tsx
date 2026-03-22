@@ -125,8 +125,6 @@ function Nav() {
     <nav style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '10px 24px', background: 'rgba(242,239,230,0.97)', borderBottom: '1px solid rgba(0,0,0,0.09)', fontFamily: 'var(--font-dm-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 100 }}>
       <span style={{ color: '#999999' }}>◈</span>
       <Link href="/portefolje" style={{ color: '#111111', textDecoration: 'none', borderBottom: '1px solid #111111', paddingBottom: 2 }}>Min Portefølje</Link>
-      <Link href="/portfolio" style={{ color: '#999999', textDecoration: 'none' }}>The 2026 Run</Link>
-      <Link href="/radar" style={{ color: '#999999', textDecoration: 'none' }}>Aktie Radar</Link>
       <Link href="/" style={{ color: '#999999', textDecoration: 'none' }}>Krisekøb ETF</Link>
     </nav>
   )
