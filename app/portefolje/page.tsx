@@ -394,7 +394,7 @@ export default function PortefoeljePage() {
   async function fetchSMA200() {
     setSma200Loading(true)
     try {
-      const r = await fetch('/api/sma200?tickers=NOVO-B,GN,UIE,NU')
+      const r = await fetch('/api/sma200?tickers=NOVO-B,GN,UIE,NU,DLO,DEMANT,EQIX,CCJ,DSV,CRDO,ETN,IBN')
       const j = await r.json()
       if (Array.isArray(j)) setSma200Data(j as Sma200Data[])
     } catch { /* noop */ }
@@ -610,37 +610,6 @@ export default function PortefoeljePage() {
           </div>
         </div>
 
-        {/* ── TREND TJEK ─────────────────────────────────────────────── */}
-        <div style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.09)', borderRadius: 8, padding: '16px 20px', marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div>
-              <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#111111' }}>TREND TJEK</span>
-              <span style={{ fontFamily: mono, fontSize: 9, color: '#999999', marginLeft: 10 }}>200-dages glidende gennemsnit</span>
-            </div>
-            <button onClick={() => { void fetchSMA200() }} disabled={sma200Loading} style={{ fontFamily: mono, fontSize: 9, background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', borderRadius: 3, padding: '3px 9px', cursor: 'pointer', color: '#666666' }}>
-              {sma200Loading ? 'Henter...' : 'Opdater'}
-            </button>
-          </div>
-          {sma200Data ? (
-            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 0 }}>
-              {sma200Data.filter(d => ['NOVO-B','GN','UIE'].includes(d.ticker)).map(d => (
-                <div key={d.ticker} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '7px 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                  <span style={{ fontSize: 12, width: 20 }}>{d.above ? '✅' : '❌'}</span>
-                  <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: '#111111', minWidth: 64 }}>{d.ticker}</span>
-                  <span style={{ fontFamily: corm, fontSize: 13, color: '#444444', flex: 1 }}>{d.name}</span>
-                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: d.above ? '#2d6a3f' : '#8b1c1c', minWidth: 80, textAlign: 'right' as const }}>{d.above ? 'Over 200d' : 'Under 200d'}</span>
-                  <span style={{ fontFamily: mono, fontSize: 9, color: '#888888', minWidth: 160, textAlign: 'right' as const }}>Kurs: {d.currentPrice} · 200d: {d.sma200}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ fontFamily: mono, fontSize: 10, color: '#999999' }}>{sma200Loading ? 'Henter data...' : 'Tryk Opdater for at hente data'}</div>
-          )}
-          <div style={{ fontFamily: corm, fontSize: 12, color: '#888888', marginTop: 10, fontStyle: 'italic' as const }}>
-            Under 200-dages gennemsnit er ikke et salgssignal — men et advarselstegn. Stop loss gælder stadig altid.
-          </div>
-        </div>
-
         {/* ── SEKTION 3: Købeplan & Tidslinje ──────────────────────────────── */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>KØBEPLAN & TIDSLINJE</div>
@@ -675,6 +644,8 @@ export default function PortefoeljePage() {
               const buyMonthStr = buyDt.toLocaleDateString('da-DK', { month: 'short', year: 'numeric' })
               const statusColor: string = s.status === 'OK' ? '#2d6a3f' : s.status === 'Åben slot' ? '#999999' : '#7a5c00'
               const statusBg: string = s.status === 'OK' ? '#2d6a3f18' : s.status === 'Åben slot' ? '#99999918' : '#7a5c0018'
+              const smaEntry = sma200Data?.find((d: Sma200Data) => d.ticker === s.ticker) ?? null
+              const smaDot: string = smaEntry ? (smaEntry.above ? '#2d6a3f' : '#c0392b') : '#cccccc'
               return (
                 <div key={s.ticker} style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.09)', borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column' as const, gap: 6 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4 }}>
@@ -712,6 +683,14 @@ export default function PortefoeljePage() {
                         <span style={{ fontFamily: mono, fontSize: 9, color: '#777777' }}>{s.amount}</span>
                         <span style={{ fontFamily: mono, fontSize: 8, color: '#999999' }}>Gnv. {reviewStr}</span>
                       </div>
+                    </div>
+                  )}
+                  {smaEntry && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 5, marginTop: 2 }}>
+                      <span style={{ fontFamily: mono, fontSize: 9, color: '#888888' }}>200d</span>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: smaDot, display: 'inline-block', flexShrink: 0 }} />
+                      <span style={{ fontFamily: mono, fontSize: 9, color: smaDot }}>{smaEntry.above ? 'Over' : 'Under'}</span>
+                      <span style={{ fontFamily: mono, fontSize: 9, color: '#aaaaaa', marginLeft: 6 }}>Kurs: {smaEntry.currentPrice} · 200d: {smaEntry.sma200}</span>
                     </div>
                   )}
                 </div>
