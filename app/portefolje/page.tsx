@@ -641,13 +641,82 @@ export default function PortefoeljePage() {
           </div>
         </div>
 
-        {/* ── SEKTION 3: Købeplan ──────────────────────────────────────── */}
+        {/* ── SEKTION 3: Købeplan & Tidslinje ──────────────────────────────── */}
         <div style={{ marginBottom: 32 }}>
-          <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>KØBEPLAN · MAJ 2026 – JAN 2028</div>
+          <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>KØBEPLAN & TIDSLINJE</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-            {PLANNED_BUYS.map((buy, i) => (
-              <PlannedCard key={i} buy={buy} />
-            ))}
+            {[
+              { ticker: 'NOVO-B', name: 'Novo Nordisk',     lag: 'Kerne',     bought: true,  buyDate: '2026-03', stop: '200 DKK',  exit: '380 DKK',    amount: '6.000 DKK', status: null },
+              { ticker: 'GN',     name: 'GN Store Nord',    lag: 'Vækst',     bought: true,  buyDate: '2026-03', stop: '68 DKK',   exit: '145 DKK',    amount: '5.022 DKK', status: null },
+              { ticker: 'UIE',    name: 'UIE A/S',          lag: 'Kerne',     bought: true,  buyDate: '2026-03', stop: '300 DKK',  exit: '500 DKK',    amount: '6.000 DKK', status: null },
+              { ticker: 'NU',     name: 'NU Holdings',      lag: 'Vækst',     bought: false, buyDate: '2026-04', stop: '$10,50',   exit: '$22',        amount: '5.000 USD', status: 'Rotationskøb' },
+              { ticker: 'DL',     name: 'dLocal',           lag: 'Spekulativ',bought: false, buyDate: '2026-04', stop: '$8,50',    exit: '$20',        amount: '4.000 USD', status: 'Rotationskøb' },
+              { ticker: 'DEMANT', name: 'Demant',           lag: 'Vækst',     bought: false, buyDate: '2026-05', stop: '155 DKK',  exit: '280 DKK',    amount: '5.000 DKK', status: 'Afvent Q1 5. maj' },
+              { ticker: 'EQIX',   name: 'Equinix',          lag: 'Vækst',     bought: false, buyDate: '2026-06', stop: '$760',     exit: '$1.300',     amount: '6.000 USD', status: 'OK' },
+              { ticker: 'CCJ',    name: 'Cameco',           lag: 'Kerne',     bought: false, buyDate: '2026-07', stop: '$82',      exit: '$165',       amount: '6.000 USD', status: 'OK' },
+              { ticker: 'DSV',    name: 'DSV',              lag: 'Kerne',     bought: false, buyDate: '2026-08', stop: '950 DKK',  exit: '2.000 DKK',  amount: '6.000 DKK', status: 'OK' },
+              { ticker: 'CRDO',   name: 'Credo Technology', lag: 'Spekulativ',bought: false, buyDate: '2026-11', stop: '$80',      exit: '$160',       amount: '4.000 USD', status: 'Hold øje' },
+              { ticker: 'ETN',    name: 'Eaton',            lag: 'Kerne',     bought: false, buyDate: '2026-11', stop: '$275',     exit: '$480',       amount: '5.000 USD', status: 'OK' },
+              { ticker: 'IBNI',   name: 'ICICI Bank',       lag: 'Vækst',     bought: false, buyDate: '2026-12', stop: '$21',      exit: '$45',        amount: '4.000 USD', status: 'OK' },
+              { ticker: '??',     name: 'Åben slot',        lag: 'Vækst',     bought: false, buyDate: '2027-01', stop: null,       exit: null,         amount: '5.000 USD', status: 'Åben slot' },
+            ].map((s) => {
+              const lagColor: string = s.lag === 'Kerne' ? '#1a3a1a' : s.lag === 'Vækst' ? '#1a2a3a' : '#3a1a1a'
+              const lagBg: string = s.lag === 'Kerne' ? '#1a3a1a22' : s.lag === 'Vækst' ? '#1a2a3a22' : '#3a1a1a22'
+              const reviewYears = s.lag === 'Kerne' ? 5 : 2
+              const buyDt = new Date(s.buyDate + '-01')
+              const reviewDt = new Date(buyDt)
+              reviewDt.setFullYear(reviewDt.getFullYear() + reviewYears)
+              const reviewStr = reviewDt.toLocaleDateString('da-DK', { month: 'short', year: 'numeric' })
+              const now = new Date()
+              const totalMs = reviewDt.getTime() - buyDt.getTime()
+              const elapsedMs = Math.max(0, now.getTime() - buyDt.getTime())
+              const pct = Math.min(100, (elapsedMs / totalMs) * 100)
+              const daysUntil = Math.max(0, Math.ceil((buyDt.getTime() - now.getTime()) / (1000*60*60*24)))
+              const buyMonthStr = buyDt.toLocaleDateString('da-DK', { month: 'short', year: 'numeric' })
+              const statusColor: string = s.status === 'OK' ? '#2d6a3f' : s.status === 'Åben slot' ? '#999999' : '#7a5c00'
+              const statusBg: string = s.status === 'OK' ? '#2d6a3f18' : s.status === 'Åben slot' ? '#99999918' : '#7a5c0018'
+              return (
+                <div key={s.ticker} style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.09)', borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column' as const, gap: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 2, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' as const }}>
+                        <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: '#111111' }}>{s.ticker}</span>
+                        <span style={{ fontFamily: mono, fontSize: 8, color: lagColor, background: lagBg, borderRadius: 3, padding: '1px 5px', flexShrink: 0 }}>{s.lag}</span>
+                      </div>
+                      <span style={{ fontFamily: mono, fontSize: 9, color: '#777777' }}>{s.name}</span>
+                    </div>
+                    {s.status && (
+                      <span style={{ fontFamily: mono, fontSize: 8, color: statusColor, background: statusBg, borderRadius: 3, padding: '2px 6px', whiteSpace: 'nowrap' as const, flexShrink: 0 }}>{s.status}</span>
+                    )}
+                  </div>
+                  {s.bought ? (
+                    <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 5 }}>
+                      <span style={{ fontFamily: mono, fontSize: 9, color: '#555555' }}>Købt {buyMonthStr}</span>
+                      <div style={{ position: 'relative', height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', left: 0, width: pct + '%', height: '100%', background: '#2d6a3f', borderRadius: 2 }} />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontFamily: mono, fontSize: 8, color: '#999999' }}>Genovervejes {reviewStr}</span>
+                        <span style={{ fontFamily: mono, fontSize: 8, color: '#2d6a3f', fontWeight: 600 }}>På rette spor</span>
+                      </div>
+                      <div style={{ fontFamily: mono, fontSize: 9, color: '#555555', borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 5 }}>{s.stop} → {s.exit}</div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 5 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontFamily: mono, fontSize: 9, color: '#555555' }}>{buyMonthStr}</span>
+                        {s.buyDate < '2027-01' && <span style={{ fontFamily: mono, fontSize: 8, color: '#999999' }}>{daysUntil} dage</span>}
+                      </div>
+                      {s.stop && <div style={{ fontFamily: mono, fontSize: 9, color: '#555555' }}>{s.stop} → {s.exit}</div>}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 5 }}>
+                        <span style={{ fontFamily: mono, fontSize: 9, color: '#777777' }}>{s.amount}</span>
+                        <span style={{ fontFamily: mono, fontSize: 8, color: '#999999' }}>Gnv. {reviewStr}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
 
@@ -695,89 +764,7 @@ export default function PortefoeljePage() {
           </div>
         </div>
 
-        {/* ── SEKTION: Tidslinje ──────────────────────────────────── */}
-        <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '24px 28px', marginBottom: 20 }}>
-          <div style={{ fontSize: 10, color: '#111111', letterSpacing: '0.1em', marginBottom: 20 }}>TIDSLINJE</div>
-          {TIMELINE.map((s) => {
-            const now = new Date('2026-03-20')
-            const buyD = new Date(s.buyDate + '-01')
-            const revD = s.reviewDate ? new Date(s.reviewDate + '-01') : null
-            const totalMs = revD ? revD.getTime() - buyD.getTime() : 1
-            const elapsedMs = revD ? Math.max(0, now.getTime() - buyD.getTime()) : 0
-            const pct = revD ? Math.min(100, (elapsedMs / totalMs) * 100) : 0
-            const msLeft = revD ? revD.getTime() - now.getTime() : 0
-            const monthsLeft = revD ? Math.max(0, Math.round(msLeft / (1000 * 60 * 60 * 24 * 30.5))) : 0
-            const yearsLeft = Math.floor(monthsLeft / 12)
-            const moLeft = monthsLeft % 12
-            const barColor = monthsLeft > 12 ? '#2d6a3f' : monthsLeft > 6 ? '#8a6a00' : '#8b1c1c'
-            const catColor = s.category === 'Kerne' ? '#1a1a1a' : s.category === 'Vækst' ? '#404040' : '#606060'
-            // ── Udskiftningsalarm (kun for købte aktier) ──
-            const ABUY: {[k:string]:number} = {'NOVO-B':241.5,'GN':98,'UIE':369.15}
-            const AEXIT: {[k:string]:number} = {'NOVO-B':380,'GN':145,'UIE':500}
-            const aBp = ABUY[s.ticker] ?? 0
-            const aEg = AEXIT[s.ticker] ?? 0
-            const aPos = (s.bought && aBp && aEg) ? positions.find(p => p.ticker === s.ticker) : null
-            const aCp = aPos ? aPos.currentPrice : aBp
-            const aProg = (aBp && aEg) ? Math.min(100, Math.max(0, (aCp - aBp) / (aEg - aBp) * 100)) : 0
-            const aBuyDt = new Date(s.buyDate + '-01')
-            const aNow2 = new Date('2026-03-20')
-            const aMo = Math.max(0, (aNow2.getFullYear()-aBuyDt.getFullYear())*12+(aNow2.getMonth()-aBuyDt.getMonth()))
-            const aFallen = s.bought && aBp ? aCp < aBp : false
-            const aDot = !s.bought || !aBp ? '#2d6a3f' : (aFallen && aMo > 24 ? '#8b1c1c' : aProg < 25 && aMo > 18 ? '#8b1c1c' : aProg < 50 && aMo > 12 ? '#8a6a00' : '#2d6a3f')
-            const aLabel = !s.bought || !aBp ? '' : (aFallen && aMo > 24 ? 'Udskift nu' : aProg < 25 && aMo > 18 ? 'Overvej udskiftning' : aProg < 50 && aMo > 12 ? 'Gennemgå snart' : 'På rette spor')
-            const aPulse = s.bought && aBp ? (aFallen && aMo > 24) : false
-            return (
-              <div key={s.ticker} style={{ marginBottom: 16, opacity: s.bought ? 1 : 0.5 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 11, color: '#111111', fontWeight: 600, minWidth: 52 }}>{s.ticker}</span>
-                    <span style={{ fontSize: 9, color: '#777777' }}>{s.name}</span>
-                    <span style={{ fontSize: 8, color: catColor, background: catColor + '22', borderRadius: 3, padding: '1px 5px' }}>{s.category}</span>
-                    {s.note && <span style={{ fontSize: 8, color: '#8a6a00' }}>{s.note}</span>}
-                  </div>
-                  <div style={{ display: 'flex', gap: 12, fontSize: 9, color: '#999999' }}>
-                    <span>{s.buyDate}</span>
-                    {s.reviewDate && <span style={{ color: '#999999' }}>→ {s.reviewDate}</span>}
-                  </div>
-                </div>
-                <div style={{ position: 'relative', height: 5, background: 'rgba(255,255,255,0.07)', borderRadius: 3 }}>
-                  {s.reviewDate && (
-                    <div style={{ position: 'absolute', left: 0, width: pct + '%', height: '100%', background: barColor, borderRadius: 3, transition: 'width 0.3s' }} />
-                  )}
-                  {!s.reviewDate && (
-                    <div style={{ position: 'absolute', left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.08)', borderRadius: 3 }} />
-                  )}
-                </div>
-                {s.reviewDate && revD && (
-                  <div style={{ fontSize: 8, color: '#999999', marginTop: 3 }}>
-                    {s.bought
-                      ? (yearsLeft > 0 ? `Genovervejes om ${yearsLeft} år og ${moLeft} måneder` : `Genovervejes om ${moLeft} måneder`)
-                      : `Planlagt køb ${s.buyDate}`}
-                  </div>
-                )}
-                {!s.reviewDate && <div style={{ fontSize: 8, color: '#999999', marginTop: 3 }}>Åben slot</div>}
-                {s.bought && aBp > 0 && (
-                  <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.10)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-                      <span style={{
-                        width: 8, height: 8, borderRadius: '50%', background: aDot, flexShrink: 0,
-                        boxShadow: aPulse ? ('0 0 0 3px ' + aDot + '44') : 'none',
-                        outline: aPulse ? ('2px solid ' + aDot) : 'none', outlineOffset: 2
-                      }} />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: aDot, letterSpacing: '0.02em' }}>{aLabel}</span>
-                      <span style={{ fontSize: 10, color: '#999999', marginLeft: 'auto' }}>
-                        {aCp.toFixed(0)} → {aEg} DKK · {Math.round(aProg)}% fremgang · {aMo} mdr.
-                      </span>
-                    </div>
-                    <div style={{ height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 2, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: aProg + '%', borderRadius: 2, background: aDot, transition: 'width 0.6s ease' }} />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
+        
 
         {/* Footer */}
         <div style={{ textAlign: 'center', fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.06em', paddingBottom: 40 }}>
