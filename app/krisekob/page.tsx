@@ -96,10 +96,10 @@ export default function KrisekobPage() {
         <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#999999', marginBottom: 10 }}>Sektion 1 — Indikatorer</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 28 }}>
           {[
-            { label: 'Fear & Greed', value: mkt ? String(mkt.fearGreedIndex) : '—', sub: mkt ? (ind1ok ? 'Under 25 ✅' : 'Over 25 ❌') : '—', ok: ind1ok },
-            { label: 'S&P 500 fra high', value: mkt ? spPct.toFixed(1) + '%' : '—', sub: mkt ? (ind2ok ? 'Under −10% ✅' : 'Over −10% ❌') : '—', ok: ind2ok },
-            { label: 'ISM PMI', value: mkt ? String(mkt.ismPMI) : '—', sub: mkt ? (ind3ok ? 'Under 50 ✅' : 'Over 50 ❌') : '—', ok: ind3ok },
-            { label: 'Sahm-regel', value: mkt ? mkt.sahmRule.toFixed(2) : '—', sub: mkt ? (ind4ok ? 'Over 0.5 ✅' : 'Under 0.5 ❌') : '—', ok: ind4ok },
+            { label: 'Fear & Greed', value: mkt ? String(mkt.fearGreedIndex) : '—', sub: mkt ? (ind1ok ? 'Under 25 ●' : 'Over 25 ●') : '—', ok: ind1ok },
+            { label: 'S&P 500 fra high', value: mkt ? spPct.toFixed(1) + '%' : '—', sub: mkt ? (ind2ok ? 'Under −10% ●' : 'Over −10% ●') : '—', ok: ind2ok },
+            { label: 'ISM PMI', value: mkt ? String(mkt.ismPMI) : '—', sub: mkt ? (ind3ok ? 'Under 50 ●' : 'Over 50 ●') : '—', ok: ind3ok },
+            { label: 'Sahm-regel', value: mkt ? mkt.sahmRule.toFixed(2) : '—', sub: mkt ? (ind4ok ? 'Over 0.5 ●' : 'Under 0.5 ●') : '—', ok: ind4ok },
           ].map((ind) => (
             <div key={ind.label} style={{ ...cardStyle, padding: '16px 18px' }}>
               <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.10em', textTransform: 'uppercase' as const, color: '#999999', marginBottom: 8 }}>{ind.label}</div>
