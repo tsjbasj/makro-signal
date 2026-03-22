@@ -30,6 +30,14 @@ interface PlannedBuy {
   note?: string
 }
 
+interface Sma200Data {
+  ticker: string
+  name: string
+  currentPrice: number
+  sma200: number
+  above: boolean
+}
+
 const STORAGE_KEY = 'portefolje2026'
 
 /* ─── Initial Data ───────────────────────────────────────────────────── */
@@ -380,7 +388,21 @@ export default function PortefoeljePage() {
     setMktLoading(false)
   }
 
-  useEffect(() => { void fetchMarket() }, [])
+  const [rotCrit3, setRotCrit3] = useState(false)
+  const [sma200Data, setSma200Data] = useState<Sma200Data[]|null>(null)
+  const [sma200Loading, setSma200Loading] = useState(false)
+
+  async function fetchSMA200() {
+    setSma200Loading(true)
+    try {
+      const r = await fetch('/api/sma200?tickers=NOVO-B,GN,UIE,NU')
+      const j = await r.json()
+      if (Array.isArray(j)) setSma200Data(j as Sma200Data[])
+    } catch { /* noop */ }
+    setSma200Loading(false)
+  }
+
+    useEffect(() => { void fetchMarket(); void fetchSMA200() }, [])
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -463,34 +485,74 @@ export default function PortefoeljePage() {
         {/* ── Markedsstemning ───────────────────────────────────────────── */}
         {((): ReactNode => {
           if (!mkt) return <div style={{ fontFamily: mono, fontSize: 10, color: '#999999', marginBottom: 20 }}>Henter markedsdata...</div>
-          let score = 0
-          if (mkt.fg <= 25) score += 2; else if (mkt.fg <= 45) score += 1
+          // Cooldown config (hardcoded)
+          const LAST_ROT_FG = 16
+          const COOLDOWN_TARGET = LAST_ROT_FG + 15
+          const cooldownActive = mkt.fg < COOLDOWN_TARGET
+          // 4 kriterier
+          const criterion1 = mkt.fg < 25
           const spPct = (mkt.sp - mkt.spHigh) / mkt.spHigh * 100
-          if (spPct <= -5) score += 2; else if (spPct <= -2) score += 1
-          if (mkt.pmi < 50) score += 2; else if (mkt.pmi <= 52) score += 1
-          if (mkt.sahm >= 0.1) score += 2
-          const badge = score >= 6 ? 'GOD TIMING' : score >= 3 ? 'OBSERVERÉR' : 'VENT'
-          const badgeColor: string = score >= 6 ? '#2d6a3f' : score >= 3 ? '#8a6a00' : '#8b1c1c'
+          const criterion2 = spPct <= -5
+          const criterion3 = rotCrit3
+          const nuEntry = sma200Data?.find(d => d.ticker === 'NU')
+          const criterion4 = nuEntry?.above ?? false
+          const score = [criterion1, criterion2, criterion3, criterion4].filter(Boolean).length
+          const godkendt = !cooldownActive && score >= 2
+          const badgeColor: string = godkendt ? '#2d6a3f' : '#8b1c1c'
+          const checkMark = (ok: boolean) => ok ? '✅' : '❌'
           return (
-            <div style={{ marginBottom: 8 }}>
-              <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 6, padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' as const }}>
-                <div style={{ display: 'flex', gap: 24, flex: 1, flexWrap: 'wrap' as const, alignItems: 'center' }}>
-                  <div style={{ fontFamily: mono, fontSize: 10 }}><span style={{ color: '#999999' }}>F&amp;G </span><span style={{ color: mkt.fg <= 25 ? '#8b1c1c' : mkt.fg <= 45 ? '#8a6a00' : '#2d6a3f' }}>{mkt.fg} {mkt.fgLabel}</span></div>
-                  <div style={{ fontFamily: mono, fontSize: 10 }}><span style={{ color: '#999999' }}>S&amp;P fra top </span><span style={{ color: spPct <= -5 ? '#8b1c1c' : spPct <= -2 ? '#8a6a00' : '#2d6a3f' }}>{spPct.toFixed(1)}%</span></div>
-                  <div style={{ fontFamily: mono, fontSize: 10 }}><span style={{ color: '#999999' }}>PMI </span><span style={{ color: mkt.pmi < 50 ? '#8b1c1c' : mkt.pmi <= 52 ? '#8a6a00' : '#2d6a3f' }}>{mkt.pmi.toFixed(1)}</span></div>
-                  <div style={{ fontFamily: mono, fontSize: 10 }}><span style={{ color: '#999999' }}>Sahm </span><span style={{ color: mkt.sahm >= 0.1 ? '#8b1c1c' : '#2d6a3f' }}>{mkt.sahm.toFixed(2)}</span></div>
+            <div style={{ marginBottom: 16 }}>
+              {/* Badge */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap' as const, gap: 8 }}>
+                <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: badgeColor, border: '1px solid ' + badgeColor + '55', borderRadius: 3, padding: '4px 12px' }}>
+                  ROTATION — {godkendt ? 'GODKENDT ✅' : 'IKKE GODKENDT ❌'}
                 </div>
-                <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: badgeColor, border: '1px solid ' + badgeColor + '55', borderRadius: 3, padding: '3px 9px' }}>TIMING: {badge}</div>
-                <button onClick={() => { void fetchMarket() }} disabled={mktLoading} style={{ fontFamily: mono, fontSize: 9, background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', borderRadius: 3, padding: '3px 8px', cursor: 'pointer', color: '#666666' }}>Opdater</button>
+                {cooldownActive && (
+                  <div style={{ fontFamily: mono, fontSize: 9, color: '#8b1c1c' }}>
+                    Cooldown aktiv — F&amp;G skal stige fra {mkt.fg} til mindst {COOLDOWN_TARGET}
+                  </div>
+                )}
               </div>
-              <div style={{ fontFamily: mono, fontSize: 9, color: '#777777', marginTop: 6, display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span style={{ color: '#aaaaaa' }}>ROTATION</span>
-                <span style={{ color: '#aaaaaa' }}>·</span>
+              {/* Criteria grid */}
+              <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 6, padding: '10px 16px' }}>
+                {/* Row 1 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                  <span style={{ fontSize: 12, width: 20 }}>{checkMark(criterion1)}</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, color: '#444444', flex: 1 }}>F&amp;G under 25</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: criterion1 ? '#2d6a3f' : '#8b1c1c' }}>{mkt.fg} {mkt.fgLabel}</span>
+                </div>
+                {/* Row 2 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                  <span style={{ fontSize: 12, width: 20 }}>{checkMark(criterion2)}</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, color: '#444444', flex: 1 }}>S&amp;P faldet 5%+</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: criterion2 ? '#2d6a3f' : '#8b1c1c' }}>{spPct.toFixed(1)}%</span>
+                </div>
+                {/* Row 3 — manual toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                  <span style={{ fontSize: 12, width: 20 }}>{checkMark(criterion3)}</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, color: '#444444', flex: 1 }}>Fald sket på under 6 uger</span>
+                  <div style={{ display: 'flex', gap: 5 }}>
+                    <button onClick={() => setRotCrit3(true)} style={{ fontFamily: mono, fontSize: 9, padding: '2px 9px', borderRadius: 3, border: '1px solid', borderColor: criterion3 ? '#2d6a3f' : 'rgba(0,0,0,0.18)', background: criterion3 ? '#2d6a3f22' : 'transparent', color: criterion3 ? '#2d6a3f' : '#777777', cursor: 'pointer' }}>JA</button>
+                    <button onClick={() => setRotCrit3(false)} style={{ fontFamily: mono, fontSize: 9, padding: '2px 9px', borderRadius: 3, border: '1px solid', borderColor: !criterion3 ? '#8b1c1c' : 'rgba(0,0,0,0.18)', background: !criterion3 ? '#8b1c1c22' : 'transparent', color: !criterion3 ? '#8b1c1c' : '#777777', cursor: 'pointer' }}>NEJ</button>
+                  </div>
+                </div>
+                {/* Row 4 — 200d MA */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0' }}>
+                  <span style={{ fontSize: 12, width: 20 }}>{nuEntry ? checkMark(criterion4) : '—'}</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, color: '#444444', flex: 1 }}>Næste aktie over 200d</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: criterion4 ? '#2d6a3f' : (nuEntry ? '#8b1c1c' : '#999999') }}>
+                    {sma200Loading ? 'henter...' : nuEntry ? `NU — ${nuEntry.above ? 'over' : 'under'}` : '—'}
+                  </span>
+                </div>
+              </div>
+              {/* Meta row */}
+              <div style={{ fontFamily: mono, fontSize: 9, color: '#777777', marginTop: 6, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' as const }}>
                 <span>Brugt: 1/3</span>
                 <span style={{ color: '#aaaaaa' }}>·</span>
-                <span>Cooldown aktiv (F&amp;G skal stige +15pt)</span>
+                <span>Max 3/år</span>
                 <span style={{ color: '#aaaaaa' }}>·</span>
                 <span>Sidst: Apr 2026</span>
+                <button onClick={() => { void fetchMarket(); void fetchSMA200() }} disabled={mktLoading || sma200Loading} style={{ marginLeft: 'auto', fontFamily: mono, fontSize: 9, background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', borderRadius: 3, padding: '2px 8px', cursor: 'pointer', color: '#666666' }}>Opdater</button>
               </div>
             </div>
           )
@@ -547,6 +609,37 @@ export default function PortefoeljePage() {
             {positions.map(pos => (
               <PositionCard key={pos.id} pos={pos} onEdit={setEditPos} onToggleCheck={toggleCheck} />
             ))}
+          </div>
+        </div>
+
+        {/* ── TREND TJEK ─────────────────────────────────────────────── */}
+        <div style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.09)', borderRadius: 8, padding: '16px 20px', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div>
+              <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#111111' }}>TREND TJEK</span>
+              <span style={{ fontFamily: mono, fontSize: 9, color: '#999999', marginLeft: 10 }}>200-dages glidende gennemsnit</span>
+            </div>
+            <button onClick={() => { void fetchSMA200() }} disabled={sma200Loading} style={{ fontFamily: mono, fontSize: 9, background: 'transparent', border: '1px solid rgba(0,0,0,0.15)', borderRadius: 3, padding: '3px 9px', cursor: 'pointer', color: '#666666' }}>
+              {sma200Loading ? 'Henter...' : 'Opdater'}
+            </button>
+          </div>
+          {sma200Data ? (
+            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 0 }}>
+              {sma200Data.filter(d => ['NOVO-B','GN','UIE'].includes(d.ticker)).map(d => (
+                <div key={d.ticker} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '7px 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                  <span style={{ fontSize: 12, width: 20 }}>{d.above ? '✅' : '❌'}</span>
+                  <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: '#111111', minWidth: 64 }}>{d.ticker}</span>
+                  <span style={{ fontFamily: corm, fontSize: 13, color: '#444444', flex: 1 }}>{d.name}</span>
+                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: d.above ? '#2d6a3f' : '#8b1c1c', minWidth: 80, textAlign: 'right' as const }}>{d.above ? 'Over 200d' : 'Under 200d'}</span>
+                  <span style={{ fontFamily: mono, fontSize: 9, color: '#888888', minWidth: 160, textAlign: 'right' as const }}>Kurs: {d.currentPrice} · 200d: {d.sma200}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ fontFamily: mono, fontSize: 10, color: '#999999' }}>{sma200Loading ? 'Henter data...' : 'Tryk Opdater for at hente data'}</div>
+          )}
+          <div style={{ fontFamily: corm, fontSize: 12, color: '#888888', marginTop: 10, fontStyle: 'italic' as const }}>
+            Under 200-dages gennemsnit er ikke et salgssignal — men et advarselstegn. Stop loss gælder stadig altid.
           </div>
         </div>
 
