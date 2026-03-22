@@ -13,7 +13,7 @@ export interface Sma200Entry {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const tickers = searchParams.get('tickers') ?? 'NOVO-B,GN,UIE,NU'
+  const tickers = searchParams.get('tickers') ?? 'NOVO-B,GN,UIE,NU,DLO,DEMANT,EQIX,CCJ,DSV,CRDO,ETN,IBN'
   const anthropicKey = process.env.ANTHROPIC_API_KEY
 
   if (!anthropicKey) {
@@ -26,10 +26,18 @@ export async function GET(request: Request) {
     const prompt = `For each of these stock tickers: ${tickerList.join(', ')}, search for the current stock price and 200-day moving average (200-day SMA/MA).
 
 Notes:
-- NOVO-B = Novo Nordisk (Copenhagen Stock Exchange, ticker NOVO-B.CO)
-- GN = GN Store Nord (Copenhagen, GN.CO)
-- UIE = UIE A/S (Copenhagen, UIE.CO)
-- NU = Nu Holdings (NYSE: NU)
+- NOVO-B = Novo Nordisk (Copenhagen Stock Exchange, NOVO-B.CO, prices in DKK)
+- GN = GN Store Nord (Copenhagen, GN.CO, prices in DKK)
+- UIE = search "UIE A/S Copenhagen stock price DKK" (Copenhagen, UIE.CO, prices in DKK)
+- NU = Nu Holdings (NYSE: NU, prices in USD)
+- DLO = dLocal (Nasdaq: DLO, prices in USD)
+- DEMANT = Demant A/S (Copenhagen, DEMANT.CO, prices in DKK)
+- EQIX = Equinix (Nasdaq: EQIX, prices in USD)
+- CCJ = Cameco (NYSE: CCJ, prices in USD)
+- DSV = DSV A/S (Copenhagen, DSV.CO, prices in DKK)
+- CRDO = Credo Technology (Nasdaq: CRDO, prices in USD)
+- ETN = Eaton Corporation (NYSE: ETN, prices in USD)
+- IBN = ICICI Bank ADR (NYSE: IBN, prices in USD)
 
 Return ONLY a valid JSON array with no extra text:
 [
@@ -48,8 +56,8 @@ Use numbers (not strings) for prices. Set "above" to true if currentPrice > sma2
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 2000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 6 }],
+        max_tokens: 3000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 15 }],
         messages: [{ role: 'user', content: prompt }],
       }),
     })
