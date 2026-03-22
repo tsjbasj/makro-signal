@@ -125,7 +125,7 @@ function Nav() {
     <nav style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '10px 24px', background: 'rgba(242,239,230,0.97)', borderBottom: '1px solid rgba(0,0,0,0.09)', fontFamily: 'var(--font-dm-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 100 }}>
       <span style={{ color: '#999999' }}>◈</span>
       <Link href="/portefolje" style={{ color: '#111111', textDecoration: 'none', borderBottom: '1px solid #111111', paddingBottom: 2 }}>Min Portefølje</Link>
-      <Link href="/" style={{ color: '#999999', textDecoration: 'none' }}>Krisekøb ETF</Link>
+      <Link href="/krisekob" style={{ color: '#999999', textDecoration: 'none' }}>Krisekøb ETF</Link>
     </nav>
   )
 }
@@ -373,7 +373,7 @@ export default function PortefoeljePage() {
   const [loading, setLoading] = useState(false)
   const [kursError, setKursError] = useState<string|null>(null)
 
-  const [mkt, setMkt] = useState<{fg:number,fgLabel:string,sp:number,spHigh:number,sahm:number,pmi:number}|null>(null)
+  const [mkt, setMkt] = useState<{fg:number,fgLabel:string,sp:number,spHigh:number,sahm:number,pmi:number,peakDate:string,weeksSincePeak:number}|null>(null)
   const [mktLoading, setMktLoading] = useState(false)
 
   async function fetchMarket() {
@@ -381,12 +381,13 @@ export default function PortefoeljePage() {
     try {
       const r = await fetch('/api/data')
       const j = await r.json()
-      setMkt({ fg: j.fearGreedIndex as number, fgLabel: j.fearGreedLabel as string, sp: j.sp500Price as number, spHigh: j.sp500_52wHigh as number, sahm: j.sahmRule as number, pmi: 49.8 })
+      const peakDate = (j.sp500PeakDate as string) ?? ''
+        const weeksSincePeak = peakDate ? Math.floor((Date.now() - new Date(peakDate).getTime()) / (1000*60*60*24*7)) : 99
+        setMkt({ fg: j.fearGreedIndex as number, fgLabel: j.fearGreedLabel as string, sp: j.sp500Price as number, spHigh: j.sp500_52wHigh as number, sahm: j.sahmRule as number, pmi: 49.8, peakDate, weeksSincePeak })
     } catch { /* noop */ }
     setMktLoading(false)
   }
 
-  const [rotCrit3, setRotCrit3] = useState(false)
   const [sma200Data, setSma200Data] = useState<Sma200Data[]|null>(null)
   const [sma200Loading, setSma200Loading] = useState(false)
 
@@ -491,7 +492,7 @@ export default function PortefoeljePage() {
           const criterion1 = mkt.fg < 25
           const spPct = (mkt.sp - mkt.spHigh) / mkt.spHigh * 100
           const criterion2 = spPct <= -5
-          const criterion3 = rotCrit3
+          const criterion3 = mkt.weeksSincePeak < 6
           const nuEntry = sma200Data?.find(d => d.ticker === 'NU')
           const criterion4 = nuEntry?.above ?? false
           const score = [criterion1, criterion2, criterion3, criterion4].filter(Boolean).length
@@ -525,14 +526,13 @@ export default function PortefoeljePage() {
                   <span style={{ fontFamily: mono, fontSize: 10, color: '#444444', flex: 1 }}>S&amp;P faldet 5%+</span>
                   <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: criterion2 ? '#2d6a3f' : '#8b1c1c' }}>{spPct.toFixed(1)}%</span>
                 </div>
-                {/* Row 3 — manual toggle */}
+                {/* Row 3 — auto peak date */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                   <span style={{ fontSize: 12, width: 20 }}>{checkMark(criterion3)}</span>
                   <span style={{ fontFamily: mono, fontSize: 10, color: '#444444', flex: 1 }}>Fald sket på under 6 uger</span>
-                  <div style={{ display: 'flex', gap: 5 }}>
-                    <button onClick={() => setRotCrit3(true)} style={{ fontFamily: mono, fontSize: 9, padding: '2px 9px', borderRadius: 3, border: '1px solid', borderColor: criterion3 ? '#2d6a3f' : 'rgba(0,0,0,0.18)', background: criterion3 ? '#2d6a3f22' : 'transparent', color: criterion3 ? '#2d6a3f' : '#777777', cursor: 'pointer' }}>JA</button>
-                    <button onClick={() => setRotCrit3(false)} style={{ fontFamily: mono, fontSize: 9, padding: '2px 9px', borderRadius: 3, border: '1px solid', borderColor: !criterion3 ? '#8b1c1c' : 'rgba(0,0,0,0.18)', background: !criterion3 ? '#8b1c1c22' : 'transparent', color: !criterion3 ? '#8b1c1c' : '#777777', cursor: 'pointer' }}>NEJ</button>
-                  </div>
+                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: criterion3 ? '#2d6a3f' : '#8b1c1c' }}>
+                    {mkt.peakDate ? `Toppede: ${new Date(mkt.peakDate).toLocaleDateString('da-DK',{day:'numeric',month:'short'})} · ${mkt.weeksSincePeak} uger siden` : '—'}
+                  </span>
                 </div>
                 {/* Row 4 — 200d MA */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0' }}>
