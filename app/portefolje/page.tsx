@@ -509,13 +509,13 @@ export default function PortefoeljePage() {
           const score = [criterion1, criterion2, criterion3, criterion4].filter(Boolean).length
           const godkendt = !cooldownActive && score >= 2
           const badgeColor: string = godkendt ? '#2d6a3f' : '#8b1c1c'
-          const checkMark = (ok: boolean) => ok ? '✅' : '❌'
+          const checkMark = (ok: boolean): ReactNode => ok ? <span style={{ color: '#4a7c59' }}>●</span> : <span style={{ color: '#a63d2f' }}>●</span>
           return (
             <div style={{ marginBottom: 16 }}>
               {/* Badge */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap' as const, gap: 8 }}>
                 <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: badgeColor, border: '1px solid ' + badgeColor + '55', borderRadius: 3, padding: '4px 12px' }}>
-                  ROTATION — {godkendt ? 'GODKENDT ✅' : 'IKKE GODKENDT ❌'}
+                  ROTATION — {godkendt ? 'GODKENDT ●' : 'IKKE GODKENDT ●'}
                 </div>
                 {cooldownActive && (
                   <div style={{ fontFamily: mono, fontSize: 9, color: '#8b1c1c' }}>
