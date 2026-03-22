@@ -154,10 +154,12 @@ function PositionCard({
   pos,
   onEdit,
   onToggleCheck,
+  smaData,
 }: {
   pos: ActivePosition
   onEdit: (p: ActivePosition) => void
   onToggleCheck: (id: string) => void
+  smaData?: Sma200Data[] | null
 }) {
   const accent = CAT_COLOR[pos.category]
   return (
@@ -179,6 +181,18 @@ function PositionCard({
           <div style={{ color: '#2d6a3f' }}>⬆ Tag gevinst ved: {pos.exitTarget} {pos.currency}</div>
         </div>
         <PriceBar stopLoss={pos.stopLoss} exitTarget={pos.exitTarget} currentPrice={pos.currentPrice} />
+        {(() => {
+          const _e = smaData?.find((d: Sma200Data) => d.ticker === pos.ticker) ?? null
+          const _dot: string = _e ? (_e.above ? '#2d6a3f' : '#c0392b') : '#cccccc'
+          return _e ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 5, marginTop: 2 }}>
+              <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#888888' }}>200d</span>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: _dot, display: 'inline-block', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: _dot }}>{_e.above ? 'Over' : 'Under'}</span>
+              <span style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#aaaaaa', marginLeft: 6 }}>Kurs: {_e.currentPrice} · 200d: {_e.sma200}</span>
+            </div>
+          ) : null
+        })()}
       </div>
     </div>
   )
@@ -333,9 +347,6 @@ interface TimelineStock {
   bought: boolean; buyDate: string; reviewDate: string | null; note?: string
 }
 const TIMELINE: TimelineStock[] = [
-  { ticker: 'NOVO-B', name: 'Novo Nordisk',      category: 'Kerne',      bought: true,  buyDate: '2026-03', reviewDate: '2031-03' },
-  { ticker: 'GN',     name: 'GN Store Nord',     category: 'Vækst',      bought: true,  buyDate: '2026-03', reviewDate: '2028-03' },
-  { ticker: 'UIE',    name: 'UIE A/S',            category: 'Kerne',      bought: true,  buyDate: '2026-03', reviewDate: '2029-03' },
   { ticker: 'NU',     name: 'NU Holdings',        category: 'Vækst',      bought: false, buyDate: '2026-04', reviewDate: '2028-04' },
   { ticker: 'DLO',    name: 'dLocal',             category: 'Spekulativ', bought: false, buyDate: '2026-04', reviewDate: '2027-04' },
   { ticker: 'DEMANT', name: 'Demant',             category: 'Vækst',      bought: false, buyDate: '2026-05', reviewDate: '2028-05', note: 'Afvent Q1 5. maj' },
@@ -605,7 +616,7 @@ export default function PortefoeljePage() {
           <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>AKTIVE POSITIONER</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
             {positions.map(pos => (
-              <PositionCard key={pos.id} pos={pos} onEdit={setEditPos} onToggleCheck={toggleCheck} />
+              <PositionCard key={pos.id} pos={pos} onEdit={setEditPos} onToggleCheck={toggleCheck} smaData={sma200Data} />
             ))}
           </div>
         </div>
