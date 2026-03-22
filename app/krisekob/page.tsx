@@ -36,6 +36,7 @@ export default function KrisekobPage() {
     setLoading(true)
     try {
       const r = await fetch('/api/data')
+      if (!r.ok) return
       const j = await r.json()
       setMkt(j as MarketData)
     } catch { /* noop */ }
@@ -99,7 +100,7 @@ export default function KrisekobPage() {
             { label: 'Fear & Greed', value: mkt ? String(mkt.fearGreedIndex) : '—', sub: mkt ? (ind1ok ? 'Under 25 ●' : 'Over 25 ●') : '—', ok: ind1ok },
             { label: 'S&P 500 fra high', value: mkt ? spPct.toFixed(1) + '%' : '—', sub: mkt ? (ind2ok ? 'Under −10% ●' : 'Over −10% ●') : '—', ok: ind2ok },
             { label: 'ISM PMI', value: mkt ? String(mkt.ismPMI) : '—', sub: mkt ? (ind3ok ? 'Under 49 ●' : 'Over 49 ●') : '—', ok: ind3ok },
-            { label: 'Sahm-regel', value: mkt ? mkt.sahmRule.toFixed(2) : '—', sub: mkt ? (ind4ok ? 'Over 0.5 ●' : 'Under 0.5 ●') : '—', ok: ind4ok },
+            { label: 'Sahm-regel', value: mkt ? (mkt.sahmRule ?? 0).toFixed(2) : '—', sub: mkt ? (ind4ok ? 'Over 0.5 ●' : 'Under 0.5 ●') : '—', ok: ind4ok },
           ].map((ind) => (
             <div key={ind.label} style={{ ...cardStyle, padding: '16px 18px' }}>
               <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.10em', textTransform: 'uppercase' as const, color: '#999999', marginBottom: 8 }}>{ind.label}</div>
