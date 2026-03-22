@@ -11,80 +11,55 @@ export interface Sma200Entry {
   above: boolean
 }
 
+const TICKER_MAP: Record<string, { yahoo: string; name: string }> = {
+  'NOVO-B':  { yahoo: 'NOVO-B.CO', name: 'Novo Nordisk' },
+  'GN':      { yahoo: 'GN.CO',     name: 'GN Store Nord' },
+  'UIE':     { yahoo: 'UIE.CO',    name: 'UIE A/S' },
+  'NU':      { yahoo: 'NU',        name: 'NU Holdings' },
+  'DLO':     { yahoo: 'DLO',       name: 'dLocal' },
+  'DEMANT':  { yahoo: 'DEMANT.CO', name: 'Demant A/S' },
+  'EQIX':    { yahoo: 'EQIX',      name: 'Equinix' },
+  'CCJ':     { yahoo: 'CCJ',       name: 'Cameco' },
+  'DSV':     { yahoo: 'DSV.CO',    name: 'DSV A/S' },
+  'CRDO':    { yahoo: 'CRDO',      name: 'Credo Technology' },
+  'ETN':     { yahoo: 'ETN',       name: 'Eaton Corporation' },
+  'IBN':     { yahoo: 'IBN',       name: 'ICICI Bank ADR' },
+}
+
+async function fetchSma200(ticker: string): Promise<Sma200Entry | null> {
+  const info = TICKER_MAP[ticker]
+  if (!info) return null
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(info.yahoo)}?interval=1d&range=1y`
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36' }
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    const result = data?.chart?.result?.[0]
+    if (!result) return null
+    const closes: (number | null)[] = result.indicators?.quote?.[0]?.close ?? []
+    const valid = closes.filter((c): c is number => c !== null && !isNaN(c))
+    if (valid.length < 50) return null
+    const currentPrice: number = result.meta?.regularMarketPrice ?? valid[valid.length - 1]
+    const window200 = valid.slice(-200)
+    const sma200 = Math.round(window200.reduce((a: number, b: number) => a + b, 0) / window200.length * 100) / 100
+    const cp = Math.round(currentPrice * 100) / 100
+    return { ticker, name: info.name, currentPrice: cp, sma200, above: cp > sma200 }
+  } catch {
+    return null
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const tickers = searchParams.get('tickers') ?? 'NOVO-B,GN,UIE,NU,DLO,DEMANT,EQIX,CCJ,DSV,CRDO,ETN,IBN'
-  const anthropicKey = process.env.ANTHROPIC_API_KEY
-
-  if (!anthropicKey) {
-    return NextResponse.json({ error: 'ANTHROPIC_API_KEY mangler' }, { status: 500 })
-  }
-
+  const tickerList = tickers.split(',').map((t: string) => t.trim())
   try {
-    const tickerList = tickers.split(',').map((t: string) => t.trim())
-
-    const prompt = `For each of these stock tickers: ${tickerList.join(', ')}, search for the current stock price and 200-day moving average (200-day SMA/MA).
-
-Notes:
-- NOVO-B = Novo Nordisk (Copenhagen Stock Exchange, NOVO-B.CO, prices in DKK)
-- GN = GN Store Nord (Copenhagen, GN.CO, prices in DKK)
-- UIE = search "UIE A/S Copenhagen stock price DKK" (Copenhagen, UIE.CO, prices in DKK)
-- NU = Nu Holdings (NYSE: NU, prices in USD)
-- DLO = dLocal (Nasdaq: DLO, prices in USD)
-- DEMANT = Demant A/S (Copenhagen, DEMANT.CO, prices in DKK)
-- EQIX = Equinix (Nasdaq: EQIX, prices in USD)
-- CCJ = Cameco (NYSE: CCJ, prices in USD)
-- DSV = DSV A/S (Copenhagen, DSV.CO, prices in DKK)
-- CRDO = Credo Technology (Nasdaq: CRDO, prices in USD)
-- ETN = Eaton Corporation (NYSE: ETN, prices in USD)
-- IBN = ICICI Bank ADR (NYSE: IBN, prices in USD)
-
-Return ONLY a valid JSON array with no extra text:
-[
-  {"ticker":"NOVO-B","name":"Novo Nordisk","currentPrice":232,"sma200":198,"above":true},
-  {"ticker":"GN","name":"GN Store Nord","currentPrice":95,"sma200":108,"above":false}
-]
-Use numbers (not strings) for prices. Set "above" to true if currentPrice > sma200.`
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'web-search-2025-03-05',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 1500,
-        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 4 }],
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    })
-
-    if (!res.ok) {
-      const errText = await res.text()
-      throw new Error(`Anthropic HTTP ${res.status}: ${errText.slice(0, 200)}`)
-    }
-
-    const data = await res.json()
-    const text = (data.content ?? [])
-      .filter((b: { type: string }) => b.type === 'text')
-      .map((b: { text: string }) => b.text)
-      .join('')
-
-    const cleaned = text.replace(/```json|```/g, '').trim()
-    const match = cleaned.match(/\[[\s\S]*\]/)
-    if (!match) throw new Error('Ingen JSON array i svaret fra Anthropic')
-
-    const result: Sma200Entry[] = JSON.parse(match[0])
-
-    return NextResponse.json(result, {
-      headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=1800' },
-    })
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err)
-    console.error('[/api/sma200]', msg)
-    return NextResponse.json({ error: msg }, { status: 500 })
+    const results = await Promise.all(tickerList.map(fetchSma200))
+    const valid = results.filter((r): r is Sma200Entry => r !== null)
+    return NextResponse.json(valid)
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 })
   }
 }
