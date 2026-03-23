@@ -7,7 +7,7 @@ const serif = '"Cormorant Garamond", Georgia, serif'
 
 const COOLDOWN_DAYS = 90
 const MAX_BUYS_PER_YEAR = 3
-const MAX_TOTAL = 45000
+const MAX_TOTAL = 21000
 
 interface MarketData {
   fearGreedIndex: number
@@ -76,7 +76,7 @@ export default function KrisekobPage() {
 
   const badgeLabel: string = score <= 2 ? 'VENT' : score === 3 ? 'KØB MULIG' : score <= 6 ? 'KØB' : 'KØB NU'
   const badgeColor: string = score <= 2 ? '#8b1c1c' : score === 3 ? '#7a5c00' : '#2d6a3f'
-  const buyAmount = score === 3 ? 7500 : score >= 4 && score <= 6 ? 15000 : score >= 7 ? 22500 : 0
+  const buyAmount = score <= 2 ? 0 : 7000
 
   const daysSinceLastBuy = lastBuyDate
     ? Math.floor((Date.now() - lastBuyDate.getTime()) / (1000 * 60 * 60 * 24))
@@ -237,7 +237,7 @@ export default function KrisekobPage() {
             </div>
           )}
           <div style={{ fontFamily: mono, fontSize: 9, color: '#aaaaaa', borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 12, marginTop: 12 }}>
-            Score 3 → 7.500 DKK · Score 4–6 → 15.000 DKK · Score 7–10 → 22.500 DKK · Max {MAX_TOTAL.toLocaleString('da-DK')} DKK total · Næste mulige køb: {nextBuyStr} · Max {MAX_BUYS_PER_YEAR} krisekøb/år
+            Score 3–10 → 7.000 DKK · Max {MAX_TOTAL.toLocaleString('da-DK')} DKK total · Næste mulige køb: {nextBuyStr} · Max {MAX_BUYS_PER_YEAR} krisekøb/år
           </div>
         </div>
 
@@ -247,17 +247,13 @@ export default function KrisekobPage() {
           <div style={{ display: 'flex', gap: 12, fontFamily: mono, fontSize: 9, color: '#999999', textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: 4 }}>
             <span style={{ flex: 1 }}>ETF</span>
             <span style={{ width: 40, textAlign: 'right' as const }}>Vægt</span>
-            <span style={{ width: 72, textAlign: 'right' as const }}>7.500</span>
-            <span style={{ width: 72, textAlign: 'right' as const }}>15.000</span>
-            <span style={{ width: 72, textAlign: 'right' as const }}>22.500</span>
+            <span style={{ width: 72, textAlign: 'right' as const }}>7.000</span>
           </div>
           {etfs.map((etf) => (
             <div key={etf.name} style={{ display: 'flex', gap: 12, alignItems: 'center', borderTop: '1px solid rgba(0,0,0,0.06)', padding: '7px 0' }}>
               <span style={{ flex: 1, fontFamily: mono, fontSize: 10, color: '#333333' }}>{etf.name}</span>
               <span style={{ width: 40, fontFamily: mono, fontSize: 10, color: '#555555', textAlign: 'right' as const }}>{Math.round(etf.weight * 100)}%</span>
-              <span style={{ width: 72, fontFamily: mono, fontSize: 10, color: '#555555', textAlign: 'right' as const }}>{Math.round(etf.weight * 7500).toLocaleString('da-DK')} kr</span>
-              <span style={{ width: 72, fontFamily: mono, fontSize: 10, color: '#555555', textAlign: 'right' as const }}>{Math.round(etf.weight * 15000).toLocaleString('da-DK')} kr</span>
-              <span style={{ width: 72, fontFamily: mono, fontSize: 10, color: '#555555', textAlign: 'right' as const }}>{Math.round(etf.weight * 22500).toLocaleString('da-DK')} kr</span>
+              <span style={{ width: 72, fontFamily: mono, fontSize: 10, color: '#555555', textAlign: 'right' as const }}>{Math.round(etf.weight * 7000).toLocaleString('da-DK')} kr</span>
             </div>
           ))}
         </div>
@@ -268,7 +264,7 @@ export default function KrisekobPage() {
           {[
             '90 dages cooldown mellem hvert krisekøb',
             'Cooldown ophæves automatisk hvis scoren stiger 2 point siden sidste køb',
-            'Max 3 krisekøb per år · Max 45.000 DKK total per krise',
+            'Max 3 krisekøb per år · Max 21.000 DKK total per krise',
             'Kun køb — aldrig sælg baseret på dette signal',
           ].map((rule, i, arr) => (
             <div key={rule} style={{ fontFamily: mono, fontSize: 10, color: '#444444', padding: '6px 0', borderBottom: i < arr.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}>
