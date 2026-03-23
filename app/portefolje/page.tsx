@@ -492,70 +492,91 @@ export default function PortefoeljePage() {
           </div>
         </div>
 
-        {/* ── Markedsstemning ───────────────────────────────────────────── */}
+        {/* ── Markedsstemning ────────────────────────────────────────────────────── */}
         {((): ReactNode => {
           if (!mkt) return <div style={{ fontFamily: mono, fontSize: 10, color: '#999999', marginBottom: 20 }}>Henter markedsdata...</div>
-          // Cooldown config (hardcoded)
-          const LAST_ROT_FG = 16
-          const COOLDOWN_TARGET = LAST_ROT_FG + 15
-          const cooldownActive = mkt.fg < COOLDOWN_TARGET
-          // 4 kriterier
-          const criterion1 = mkt.fg < 25
+
           const spPct = (mkt.sp - mkt.spHigh) / mkt.spHigh * 100
-          const criterion2 = spPct <= -5
-          const criterion3 = mkt.weeksSincePeak < 6
-          const nuEntry = sma200Data?.find(d => d.ticker === 'NU')
-          const criterion4 = nuEntry?.above ?? false
-          const score = [criterion1, criterion2, criterion3, criterion4].filter(Boolean).length
-          const godkendt = !cooldownActive && score >= 2
-          const badgeColor: string = godkendt ? '#2d6a3f' : '#8b1c1c'
-          const checkMark = (ok: boolean): ReactNode => ok ? <span style={{ color: '#4a7c59' }}>●</span> : <span style={{ color: '#a63d2f' }}>●</span>
+
+          // ── ROTATION IND ──────────────────────────────────────────────────────
+          const LAST_ROT_IN_FG = 16
+          const cooldownInTarget = LAST_ROT_IN_FG + 15
+          const cooldownInActive = mkt.fg < cooldownInTarget
+          const in1 = mkt.fg < 25
+          const in2 = spPct <= -7
+          const nuEntry = sma200Data?.find((d: Sma200Data) => d.ticker === 'NU')
+          const in3 = nuEntry?.above ?? false
+          const scoreIn = [in1, in2, in3].filter(Boolean).length
+          const godkendtInd = !cooldownInActive && scoreIn >= 2
+
+          // ── ROTATION UD ───────────────────────────────────────────────────────
+          const LAST_ROT_OUT_FG: number | null = null
+          const out1 = mkt.fg > 75
+          const out2 = spPct > -5
+          const out3 = positions.some((p: ActivePosition) =>
+            p.currentPrice > 0 && p.exitTarget > 0 && p.currentPrice >= p.exitTarget * 0.85)
+          const scoreOut = [out1, out2, out3].filter(Boolean).length
+          type CooldownStatus = 'ingen' | 'aktiv' | 'opfyldt'
+          let cooldownOutStatus: CooldownStatus = 'ingen'
+          if (LAST_ROT_OUT_FG !== null) {
+            cooldownOutStatus = mkt.fg <= LAST_ROT_OUT_FG - 15 ? 'opfyldt' : 'aktiv'
+          }
+          const godkendtUd = cooldownOutStatus !== 'aktiv' && scoreOut >= 2
+
+          const dot = (ok: boolean) => <span style={{ color: ok ? '#4a7c59' : '#a63d2f', fontSize: 8, marginRight: 4, flexShrink: 0 as const }}>●</span>
+          const val = (ok: boolean, txt: string) => <span style={{ fontFamily: mono, fontSize: 9, fontWeight: 700 as const, color: ok ? '#2d6a3f' : '#8b1c1c' }}>{txt}</span>
+          const colStyle: React.CSSProperties = { flex: 1, background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 6, padding: '12px 14px' }
+          const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }
+          const labelStyle: React.CSSProperties = { fontFamily: mono, fontSize: 9, color: '#555555', flex: 1 }
+
           return (
             <div style={{ marginBottom: 16 }}>
-              {/* Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap' as const, gap: 8 }}>
-                <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: badgeColor, border: '1px solid ' + badgeColor + '55', borderRadius: 3, padding: '4px 12px' }}>
-                  ROTATION — {godkendt ? 'GODKENDT ●' : 'IKKE GODKENDT ●'}
-                </div>
-                {cooldownActive && (
-                  <div style={{ fontFamily: mono, fontSize: 9, color: '#8b1c1c' }}>
-                    Cooldown aktiv — F&amp;G skal stige fra {mkt.fg} til mindst {COOLDOWN_TARGET}
+              <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+
+                {/* ROTATION IND */}
+                <div style={colStyle}>
+                  <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#333333', marginBottom: 10, textTransform: 'uppercase' as const }}>Rotation ind</div>
+                  <div style={rowStyle}>
+                    {dot(in1)}<span style={labelStyle}>F&amp;G under 25</span>{val(in1, String(mkt.fg))}
                   </div>
-                )}
+                  <div style={rowStyle}>
+                    {dot(in2)}<span style={labelStyle}>S&amp;P faldet 7%+</span>{val(in2, spPct.toFixed(1) + '%')}
+                  </div>
+                  <div style={{ ...rowStyle, borderBottom: 'none' }}>
+                    {dot(in3)}<span style={labelStyle}>Næste aktie over 200d</span>
+                    {val(in3, sma200Loading ? '...' : nuEntry ? 'NU — ' + (nuEntry.above ? 'over' : 'under') : '—')}
+                  </div>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: cooldownInActive ? '#8b1c1c' : '#777777', marginTop: 8, borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 6 }}>
+                    {cooldownInActive ? 'Cooldown aktiv — F&G skal stige til ' + cooldownInTarget : 'Ingen aktiv cooldown'}
+                  </div>
+                  <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: godkendtInd ? '#2d6a3f' : '#8b1c1c', marginTop: 6 }}>
+                    {godkendtInd ? 'GODKENDT ●' : 'IKKE GODKENDT ●'}
+                  </div>
+                </div>
+
+                {/* ROTATION UD */}
+                <div style={colStyle}>
+                  <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#333333', marginBottom: 10, textTransform: 'uppercase' as const }}>Rotation ud</div>
+                  <div style={rowStyle}>
+                    {dot(out1)}<span style={labelStyle}>F&amp;G over 75</span>{val(out1, String(mkt.fg))}
+                  </div>
+                  <div style={rowStyle}>
+                    {dot(out2)}<span style={labelStyle}>S&amp;P under 5% fra ATH</span>{val(out2, spPct.toFixed(1) + '%')}
+                  </div>
+                  <div style={{ ...rowStyle, borderBottom: 'none' }}>
+                    {dot(out3)}<span style={labelStyle}>Aktie nær exit mål</span>{val(out3, out3 ? 'Ja' : 'Nej')}
+                  </div>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: cooldownOutStatus === 'aktiv' ? '#8b1c1c' : '#777777', marginTop: 8, borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 6 }}>
+                    {cooldownOutStatus === 'ingen' ? 'Ingen aktiv cooldown' : cooldownOutStatus === 'aktiv' ? 'Cooldown aktiv — F&G skal falde 15 point' : 'Cooldown opfyldt'}
+                  </div>
+                  <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: godkendtUd ? '#2d6a3f' : '#8b1c1c', marginTop: 6 }}>
+                    {godkendtUd ? 'GODKENDT ●' : 'IKKE GODKENDT ●'}
+                  </div>
+                </div>
+
               </div>
-              {/* Criteria grid */}
-              <div style={{ background: 'rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 6, padding: '10px 16px' }}>
-                {/* Row 1 */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                  <span style={{ fontSize: 12, width: 20 }}>{checkMark(criterion1)}</span>
-                  <span style={{ fontFamily: mono, fontSize: 10, color: '#444444', flex: 1 }}>F&amp;G under 25</span>
-                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: criterion1 ? '#2d6a3f' : '#8b1c1c' }}>{mkt.fg} {mkt.fgLabel}</span>
-                </div>
-                {/* Row 2 */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                  <span style={{ fontSize: 12, width: 20 }}>{checkMark(criterion2)}</span>
-                  <span style={{ fontFamily: mono, fontSize: 10, color: '#444444', flex: 1 }}>S&amp;P faldet 5%+</span>
-                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: criterion2 ? '#2d6a3f' : '#8b1c1c' }}>{spPct.toFixed(1)}%</span>
-                </div>
-                {/* Row 3 — auto peak date */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                  <span style={{ fontSize: 12, width: 20 }}>{checkMark(criterion3)}</span>
-                  <span style={{ fontFamily: mono, fontSize: 10, color: '#444444', flex: 1 }}>Fald sket på under 6 uger</span>
-                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: criterion3 ? '#2d6a3f' : '#8b1c1c' }}>
-                    {mkt.peakDate ? `Toppede: ${new Date(mkt.peakDate).toLocaleDateString('da-DK',{day:'numeric',month:'short'})} · ${mkt.weeksSincePeak} uger siden` : '—'}
-                  </span>
-                </div>
-                {/* Row 4 — 200d MA */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0' }}>
-                  <span style={{ fontSize: 12, width: 20 }}>{nuEntry ? checkMark(criterion4) : '—'}</span>
-                  <span style={{ fontFamily: mono, fontSize: 10, color: '#444444', flex: 1 }}>Næste aktie over 200d</span>
-                  <span style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: criterion4 ? '#2d6a3f' : (nuEntry ? '#8b1c1c' : '#999999') }}>
-                    {sma200Loading ? 'henter...' : nuEntry ? `NU — ${nuEntry.above ? 'over' : 'under'}` : '—'}
-                  </span>
-                </div>
-              </div>
-              {/* Meta row */}
-              <div style={{ fontFamily: mono, fontSize: 9, color: '#777777', marginTop: 6, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' as const }}>
+              {/* Meta */}
+              <div style={{ fontFamily: mono, fontSize: 9, color: '#777777', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' as const }}>
                 <span>Brugt: 1/3</span>
                 <span style={{ color: '#aaaaaa' }}>·</span>
                 <span>Max 3/år</span>
