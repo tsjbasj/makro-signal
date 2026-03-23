@@ -17,8 +17,9 @@ async function fetchSP500(): Promise<{ price: number; high52w: number; peakDate:
   if (!result) throw new Error('Yahoo Finance: ingen data for ^GSPC')
   const closes: (number | null)[] = result.indicators?.quote?.[0]?.close ?? []
   const timestamps: number[] = result.timestamp ?? []
-  const price: number = result.meta?.regularMarketPrice
-    ?? closes.filter((c): c is number => c !== null).slice(-1)[0]
+  const price: number =
+    result.meta?.regularMarketPrice ??
+    closes.filter((c): c is number => c !== null).slice(-1)[0]
   let high52w = 0
   let peakDate = ''
   for (let i = 0; i < closes.length; i++) {
@@ -60,7 +61,34 @@ async function fetchFearGreed(): Promise<{ score: number; label: string }> {
   return { score: Math.round(Number(score)), label }
 }
 
-// ── FRED series (ISM PMI + Sahm Rule) ───────────────────────────────────────
+// ── ISM Manufacturing PMI via DBnomics (free, no key needed) ────────────────
+// Falls back to neutral value (50) if API is unavailable
+async function fetchISMPMI(): Promise<number> {
+  try {
+    const url = 'https://api.db.nomics.world/v22/series/ISM/pmi?observations=1&last_n_periods=3'
+    const res = await fetch(url, {
+      headers: { 'Accept': 'application/json', 'User-Agent': UA },
+    })
+    if (!res.ok) throw new Error('DBnomics HTTP ' + res.status)
+    const data = await res.json()
+    const docs: Array<Record<string, unknown>> = data?.series?.docs ?? []
+    for (const s of docs) {
+      const vals: unknown[] = (s['value'] as unknown[]) ?? []
+      // Values are in chronological order; get the last non-null value
+      for (let i = vals.length - 1; i >= 0; i--) {
+        const v = vals[i]
+        if (typeof v === 'number' && !isNaN(v)) return v
+      }
+    }
+    throw new Error('DBnomics: ingen gyldig PMI vaerdi')
+  } catch (e) {
+    console.warn('[/api/data] ISM PMI unavailable, using neutral default:', e)
+    // Neutral fallback — does not trigger scoring (score thresholds are <=49, <=47)
+    return 50.0
+  }
+}
+
+// ── FRED series ──────────────────────────────────────────────────────────────
 async function fetchFred(seriesId: string): Promise<number> {
   const url =
     'https://api.stlouisfed.org/fred/series/observations' +
@@ -82,7 +110,7 @@ export async function GET() {
     const [sp500, fearGreed, ismPMI, sahmRule] = await Promise.all([
       fetchSP500(),
       fetchFearGreed(),
-      fetchFred('NAPM'),
+      fetchISMPMI(),
       fetchFred('SAHMREALTIME'),
     ])
 
