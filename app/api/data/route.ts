@@ -83,8 +83,8 @@ async function fetchISMPMI(): Promise<number> {
     throw new Error('DBnomics: ingen gyldig PMI vaerdi')
   } catch (e) {
     console.warn('[/api/data] ISM PMI unavailable, using neutral default:', e)
-    // Neutral fallback — does not trigger scoring (score thresholds are <=49, <=47)
-    return 50.0
+    // Fallback: latest known value (Feb 2026). Update monthly if DBnomics stays unavailable.
+    return 52.4
   }
 }
 
