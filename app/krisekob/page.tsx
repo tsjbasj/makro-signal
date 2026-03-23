@@ -186,7 +186,7 @@ export default function KrisekobPage() {
               <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '3px 10px', marginTop: 6, alignItems: 'center' }}>
                 {ind.steps.map((step, i) => (
                   <span key={i} style={{ fontFamily: mono, fontSize: 9, display: 'inline-flex', alignItems: 'center', gap: 3, color: mkt ? (step.met ? '#2d6a3f' : '#bbbbbb') : '#cccccc' }}>
-                    <span style={{ color: step.met ? '#4a7c59' : '#a63d2f', fontSize: 8 }}>\u25cf</span>
+                    <span style={{ color: step.met ? '#4a7c59' : '#a63d2f', fontSize: 8 }}>{'●'}</span>
                     {step.label}
                   </span>
                 ))}
