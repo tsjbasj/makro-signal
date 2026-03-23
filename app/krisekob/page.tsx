@@ -136,31 +136,45 @@ export default function KrisekobPage() {
 
         {/* SEKTION 1 — Indikatorer */}
         <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#999999', marginBottom: 10 }}>Sektion 1 — Indikatorer</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 28 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 28 }}>
           {[
             {
-              label: 'S&P 500 fra high',
+              label: 'S\u0026P 500 fra high',
               value: mkt ? spPct.toFixed(1) + '%' : '—',
-              sub: mkt ? (spScore === 0 ? 'Under 10% ●' : [sp1 && '≥10%', sp2 && '≥15%', sp3 && '≥20%', sp4 && '≥25%'].filter(Boolean).join(' · ') + ' ●') : '—',
-              ok: sp1, pts: spScore, max: 4,
+              ok: sp1, pts: spScore, max: 4, note: '',
+              steps: [
+                { label: 'Under 10%', met: sp1 },
+                { label: 'Under 15%', met: sp2 },
+                { label: 'Under 20%', met: sp3 },
+                { label: 'Under 25%', met: sp4 },
+              ],
             },
             {
-              label: 'Fear & Greed',
+              label: 'Fear \u0026 Greed',
               value: mkt ? String(mkt.fearGreedIndex) : '—',
-              sub: mkt ? (fgScore === 0 ? 'Over 35 ●' : fgScore === 1 ? '≤ 35 ● · over 20' : '≤ 35 ● · ≤ 20 ●') : '—',
-              ok: fg1, pts: fgScore, max: 2,
+              ok: fg1, pts: fgScore, max: 2, note: '',
+              steps: [
+                { label: '\u2264 35', met: fg1 },
+                { label: '\u2264 20', met: fg2 },
+              ],
             },
             {
               label: 'ISM PMI',
-              value: mkt ? String(mkt.ismPMI) : '—', note: 'feb',
-              sub: mkt ? (ismScore === 0 ? 'Over 49 ●' : ismScore === 1 ? '≤ 49 ● · over 47' : '≤ 49 ● · ≤ 47 ●') : '—',
-              ok: ism1, pts: ismScore, max: 2,
+              value: mkt ? String(mkt.ismPMI) : '—',
+              ok: ism1, pts: ismScore, max: 2, note: 'feb',
+              steps: [
+                { label: 'Under 49', met: ism1 },
+                { label: 'Under 47', met: ism2 },
+              ],
             },
             {
               label: 'Sahm-regel',
               value: mkt ? (mkt.sahmRule ?? 0).toFixed(2) : '—',
-              sub: mkt ? (sahmScore === 0 ? 'Under 0.5 ●' : sahmScore === 1 ? '≥ 0.5 ● · under 1.0' : '≥ 0.5 ● · ≥ 1.0 ●') : '—',
-              ok: sahm1, pts: sahmScore, max: 2,
+              ok: sahm1, pts: sahmScore, max: 2, note: '',
+              steps: [
+                { label: 'Over 0.5', met: sahm1 },
+                { label: 'Over 1.0', met: sahm2 },
+              ],
             },
           ].map((ind) => (
             <div key={ind.label} style={{ ...cardStyle, padding: '16px 18px' }}>
@@ -169,7 +183,15 @@ export default function KrisekobPage() {
                 <div style={{ fontFamily: serif, fontSize: 30, fontWeight: 300, color: mkt ? (ind.ok ? '#2d6a3f' : '#8b1c1c') : '#cccccc', lineHeight: 1 }}>{ind.value}</div>
                 <div style={{ fontFamily: mono, fontSize: 9, color: '#aaaaaa' }}>{ind.pts}/{ind.max}pt</div>
               </div>
-              <div style={{ fontFamily: mono, fontSize: 9, color: mkt ? (ind.ok ? '#2d6a3f' : '#8b1c1c') : '#cccccc', marginTop: 6 }}>{ind.sub}{'note' in ind && ind.note ? <span style={{ color: '#aaaaaa', marginLeft: 5 }}>{ind.note}</span> : null}</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '3px 10px', marginTop: 6, alignItems: 'center' }}>
+                {ind.steps.map((step, i) => (
+                  <span key={i} style={{ fontFamily: mono, fontSize: 9, display: 'inline-flex', alignItems: 'center', gap: 3, color: mkt ? (step.met ? '#2d6a3f' : '#bbbbbb') : '#cccccc' }}>
+                    <span style={{ color: step.met ? '#4a7c59' : '#a63d2f', fontSize: 8 }}>\u25cf</span>
+                    {step.label}
+                  </span>
+                ))}
+                {ind.note ? <span style={{ fontFamily: mono, fontSize: 9, color: '#aaaaaa' }}>{ind.note}</span> : null}
+              </div>
             </div>
           ))}
         </div>
