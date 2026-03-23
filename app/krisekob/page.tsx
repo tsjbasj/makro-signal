@@ -152,7 +152,7 @@ export default function KrisekobPage() {
             },
             {
               label: 'ISM PMI',
-              value: mkt ? String(mkt.ismPMI) : '—',
+              value: mkt ? String(mkt.ismPMI) + ' (feb 2026)' : '—',
               sub: mkt ? (ismScore === 0 ? 'Over 49 ●' : ismScore === 1 ? '≤ 49 ● · over 47' : '≤ 49 ● · ≤ 47 ●') : '—',
               ok: ism1, pts: ismScore, max: 2,
             },
