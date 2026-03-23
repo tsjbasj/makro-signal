@@ -4,68 +4,96 @@ export const runtime = 'nodejs'
 export const maxDuration = 30
 export const revalidate = 3600
 
-export async function GET() {
-  const anthropicKey = process.env.ANTHROPIC_API_KEY
-  const fredKey      = process.env.FRED_API_KEY ?? '61026cb5f11d98af5bc80a81e9860406'
+const FRED_KEY = process.env.FRED_API_KEY ?? '61026cb5f11d98af5bc80a81e9860406'
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36'
 
-  if (!anthropicKey) {
-    return NextResponse.json(
-      { error: 'ANTHROPIC_API_KEY mangler' },
-      { status: 500 }
-    )
-  }
-
-  try {
-    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'web-search-2025-03-05',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 1024,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{
-          role: 'user',
-          content: `Search for current market data and return ONLY valid JSON, no markdown, no explanation:
-{"fearGreedIndex":<number 0-100>,"fearGreedLabel":"<Extreme Fear|Fear|Neutral|Greed|Extreme Greed>","sp500Price":<number>,"sp500_52wHigh":<number>,"sp500PeakDate":"<YYYY-MM-DD when SP500 last peaked before current decline>","ismPMI":<ISM Manufacturing PMI latest number>}
-Search: 1) CNN Fear Greed Index 2) SP500 current price and 52-week high 3) SP500 recent peak date before current decline 4) ISM Manufacturing PMI latest. Return ONLY the JSON.`,
-        }],
-      })
-    })
-
-    if (!anthropicRes.ok) {
-      const err = await anthropicRes.text()
-      throw new Error(`Anthropic HTTP ${anthropicRes.status}: ${err.slice(0, 200)}`)
+// ── S&P 500 via Yahoo Finance ────────────────────────────────────────────────
+async function fetchSP500(): Promise<{ price: number; high52w: number; peakDate: string }> {
+  const url = 'https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=1d&range=1y'
+  const res = await fetch(url, { headers: { 'User-Agent': UA } })
+  if (!res.ok) throw new Error('Yahoo Finance S&P 500: HTTP ' + res.status)
+  const data = await res.json()
+  const result = data?.chart?.result?.[0]
+  if (!result) throw new Error('Yahoo Finance: ingen data for ^GSPC')
+  const closes: (number | null)[] = result.indicators?.quote?.[0]?.close ?? []
+  const timestamps: number[] = result.timestamp ?? []
+  const price: number = result.meta?.regularMarketPrice
+    ?? closes.filter((c): c is number => c !== null).slice(-1)[0]
+  let high52w = 0
+  let peakDate = ''
+  for (let i = 0; i < closes.length; i++) {
+    const c = closes[i]
+    if (c !== null && c !== undefined && c > high52w) {
+      high52w = c
+      peakDate = timestamps[i] ? new Date(timestamps[i] * 1000).toISOString().slice(0, 10) : ''
     }
+  }
+  return {
+    price:   Math.round(price   * 100) / 100,
+    high52w: Math.round(high52w * 100) / 100,
+    peakDate,
+  }
+}
 
-    const anthropicData = await anthropicRes.json()
-    const text = (anthropicData.content ?? [])
-      .filter((b: { type: string }) => b.type === 'text')
-      .map((b: { text: string }) => b.text)
-      .join('')
-    const cleaned = text.replace(/```json|```/g, '').trim()
-    const match = cleaned.match(/\{[\s\S]*\}/)
-    if (!match) throw new Error(`Ingen JSON i svar: ${text.slice(0, 300)}`)
-    const market = JSON.parse(match[0])
+// ── CNN Fear & Greed ─────────────────────────────────────────────────────────
+function labelFromScore(s: number): string {
+  if (s <= 25) return 'Extreme Fear'
+  if (s <= 45) return 'Fear'
+  if (s <= 55) return 'Neutral'
+  if (s <= 75) return 'Greed'
+  return 'Extreme Greed'
+}
 
-    const fredParts = ['https://api.stlouisfed.org/fred/series/observations', '?series_id=SAHMREALTIME', `&api_key=${fredKey}`, '&limit=1&sort_order=desc&file_type=json']
-    const fredRes = await fetch(fredParts.join(''))
-    const fredData = await fredRes.json()
-    const sahmRule = parseFloat(fredData.observations?.[0]?.value)
-    if (isNaN(sahmRule)) throw new Error('FRED SAHMREALTIME returnerede ingen gyldig vaerdi')
+async function fetchFearGreed(): Promise<{ score: number; label: string }> {
+  const url = 'https://production.dataviz.cnn.io/index/fearandgreed/graphdata'
+  const res = await fetch(url, {
+    headers: { 'User-Agent': UA, 'Referer': 'https://edition.cnn.com/' },
+  })
+  if (!res.ok) throw new Error('CNN Fear & Greed: HTTP ' + res.status)
+  const data = await res.json()
+  const score = data?.fear_and_greed?.score
+  if (score === undefined || score === null) throw new Error('CNN F&G: ingen score i svar')
+  const rating: string = data?.fear_and_greed?.rating ?? ''
+  const label = rating
+    ? rating.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
+    : labelFromScore(Math.round(Number(score)))
+  return { score: Math.round(Number(score)), label }
+}
+
+// ── FRED series (ISM PMI + Sahm Rule) ───────────────────────────────────────
+async function fetchFred(seriesId: string): Promise<number> {
+  const url =
+    'https://api.stlouisfed.org/fred/series/observations' +
+    '?series_id=' + seriesId +
+    '&api_key=' + FRED_KEY +
+    '&sort_order=desc&limit=3&file_type=json'
+  const res = await fetch(url)
+  if (!res.ok) throw new Error('FRED ' + seriesId + ': HTTP ' + res.status)
+  const data = await res.json()
+  const obs: Array<{ value: string }> = data?.observations ?? []
+  const valid = obs.find(o => o.value !== '.' && !isNaN(parseFloat(o.value)))
+  if (!valid) throw new Error('FRED ' + seriesId + ': ingen gyldig vaerdi')
+  return parseFloat(valid.value)
+}
+
+// ── Main handler ─────────────────────────────────────────────────────────────
+export async function GET() {
+  try {
+    const [sp500, fearGreed, ismPMI, sahmRule] = await Promise.all([
+      fetchSP500(),
+      fetchFearGreed(),
+      fetchFred('NAPM'),
+      fetchFred('SAHMREALTIME'),
+    ])
 
     return NextResponse.json(
       {
-        fearGreedIndex: Number(market.fearGreedIndex),
-        fearGreedLabel: String(market.fearGreedLabel),
-        sp500Price:     Number(market.sp500Price),
-        sp500_52wHigh:  Number(market.sp500_52wHigh),
-        sp500PeakDate:  String(market.sp500PeakDate ?? ''),
-        ismPMI:         Number(market.ismPMI ?? 50),
+        fearGreedIndex: fearGreed.score,
+        fearGreedLabel: fearGreed.label,
+        sp500Price:     sp500.price,
+        sp500_52wHigh:  sp500.high52w,
+        sp500PeakDate:  sp500.peakDate,
+        ismPMI,
         sahmRule,
         updatedAt:      new Date().toISOString(),
       },
