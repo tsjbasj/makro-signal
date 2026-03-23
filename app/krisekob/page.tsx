@@ -152,7 +152,7 @@ export default function KrisekobPage() {
             },
             {
               label: 'ISM PMI',
-              value: mkt ? String(mkt.ismPMI) + ' (feb 2026)' : '—',
+              value: mkt ? String(mkt.ismPMI) : '—', note: 'feb',
               sub: mkt ? (ismScore === 0 ? 'Over 49 ●' : ismScore === 1 ? '≤ 49 ● · over 47' : '≤ 49 ● · ≤ 47 ●') : '—',
               ok: ism1, pts: ismScore, max: 2,
             },
@@ -169,7 +169,7 @@ export default function KrisekobPage() {
                 <div style={{ fontFamily: serif, fontSize: 30, fontWeight: 300, color: mkt ? (ind.ok ? '#2d6a3f' : '#8b1c1c') : '#cccccc', lineHeight: 1 }}>{ind.value}</div>
                 <div style={{ fontFamily: mono, fontSize: 9, color: '#aaaaaa' }}>{ind.pts}/{ind.max}pt</div>
               </div>
-              <div style={{ fontFamily: mono, fontSize: 9, color: mkt ? (ind.ok ? '#2d6a3f' : '#8b1c1c') : '#cccccc', marginTop: 6 }}>{ind.sub}</div>
+              <div style={{ fontFamily: mono, fontSize: 9, color: mkt ? (ind.ok ? '#2d6a3f' : '#8b1c1c') : '#cccccc', marginTop: 6 }}>{ind.sub}{'note' in ind && ind.note ? <span style={{ color: '#aaaaaa', marginLeft: 5 }}>{ind.note}</span> : null}</div>
             </div>
           ))}
         </div>
