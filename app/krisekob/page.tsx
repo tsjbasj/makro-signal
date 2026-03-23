@@ -69,10 +69,9 @@ export default function KrisekobPage() {
 
   // Sahm-regel — 2 trin (max 2 point)
   const sahm1 = mkt ? (mkt.sahmRule ?? 0) >= 0.5 : false
-  const sahm2 = mkt ? (mkt.sahmRule ?? 0) >= 1.0 : false
-  const sahmScore = [sahm1, sahm2].filter(Boolean).length
+  const sahmScore = [sahm1].filter(Boolean).length
 
-  const score = spScore + fgScore + ismScore + sahmScore  // max 10
+  const score = spScore + fgScore + ismScore + sahmScore  // max 9
 
   const badgeLabel: string = score <= 2 ? 'VENT' : score === 3 ? 'KØB MULIG' : score <= 6 ? 'KØB' : 'KØB NU'
   const badgeColor: string = score <= 2 ? '#8b1c1c' : score === 3 ? '#7a5c00' : '#2d6a3f'
@@ -143,10 +142,10 @@ export default function KrisekobPage() {
               value: mkt ? spPct.toFixed(1) + '%' : '—',
               ok: sp1, pts: spScore, max: 4, note: '',
               steps: [
-                { label: 'Under 10%', met: sp1 },
-                { label: 'Under 15%', met: sp2 },
-                { label: 'Under 20%', met: sp3 },
-                { label: 'Under 25%', met: sp4 },
+                { label: '-10%', met: sp1 },
+                { label: '-15%', met: sp2 },
+                { label: '-20%', met: sp3 },
+                { label: '-25%', met: sp4 },
               ],
             },
             {
@@ -170,10 +169,9 @@ export default function KrisekobPage() {
             {
               label: 'Sahm-regel',
               value: mkt ? (mkt.sahmRule ?? 0).toFixed(2) : '—',
-              ok: sahm1, pts: sahmScore, max: 2, note: '',
+              ok: sahm1, pts: sahmScore, max: 1, note: '',
               steps: [
                 { label: 'Over 0.5', met: sahm1 },
-                { label: 'Over 1.0', met: sahm2 },
               ],
             },
           ].map((ind) => (
