@@ -124,7 +124,7 @@ function Nav() {
   return (
     <nav style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '10px 24px', background: 'rgba(242,239,230,0.97)', borderBottom: '1px solid rgba(0,0,0,0.09)', fontFamily: 'var(--font-dm-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 100 }}>
       <span style={{ color: '#999999' }}>◈</span>
-      <Link href="/portefolje" style={{ color: '#111111', textDecoration: 'none', borderBottom: '1px solid #111111', paddingBottom: 2 }}>Min Portefølje</Link>
+      <Link href="/portefolje" style={{ color: '#111111', textDecoration: 'none', borderBottom: '1px solid #111111', paddingBottom: 2 }}>Min Portfolio</Link>
       <Link href="/krisekob" style={{ color: '#999999', textDecoration: 'none' }}>Krisekøb ETF</Link>
     </nav>
   )
@@ -523,6 +523,10 @@ export default function PortefoeljePage() {
 
           const dot = (ok: boolean) => <span style={{ color: ok ? '#4a7c59' : '#a63d2f', fontSize: 8, marginRight: 4, flexShrink: 0 as const }}>●</span>
           const val = (ok: boolean, txt: string) => <span style={{ fontFamily: mono, fontSize: 9, fontWeight: 700 as const, color: ok ? '#2d6a3f' : '#8b1c1c' }}>{txt}</span>
+          const fadeInd = mkt.fg > 56 || (mkt.fg >= 45 && mkt.fg <= 55)
+          const fadeUd = mkt.fg < 44 || (mkt.fg >= 45 && mkt.fg <= 55)
+          const fadeIndMsg = mkt.fg >= 45 && mkt.fg <= 55 ? 'neutralt' : 'for grådig'
+          const fadeUdMsg = mkt.fg >= 45 && mkt.fg <= 55 ? 'neutralt' : 'for frygteligt'
           const colStyle: React.CSSProperties = { flex: 1, background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.10)', borderRadius: 6, padding: '12px 14px' }
           const rowStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }
           const labelStyle: React.CSSProperties = { fontFamily: mono, fontSize: 9, color: '#555555', flex: 1 }
@@ -532,7 +536,8 @@ export default function PortefoeljePage() {
               <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
 
                 {/* ROTATION IND */}
-                <div style={colStyle}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, gap: 4 }}>
+                <div style={{ ...colStyle, flex: 'none' as const, opacity: fadeInd ? 0.3 : 1 }}>
                   <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#333333', marginBottom: 10, textTransform: 'uppercase' as const }}>Rotation ind</div>
                   <div style={rowStyle}>
                     {dot(in1)}<span style={labelStyle}>F&amp;G under 25</span>{val(in1, String(mkt.fg))}
@@ -551,9 +556,12 @@ export default function PortefoeljePage() {
                     {godkendtInd ? 'GODKENDT ●' : 'IKKE GODKENDT ●'}
                   </div>
                 </div>
+                {fadeInd && <div style={{ fontFamily: mono, fontSize: 8, color: '#999999', textAlign: 'center' as const, marginTop: 2 }}>Ikke relevant — markedet er {fadeIndMsg}</div>}
+                </div>
 
                 {/* ROTATION UD */}
-                <div style={colStyle}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const, gap: 4 }}>
+                <div style={{ ...colStyle, flex: 'none' as const, opacity: fadeUd ? 0.3 : 1 }}>
                   <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.10em', color: '#333333', marginBottom: 10, textTransform: 'uppercase' as const }}>Rotation ud</div>
                   <div style={rowStyle}>
                     {dot(out1)}<span style={labelStyle}>F&amp;G over 75</span>{val(out1, String(mkt.fg))}
@@ -570,6 +578,8 @@ export default function PortefoeljePage() {
                   <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: godkendtUd ? '#2d6a3f' : '#8b1c1c', marginTop: 6 }}>
                     {godkendtUd ? 'GODKENDT ●' : 'IKKE GODKENDT ●'}
                   </div>
+                </div>
+                {fadeUd && <div style={{ fontFamily: mono, fontSize: 8, color: '#999999', textAlign: 'center' as const, marginTop: 2 }}>Ikke relevant — markedet er {fadeUdMsg}</div>}
                 </div>
 
               </div>
@@ -627,6 +637,61 @@ export default function PortefoeljePage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* ── SEKTION: Fordeling ──────────────────────────────────────────── */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 12 }}>FORDELING</div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            {/* Land/Region */}
+            <div style={{ flex: 1, background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 6, padding: '12px 14px' }}>
+              <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.1em', color: '#aaaaaa', marginBottom: 10 }}>LAND / REGION</div>
+              {([
+                { label: 'USA',      pct: 40 },
+                { label: 'Danmark',  pct: 30 },
+                { label: 'Canada',   pct: 10 },
+                { label: 'Brasilien',pct:  5 },
+                { label: 'Indien',   pct:  5 },
+                { label: 'UK',       pct:  5 },
+                { label: 'Korea',    pct:  5 },
+              ] as { label: string; pct: number }[]).map(r => (
+                <div key={r.label} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                  <div style={{ fontFamily: mono, fontSize: 8, color: '#555555', width: 60, flexShrink: 0 }}>{r.label}</div>
+                  <div style={{ flex: 1, height: 4, background: 'rgba(0,0,0,0.07)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ width: r.pct + '%', height: '100%', background: '#4a7c59', borderRadius: 2 }} />
+                  </div>
+                  <div style={{ fontFamily: mono, fontSize: 8, color: '#999999', width: 26, textAlign: 'right' as const }}>{r.pct}%</div>
+                </div>
+              ))}
+            </div>
+            {/* Branche */}
+            <div style={{ flex: 1, background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 6, padding: '12px 14px' }}>
+              <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.1em', color: '#aaaaaa', marginBottom: 10 }}>BRANCHE</div>
+              {([
+                { label: 'Uran/Energi',       pct: 20 },
+                { label: 'AI/Halvledere',      pct: 10 },
+                { label: 'Guld/Råvarer',       pct: 10 },
+                { label: 'Høreapparater',      pct: 10 },
+                { label: 'Fintech/Bet. EM',    pct: 10 },
+                { label: 'Pharma',             pct:  5 },
+                { label: 'Logistik',           pct:  5 },
+                { label: 'Datacentre',         pct:  5 },
+                { label: 'Infrastruktur',      pct:  5 },
+                { label: 'Indien/Bank',        pct:  5 },
+                { label: 'Palmolie',           pct:  5 },
+                { label: 'Tech/IT',            pct:  5 },
+                { label: 'Elektronik',         pct:  5 },
+              ] as { label: string; pct: number }[]).map(r => (
+                <div key={r.label} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                  <div style={{ fontFamily: mono, fontSize: 8, color: '#555555', width: 82, flexShrink: 0 }}>{r.label}</div>
+                  <div style={{ flex: 1, height: 4, background: 'rgba(0,0,0,0.07)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ width: r.pct + '%', height: '100%', background: '#4a7c59', borderRadius: 2 }} />
+                  </div>
+                  <div style={{ fontFamily: mono, fontSize: 8, color: '#999999', width: 26, textAlign: 'right' as const }}>{r.pct}%</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
