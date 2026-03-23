@@ -177,8 +177,6 @@ function PositionCard({
         </div>
         <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 10, display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
           <div><span style={{ color: '#999999' }}>Investeret: </span><span style={{ color: '#555555' }}>{pos.invested.toLocaleString('da-DK')} DKK</span></div>
-          <div style={{ color: '#8b1c1c' }}>⬇ Sælg altid under: {pos.stopLoss} {pos.currency}</div>
-          <div style={{ color: '#2d6a3f' }}>⬆ Tag gevinst ved: {pos.exitTarget} {pos.currency}</div>
         </div>
         <PriceBar stopLoss={pos.stopLoss} exitTarget={pos.exitTarget} currentPrice={pos.currentPrice} />
         {(() => {
