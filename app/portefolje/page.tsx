@@ -571,7 +571,6 @@ export default function PortefoeljePage() {
                   </div>
                   <div style={{ ...rowStyle, borderBottom: 'none' }}>
                     {dot(in3)}<span style={labelStyle}>Næste aktie over 200d</span>
-                    {val(in3, sma200Loading ? '...' : nuEntry ? 'NU — ' + (nuEntry.above ? 'over' : 'under') : '—')}
                   </div>
                   {rotInBuyFG === null ? (
                     godkendtInd ? (
@@ -592,7 +591,6 @@ export default function PortefoeljePage() {
                     {godkendtInd ? 'GODKENDT ●' : 'IKKE GODKENDT ●'}
                   </div>
                 </div>
-                {fadeInd && <div style={{ fontFamily: mono, fontSize: 8, color: '#999999', textAlign: 'center' as const, marginTop: 2 }}>Ikke relevant — markedet er {fadeIndMsg}</div>}
                 </div>
 
                 {/* ROTATION UD */}
@@ -611,11 +609,7 @@ export default function PortefoeljePage() {
                   <div style={{ fontFamily: mono, fontSize: 9, color: cooldownOutStatus === 'aktiv' ? '#8b1c1c' : '#777777', marginTop: 8, borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 6 }}>
                     {cooldownOutStatus === 'ingen' ? 'Ingen aktiv cooldown' : cooldownOutStatus === 'aktiv' ? 'Cooldown aktiv — F&G skal falde 15 point' : 'Cooldown opfyldt'}
                   </div>
-                  <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: godkendtUd ? '#2d6a3f' : '#8b1c1c', marginTop: 6 }}>
-                    {godkendtUd ? 'GODKENDT ●' : 'IKKE GODKENDT ●'}
-                  </div>
                 </div>
-                {fadeUd && <div style={{ fontFamily: mono, fontSize: 8, color: '#999999', textAlign: 'center' as const, marginTop: 2 }}>Ikke relevant — markedet er {fadeUdMsg}</div>}
                 </div>
 
               </div>
