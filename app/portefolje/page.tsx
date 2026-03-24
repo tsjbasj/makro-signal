@@ -569,9 +569,6 @@ export default function PortefoeljePage() {
                   <div style={rowStyle}>
                     {dot(in2)}<span style={labelStyle}>S&amp;P faldet 7%+</span>{val(in2, spPct.toFixed(1) + '%')}
                   </div>
-                  <div style={{ ...rowStyle, borderBottom: 'none' }}>
-                    {dot(in3)}<span style={labelStyle}>Næste aktie over 200d</span>
-                  </div>
                   {rotInBuyFG === null ? (
                     godkendtInd ? (
                       <button onClick={registerRotIn} style={{ fontFamily: mono, fontSize: 9, background: '#2d6a3f', color: '#ffffff', border: 'none', borderRadius: 3, padding: '5px 12px', cursor: 'pointer', letterSpacing: '0.04em', marginTop: 8 }}>Registrer rotationskøb</button>
