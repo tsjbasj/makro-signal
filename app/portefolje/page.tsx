@@ -384,6 +384,8 @@ export default function PortefoeljePage() {
 
   const [mkt, setMkt] = useState<{fg:number,fgLabel:string,sp:number,spHigh:number,sahm:number,pmi:number,peakDate:string,weeksSincePeak:number}|null>(null)
   const [mktLoading, setMktLoading] = useState(false)
+  const [rotInBuyDate, setRotInBuyDate] = useState<string|null>(null)
+  const [rotInBuyFG, setRotInBuyFG] = useState<number|null>(null)
 
   async function fetchMarket() {
     setMktLoading(true)
@@ -417,9 +419,31 @@ export default function PortefoeljePage() {
     setPositions(saved ? JSON.parse(saved) : INITIAL_POSITIONS)
   }, [])
 
+  useEffect(() => {
+    const d = localStorage.getItem('rot_in_date')
+    const fg = localStorage.getItem('rot_in_fg')
+    if (d) setRotInBuyDate(d)
+    if (fg) setRotInBuyFG(Number(fg))
+  }, [])
+
   function persist(next: ActivePosition[]) {
     setPositions(next)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+  }
+
+  function registerRotIn() {
+    if (!mkt) return
+    const today = new Date().toISOString().split('T')[0]
+    localStorage.setItem('rot_in_date', today)
+    localStorage.setItem('rot_in_fg', String(mkt.fg))
+    setRotInBuyDate(today)
+    setRotInBuyFG(mkt.fg)
+  }
+
+  function fmtDanish(iso: string): string {
+    const d = new Date(iso)
+    const m = ['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december']
+    return `${d.getDate()}. ${m[d.getMonth()]} ${d.getFullYear()}`
   }
 
   function handleSave(p: ActivePosition) {
@@ -497,9 +521,9 @@ export default function PortefoeljePage() {
           const spPct = (mkt.sp - mkt.spHigh) / mkt.spHigh * 100
 
           // ── ROTATION IND ──────────────────────────────────────────────────────
-          const LAST_ROT_IN_FG = 16
-          const cooldownInTarget = LAST_ROT_IN_FG + 15
-          const cooldownInActive = mkt.fg < cooldownInTarget
+          const cooldownInTarget = rotInBuyFG !== null ? rotInBuyFG + 15 : null
+          const cooldownInActive = cooldownInTarget !== null && mkt.fg < cooldownInTarget
+          const cooldownInLifted = cooldownInTarget !== null && mkt.fg >= cooldownInTarget
           const in1 = mkt.fg < 25
           const in2 = spPct <= -7
           const nuEntry = sma200Data?.find((d: Sma200Data) => d.ticker === 'NU')
@@ -549,9 +573,21 @@ export default function PortefoeljePage() {
                     {dot(in3)}<span style={labelStyle}>Næste aktie over 200d</span>
                     {val(in3, sma200Loading ? '...' : nuEntry ? 'NU — ' + (nuEntry.above ? 'over' : 'under') : '—')}
                   </div>
-                  <div style={{ fontFamily: mono, fontSize: 9, color: cooldownInActive ? '#8b1c1c' : '#777777', marginTop: 8, borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 6 }}>
-                    {cooldownInActive ? 'Cooldown aktiv — F&G skal stige til ' + cooldownInTarget : 'Ingen aktiv cooldown'}
-                  </div>
+                  {rotInBuyFG === null ? (
+                    godkendtInd ? (
+                      <button onClick={registerRotIn} style={{ fontFamily: mono, fontSize: 9, background: '#2d6a3f', color: '#ffffff', border: 'none', borderRadius: 3, padding: '5px 12px', cursor: 'pointer', letterSpacing: '0.04em', marginTop: 8 }}>Registrer rotationskøb</button>
+                    ) : null
+                  ) : cooldownInActive ? (
+                    <div style={{ fontFamily: mono, fontSize: 8, color: '#8b1c1c', marginTop: 8, borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 6, lineHeight: '1.6' }}>
+                      Cooldown aktiv — F&G skal stige fra {rotInBuyFG} til mindst {cooldownInTarget}<br/>
+                      Sidst roteret: {fmtDanish(rotInBuyDate ?? '')}
+                    </div>
+                  ) : (
+                    <div style={{ fontFamily: mono, fontSize: 8, color: '#2d6a3f', marginTop: 8, borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 6, lineHeight: '1.6' }}>
+                      Cooldown opfyldt — F&G er over {(cooldownInTarget ?? 0) - 1}<br/>
+                      Klar til ny rotation
+                    </div>
+                  )}
                   <div style={{ fontFamily: mono, fontSize: 10, fontWeight: 700, color: godkendtInd ? '#2d6a3f' : '#8b1c1c', marginTop: 6 }}>
                     {godkendtInd ? 'GODKENDT ●' : 'IKKE GODKENDT ●'}
                   </div>
