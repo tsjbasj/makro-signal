@@ -6,6 +6,7 @@ export const maxDuration = 30
 export async function GET() {
   const key = process.env.ANTHROPIC_API_KEY
   if (!key) return NextResponse.json({ error: 'ANTHROPIC_API_KEY mangler' }, { status: 500 })
+  const today = new Date().toISOString().split('T')[0]
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -17,23 +18,23 @@ export async function GET() {
       },
       body: JSON.stringify({
         model: 'claude-3-5-haiku-20241022',
-        max_tokens: 1024,
+        max_tokens: 512,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{
           role: 'user',
-          content: 'Search for the current stock price and today percentage change for OXY (Occidental Petroleum), PLTR (Palantir Technologies), and CELC (Celcuity) stocks (prices in USD). Also find the current price of UIE (United International Enterprises, Copenhagen Stock Exchange, ticker UIE) in DKK. Also find the current USD to DKK exchange rate. Return ONLY valid JSON with no markdown or explanation: {"stocks":[{"ticker":"OXY","price":54.0,"change1d":0.5},{"ticker":"PLTR","price":84.0,"change1d":1.2},{"ticker":"CELC","price":28.0,"change1d":-0.3},{"ticker":"UIE","price":369.0,"change1d":0.0}],"usdDkk":6.90,"lastUpdated":"2026-03-20"}',
-        }],
-      }),
+          content: 'Search for the current stock price of OXY, PLTR, and CELC on ' + today + '.\nReturn ONLY valid JSON, no other text:\n{\n  \"stocks\": [\n    { \"ticker\": \"OXY\", \"price\": 57.9, \"change1d\": 0.5 },\n    { \"ticker\": \"PLTR\", \"price\": 151.4, \"change1d\": 1.2 },\n    { \"ticker\": \"CELC\", \"price\": 114.0, \"change1d\": -0.3 }\n  ],\n  \"lastUpdated\": \"' + today + '\"\n}'
+        }]
+      })
     })
-    if (!res.ok) { const errBody = await res.text(); throw new Error('Anthropic HTTP ' + res.status + ': ' + errBody) }
-    const d = await res.json()
-    const text = (d.content ?? []).filter((b: { type: string }) => b.type === 'text').map((b: { text: string }) => b.text).join('')
-    const m = text.replace(/```json|```/g, '').trim().match(/\{[\s\S]*\}/)
-    if (!m) throw new Error('Ingen JSON i svar: ' + text.slice(0, 200))
-    return NextResponse.json(JSON.parse(m[0]), { headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate=60' } })
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e)
-    console.error('[/api/portfolio]', msg)
-    return NextResponse.json({ error: msg }, { status: 500 })
+    const data = await res.json()
+    let raw = ''
+    for (const block of (data.content ?? [])) {
+      if (block.type === 'text') { raw = block.text; break }
+    }
+    const m = raw.match(/\{[\s\S]*\}/)
+    if (!m) throw new Error('Intet JSON i svar')
+    return NextResponse.json(JSON.parse(m[0]))
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : 'Ukendt fejl' }, { status: 500 })
   }
 }
