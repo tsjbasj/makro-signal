@@ -131,15 +131,22 @@ function Nav() {
 }
 
 /* ─── Price Bar ──────────────────────────────────────────────────────── */
-function PriceBar({ stopLoss, exitTarget, currentPrice }: { stopLoss: number; exitTarget: number; currentPrice: number }) {
+function PriceBar({ stopLoss, exitTarget, currentPrice, liveOk }: { stopLoss: number; exitTarget: number; currentPrice: number; liveOk?: boolean }) {
   const pct = Math.max(0, Math.min(100, ((currentPrice - stopLoss) / (exitTarget - stopLoss)) * 100))
   const zone = pct < 30 ? '#8b1c1c' : pct < 70 ? '#8a6a00' : '#2d6a3f'
+  const toStop = ((currentPrice - stopLoss) / currentPrice) * 100
+  const toExit = ((exitTarget - currentPrice) / currentPrice) * 100
+  const stopClr = toStop < 10 ? '#c0392b' : '#999999'
+  const exitClr = toExit < 15 ? '#2d6a3f' : '#999999'
   return (
     <div style={{ marginTop: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-dm-mono)', fontSize: 9, color: '#999999', marginBottom: 6 }}>
-        <span>STOP {stopLoss}</span>
-        <span style={{ color: zone, fontWeight: 500 }}>Kurs ~{currentPrice}</span>
-        <span>MÅL {exitTarget}</span>
+        <span>STOP {stopLoss} <span style={{ color: stopClr }}>−{toStop.toFixed(1)}%</span></span>
+        <span style={{ color: zone, fontWeight: 500 }}>
+          Kurs {currentPrice}
+          {liveOk === false && <span style={{ color: '#aaaaaa', fontWeight: 400 }}> (ikke opdateret)</span>}
+        </span>
+        <span><span style={{ color: exitClr }}>+{toExit.toFixed(1)}% </span>MÅL {exitTarget}</span>
       </div>
       <div style={{ height: 4, background: 'rgba(255,255,255,0.10)', borderRadius: 4, position: 'relative' }}>
         <div style={{ height: '100%', width: `${pct}%`, background: `linear-gradient(90deg, #8b1c1c, ${zone})`, borderRadius: 4 }} />
@@ -155,11 +162,13 @@ function PositionCard({
   onEdit,
   onToggleCheck,
   smaData,
+  liveOk,
 }: {
   pos: ActivePosition
   onEdit: (p: ActivePosition) => void
   onToggleCheck: (id: string) => void
   smaData?: Sma200Data[] | null
+  liveOk?: boolean
 }) {
   const accent = CAT_COLOR[pos.category]
   return (
@@ -178,7 +187,7 @@ function PositionCard({
         <div style={{ fontFamily: 'var(--font-dm-mono)', fontSize: 10, display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
           <div><span style={{ color: '#999999' }}>Investeret: </span><span style={{ color: '#555555' }}>{pos.invested.toLocaleString('da-DK')} DKK</span></div>
         </div>
-        <PriceBar stopLoss={pos.stopLoss} exitTarget={pos.exitTarget} currentPrice={pos.currentPrice} />
+        <PriceBar stopLoss={pos.stopLoss} exitTarget={pos.exitTarget} currentPrice={pos.currentPrice} liveOk={liveOk} />
         {(() => {
           const _e = smaData?.find((d: Sma200Data) => d.ticker === pos.ticker) ?? null
           const _dot: string = _e ? (_e.above ? '#2d6a3f' : '#c0392b') : '#cccccc'
@@ -386,6 +395,7 @@ export default function PortefoeljePage() {
   const [mktLoading, setMktLoading] = useState(false)
   const [rotInBuyDate, setRotInBuyDate] = useState<string|null>(null)
   const [rotInBuyFG, setRotInBuyFG] = useState<number|null>(null)
+  const [quotesOk, setQuotesOk] = useState<Record<string,boolean>>({})
 
   async function fetchMarket() {
     setMktLoading(true)
@@ -451,17 +461,33 @@ export default function PortefoeljePage() {
     setEditPos(null)
   }
 
+  function toYahooTicker(ticker: string): string {
+    const dk = ['NOVO-B','GN','UIE','DSV','DEMANT','COLO-B','ORSTED','TRYG','NSIS-B']
+    return dk.includes(ticker) ? ticker + '.CO' : ticker
+  }
+
   async function fetchKurser() {
     setLoading(true)
     setKursError(null)
     try {
-      const res = await fetch('/api/portefolje-kurser')
+      const tickers = positions.map((p: ActivePosition) => toYahooTicker(p.ticker)).join(',')
+      const [res, qRes] = await Promise.all([
+        fetch('/api/portefolje-kurser'),
+        fetch('/api/quotes?tickers=' + tickers)
+      ])
       const data = await res.json()
+      const quotes: Record<string,number|null> = qRes.ok ? await qRes.json() : {}
       if (data.error) throw new Error(data.error)
+      const ok: Record<string,boolean> = {}
       const updated = positions.map((p: ActivePosition) => {
         const found = data.stocks?.find((s: {ticker: string; price: number}) => s.ticker === p.ticker)
-        return found ? { ...p, currentPrice: found.price } : p
+        const yTicker = toYahooTicker(p.ticker)
+        const lp = quotes[yTicker]
+        ok[p.ticker] = typeof lp === 'number'
+        const price = typeof lp === 'number' ? lp : (found ? found.price : p.currentPrice)
+        return { ...p, currentPrice: price }
       })
+      setQuotesOk(ok)
       persist(updated)
     } catch (e) {
       setKursError(e instanceof Error ? e.message.slice(0, 80) : 'Fejl ved hentning')
@@ -727,7 +753,7 @@ export default function PortefoeljePage() {
           <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>AKTIVE POSITIONER</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
             {positions.map(pos => (
-              <PositionCard key={pos.id} pos={pos} onEdit={setEditPos} onToggleCheck={toggleCheck} smaData={sma200Data} />
+              <PositionCard key={pos.id} pos={pos} onEdit={setEditPos} onToggleCheck={toggleCheck} smaData={sma200Data} liveOk={quotesOk[pos.ticker]} />
             ))}
           </div>
         </div>
