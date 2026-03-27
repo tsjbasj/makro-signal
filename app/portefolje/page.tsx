@@ -894,7 +894,6 @@ export default function PortefoeljePage() {
               </tbody>
             </table>
           </div>
-        </div>
 
         
 
