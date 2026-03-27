@@ -46,7 +46,7 @@ const INITIAL_POSITIONS: ActivePosition[] = [
     id: '1',
     ticker: 'GN',
     name: 'GN Store Nord',
-    category: 'Kerne',
+    category: 'Vækst',
     invested: 5022,
     stopLoss: 68,
     exitTarget: 145,
@@ -59,7 +59,7 @@ const INITIAL_POSITIONS: ActivePosition[] = [
     ticker: 'NOVO-B',
     name: 'Novo Nordisk',
     category: 'Kerne',
-    invested: 5105,
+    invested: 6000,
     stopLoss: 200,
     exitTarget: 380,
     currentPrice: 231.95,
@@ -71,7 +71,7 @@ const INITIAL_POSITIONS: ActivePosition[] = [
     ticker: 'UIE',
     name: 'UIE A/S',
     category: 'Kerne',
-    invested: 4800,
+    invested: 6000,
     stopLoss: 300,
     exitTarget: 500,
     currentPrice: 367.50,
@@ -654,10 +654,10 @@ export default function PortefoeljePage() {
           <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 18 }}>PORTFOLIOOVERBLIK</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
             {[
-              { label: 'Pladser brugt', value: `${usedSlots}/20`, sub: `${totalSlots - usedSlots} ledige` },
+              { label: 'Aktive positioner', value: `${usedSlots}/20`, sub: `${20 - usedSlots} åbne pladser` },
               { label: 'Investeret', value: `${totalInvested.toLocaleString('da-DK')} DKK`, sub: 'Fri kapital' },
-              { label: 'Næste køb', value: nextBuy.ticker, sub: `${nextBuy.name} · ${fmtMonth(nextBuy.plannedMonth)}` },
-              { label: 'Dage til næste', value: daysToNext > 0 ? `${daysToNext}d` : 'NU', sub: daysToNext <= 0 ? 'Klar til køb' : 'fra i dag' },
+              { label: 'Kandidater i pulje', value: '17', sub: 'klar til køb' },
+              { label: 'Åbne pladser', value: `${20 - usedSlots}`, sub: 'af 20 i alt' },
             ].map(({ label, value, sub }) => (
               <div key={label}>
                 <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.08em', marginBottom: 6 }}>{label.toUpperCase()}</div>
@@ -758,96 +758,104 @@ export default function PortefoeljePage() {
           </div>
         </div>
 
-        {/* ── SEKTION 3: Købeplan & Tidslinje ──────────────────────────────── */}
+        {/* ── SEKTION 3: Næste Køb & Kandidatpulje ───────────── */}
         <div style={{ marginBottom: 32 }}>
-          <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>KØBEPLAN & TIDSLINJE</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-            {[
-              { ticker: 'NU',     name: 'NU Holdings',      lag: 'Vækst',     bought: false, buyDate: '2026-04', stop: '$10,50',   exit: '$22',        amount: '5.000 USD', status: 'Rotationskøb' },
-              { ticker: 'DL',     name: 'dLocal',           lag: 'Spekulativ',bought: false, buyDate: '2026-04', stop: '$8,50',    exit: '$20',        amount: '4.000 USD', status: 'Rotationskøb' },
-              { ticker: 'DEMANT', name: 'Demant',           lag: 'Vækst',     bought: false, buyDate: '2026-05', stop: '155 DKK',  exit: '280 DKK',    amount: '5.000 DKK', status: 'Afvent Q1 5. maj' },
-              { ticker: 'EQIX',   name: 'Equinix',          lag: 'Vækst',     bought: false, buyDate: '2026-06', stop: '$760',     exit: '$1.300',     amount: '6.000 USD', status: 'OK' },
-              { ticker: 'CCJ',    name: 'Cameco',           lag: 'Kerne',     bought: false, buyDate: '2026-07', stop: '$82',      exit: '$165',       amount: '6.000 USD', status: 'OK' },
-              { ticker: 'DSV',    name: 'DSV',              lag: 'Kerne',     bought: false, buyDate: '2026-08', stop: '950 DKK',  exit: '2.000 DKK',  amount: '6.000 DKK', status: 'OK' },
-              { ticker: 'CRDO',   name: 'Credo Technology', lag: 'Spekulativ',bought: false, buyDate: '2026-11', stop: '$80',      exit: '$160',       amount: '4.000 USD', status: 'Hold øje' },
-              { ticker: 'ETN',    name: 'Eaton',            lag: 'Kerne',     bought: false, buyDate: '2026-11', stop: '$275',     exit: '$480',       amount: '5.000 USD', status: 'OK' },
-              { ticker: 'IBNI',   name: 'ICICI Bank',       lag: 'Vækst',     bought: false, buyDate: '2026-12', stop: '$21',      exit: '$45',        amount: '4.000 USD', status: 'OK' },
-              { ticker: '??',     name: 'Åben slot',        lag: 'Vækst',     bought: false, buyDate: '2027-01', stop: null,       exit: null,         amount: '5.000 USD', status: 'Åben slot' },
-            ].map((s) => {
-              const lagColor: string = s.lag === 'Kerne' ? '#1a3a1a' : s.lag === 'Vækst' ? '#1a2a3a' : '#3a1a1a'
-              const lagBg: string = s.lag === 'Kerne' ? '#1a3a1a22' : s.lag === 'Vækst' ? '#1a2a3a22' : '#3a1a1a22'
-              const reviewYears = s.lag === 'Kerne' ? 5 : 2
-              const buyDt = new Date(s.buyDate + '-01')
-              const reviewDt = new Date(buyDt)
-              reviewDt.setFullYear(reviewDt.getFullYear() + reviewYears)
-              const reviewStr = reviewDt.toLocaleDateString('da-DK', { month: 'short', year: 'numeric' })
-              const now = new Date()
-              const totalMs = reviewDt.getTime() - buyDt.getTime()
-              const elapsedMs = Math.max(0, now.getTime() - buyDt.getTime())
-              const pct = Math.min(100, (elapsedMs / totalMs) * 100)
-              const daysUntil = Math.max(0, Math.ceil((buyDt.getTime() - now.getTime()) / (1000*60*60*24)))
-              const buyMonthStr = buyDt.toLocaleDateString('da-DK', { month: 'short', year: 'numeric' })
-              const statusColor: string = s.status === 'OK' ? '#2d6a3f' : s.status === 'Åben slot' ? '#999999' : '#7a5c00'
-              const statusBg: string = s.status === 'OK' ? '#2d6a3f18' : s.status === 'Åben slot' ? '#99999918' : '#7a5c0018'
-              const smaEntry = sma200Data?.find((d: Sma200Data) => d.ticker === s.ticker) ?? null
-              const smaDot: string = smaEntry ? (smaEntry.above ? '#2d6a3f' : '#c0392b') : '#cccccc'
-              return (
-                <div key={s.ticker} style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.09)', borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column' as const, gap: 6 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 2, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' as const }}>
-                        <span style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: '#111111' }}>{s.ticker}</span>
-                        <span style={{ fontFamily: mono, fontSize: 8, color: lagColor, background: lagBg, borderRadius: 3, padding: '1px 5px', flexShrink: 0 }}>{s.lag}</span>
-                      </div>
-                      <span style={{ fontFamily: mono, fontSize: 9, color: '#777777' }}>{s.name}</span>
-                    </div>
-                    {s.status && (
-                      <span style={{ fontFamily: mono, fontSize: 8, color: statusColor, background: statusBg, borderRadius: 3, padding: '2px 6px', whiteSpace: 'nowrap' as const, flexShrink: 0 }}>{s.status}</span>
-                    )}
-                  </div>
-                  {s.bought ? (
-                    <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 5 }}>
-                      <span style={{ fontFamily: mono, fontSize: 9, color: '#555555' }}>Købt {buyMonthStr}</span>
-                      <div style={{ position: 'relative', height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 2, overflow: 'hidden' }}>
-                        <div style={{ position: 'absolute', left: 0, width: pct + '%', height: '100%', background: '#2d6a3f', borderRadius: 2 }} />
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontFamily: mono, fontSize: 8, color: '#999999' }}>Genovervejes {reviewStr}</span>
-                        <span style={{ fontFamily: mono, fontSize: 8, color: '#2d6a3f', fontWeight: 600 }}>På rette spor</span>
-                      </div>
-                      <div style={{ fontFamily: mono, fontSize: 9, color: '#555555', borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 5 }}>{s.stop} → {s.exit}</div>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 5 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontFamily: mono, fontSize: 9, color: '#555555' }}>{buyMonthStr}</span>
-                        {s.buyDate < '2027-01' && <span style={{ fontFamily: mono, fontSize: 8, color: '#999999' }}>{daysUntil} dage</span>}
-                      </div>
-                      {s.stop && <div style={{ fontFamily: mono, fontSize: 9, color: '#555555' }}>{s.stop} → {s.exit}</div>}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 5 }}>
-                        <span style={{ fontFamily: mono, fontSize: 9, color: '#777777' }}>{s.amount}</span>
-                        <span style={{ fontFamily: mono, fontSize: 8, color: '#999999' }}>Gnv. {reviewStr}</span>
-                      </div>
-                    </div>
-                  )}
-                  {smaEntry && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 5, marginTop: 2 }}>
-                      <span style={{ fontFamily: mono, fontSize: 9, color: '#888888' }}>200d</span>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: smaDot, display: 'inline-block', flexShrink: 0 }} />
-                      <span style={{ fontFamily: mono, fontSize: 9, color: smaDot }}>{smaEntry.above ? 'Over' : 'Under'}</span>
-                      <span style={{ fontFamily: mono, fontSize: 9, color: '#aaaaaa', marginLeft: 6 }}>Kurs: {smaEntry.currentPrice} · 200d: {smaEntry.sma200}</span>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+          <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 12 }}>NÆSTE KØB — 1. APRIL</div>
+          <div style={{ border: '2px dashed rgba(255,255,255,0.20)', borderRadius: 12, padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 20 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: mono, fontSize: 22, color: '#666' }}>?</div>
+            <div>
+              <div style={{ fontFamily: corm, fontSize: 26, fontWeight: 600, color: '#e9e5da', letterSpacing: '0.02em', lineHeight: 1 }}>TBD</div>
+              <div style={{ fontFamily: mono, fontSize: 10, color: '#888', marginTop: 4, letterSpacing: '0.06em' }}>Vælges den 1. april — fra kandidatpuljen nedenfor</div>
+            </div>
           </div>
         </div>
+        {/* Kandidatpulje */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 20 }}>KANDIDATPULJE — 17 AKTIER</div>
 
-        {/* ── SEKTION 4 + 5 side om side ───────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 32 }}>
+          {/* Kerne */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontFamily: mono, fontSize: 9, color: '#4ade80', letterSpacing: '0.1em', marginBottom: 8 }}>KERNE</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+              {[
+                { ticker: 'NVDA', name: 'Nvidia', stop: 80, exit: 200 },
+                { ticker: 'CCJ', name: 'Cameco', stop: 40, exit: 80 },
+                { ticker: 'DSV', name: 'DSV A/S', stop: 900, exit: 1800 },
+                { ticker: 'ETN', name: 'Eaton Corp', stop: 270, exit: 450 },
+                { ticker: 'EQIX', name: 'Equinix', stop: 650, exit: 1100 },
+                { ticker: 'SMSN', name: 'Samsung', stop: 55000, exit: 85000 },
+              ].map(s => (
+                <div key={s.ticker} style={{ background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.20)', borderRadius: 8, padding: '10px 12px' }}>
+                  <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: '#4ade80', marginBottom: 2 }}>{s.ticker}</div>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: '#aaa', marginBottom: 6 }}>{s.name}</div>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: '#777' }}>▼ {s.stop} · ▲ {s.exit}</div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-          {/* Reglerne */}
+          {/* Vækst */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontFamily: mono, fontSize: 9, color: '#60a5fa', letterSpacing: '0.1em', marginBottom: 8 }}>VÆKST</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+              {[
+                { ticker: 'NU', name: 'Nu Holdings', stop: 10, exit: 22 },
+                { ticker: 'DEMANT', name: 'Demant', stop: 220, exit: 420 },
+                { ticker: 'IBN', name: 'ICICI Bank', stop: 22, exit: 40 },
+                { ticker: 'NXE', name: 'NexGen Energy', stop: 6, exit: 14 },
+                { ticker: 'GOLD', name: 'Barrick Gold', stop: 14, exit: 28 },
+              ].map(s => (
+                <div key={s.ticker} style={{ background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.20)', borderRadius: 8, padding: '10px 12px' }}>
+                  <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: '#60a5fa', marginBottom: 2 }}>{s.ticker}</div>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: '#aaa', marginBottom: 6 }}>{s.name}</div>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: '#777' }}>▼ {s.stop} · ▲ {s.exit}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Spekulativ */}
+          <div>
+            <div style={{ fontFamily: mono, fontSize: 9, color: '#fbbf24', letterSpacing: '0.1em', marginBottom: 8 }}>SPEKULATIV</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
+              {[
+                { ticker: 'DLO', name: 'dLocal', stop: 10, exit: 25 },
+                { ticker: 'CRDO', name: 'Credo Technology', stop: 25, exit: 60 },
+                { ticker: 'UUUU', name: 'Energy Fuels', stop: 3, exit: 8 },
+                { ticker: 'YCA', name: 'Yellow Cake', stop: 3.5, exit: 7 },
+                { ticker: 'METC', name: 'Ramaco Resources', stop: 10, exit: 25 },
+                { ticker: 'ONDS', name: 'Ondas Holdings', stop: 1.5, exit: 5 },
+              ].map(s => (
+                <div key={s.ticker} style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.20)', borderRadius: 8, padding: '10px 12px' }}>
+                  <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: '#fbbf24', marginBottom: 2 }}>{s.ticker}</div>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: '#aaa', marginBottom: 6 }}>{s.name}</div>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: '#777' }}>▼ {s.stop} · ▲ {s.exit}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* Rotationsregler */}
+        <div style={{ background: 'rgba(0,0,0,0.09)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '22px 24px', marginBottom: 32 }}>
+          <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 18 }}>ROTATIONSREGLER</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            {[
+              { n: '01', rule: 'Månedligt køb', desc: 'Én ny position åbnes den 1. i måneden fra kandidatpuljen' },
+              { n: '02', rule: 'Rotation ind', desc: 'Ny kandidat tilføjes puljen når en position lukkes' },
+              { n: '03', rule: 'Rotation ud', desc: 'Position lukkes ved stop loss eller exit mål ramt' },
+              { n: '04', rule: 'Lagbegrænsning', desc: 'Max 8 Kerne · max 8 Vækst · max 4 Spekulativ ad gangen' },
+            ].map(r => (
+              <div key={r.n} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ fontFamily: mono, fontSize: 9, color: '#555', minWidth: 20, paddingTop: 1 }}>{r.n}</div>
+                <div>
+                  <div style={{ fontFamily: mono, fontSize: 10, color: '#cccccc', fontWeight: 600, marginBottom: 4, letterSpacing: '0.04em' }}>{r.rule}</div>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: '#888888', lineHeight: 1.6 }}>{r.desc}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Reglerne */}
           <div style={{ background: 'rgba(0,0,0,0.09)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 12, padding: '20px 22px' }}>
             <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>REGLERNE</div>
             {[
