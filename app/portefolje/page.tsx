@@ -748,13 +748,45 @@ export default function PortefoeljePage() {
           </div>
         </div>
 
-        {/* ── SEKTION 2: Aktive Positioner ─────────────────────────────── */}
+        {/* ── SEKTION 2: Aktive Positioner ───────────────────── */}
         <div style={{ marginBottom: 32 }}>
-          <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>AKTIVE POSITIONER</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
-            {positions.map(pos => (
-              <PositionCard key={pos.id} pos={pos} onEdit={setEditPos} onToggleCheck={toggleCheck} smaData={sma200Data} liveOk={quotesOk[pos.ticker]} />
-            ))}
+          <div style={{ fontFamily: mono, fontSize: 9, color: '#999999', letterSpacing: '0.1em', marginBottom: 16 }}>AKTIVE POSITIONER — {usedSlots}/20</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8 }}>
+            {positions.map(pos => {
+              const _k = pos.category === 'Kerne'
+              const _v = pos.category === 'Vækst'
+              const cc = _k ? '#4ade80' : _v ? '#60a5fa' : '#fbbf24'
+              const bg = _k ? 'rgba(74,222,128,0.07)' : _v ? 'rgba(96,165,250,0.07)' : 'rgba(251,191,36,0.07)'
+              const smaE = sma200Data?.find(d => d.ticker === pos.ticker) ?? null
+              const dot = smaE ? (smaE.above ? '#4ade80' : '#ef4444') : '#555'
+              const dStop = pos.currentPrice > 0 ? (pos.currentPrice - pos.stopLoss) / pos.currentPrice * 100 : null
+              const dExit = pos.currentPrice > 0 ? (pos.exitTarget - pos.currentPrice) / pos.currentPrice * 100 : null
+              return (
+                <div key={pos.id} style={{ background: bg, border: '1px solid ' + cc + '33', borderRadius: 8, padding: '10px 12px', position: 'relative' }}>
+                  <button onClick={() => setEditPos(pos)} title="Rediger" style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 11, lineHeight: 1, padding: 0 }}>{'✏'}</button>
+                  <div style={{ fontFamily: mono, fontSize: 12, fontWeight: 700, color: cc, marginBottom: 2 }}>{pos.ticker}</div>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: '#aaa', marginBottom: 5 }}>{pos.name}</div>
+                  <div style={{ fontFamily: mono, fontSize: 8, color: cc, background: cc + '18', border: '1px solid ' + cc + '33', borderRadius: 3, display: 'inline-block', padding: '1px 5px', letterSpacing: '0.06em', marginBottom: 6 }}>{pos.category.toUpperCase()}</div>
+                  <div style={{ fontFamily: mono, fontSize: 9, color: '#777', marginBottom: 4 }}>▼ {pos.stopLoss} · ▲ {pos.exitTarget}</div>
+                  {pos.currentPrice > 0 && (
+                    <div style={{ fontFamily: mono, fontSize: 11, color: '#e9e5da', fontWeight: 600, marginBottom: 3 }}>{pos.currentPrice.toLocaleString('da-DK')}</div>
+                  )}
+                  {dStop !== null && dExit !== null && (
+                    <div style={{ fontFamily: mono, fontSize: 8, display: 'flex', gap: 8, marginBottom: 4 }}>
+                      <span style={{ color: dStop < 12 ? '#ef4444' : '#888888' }}>▼ {dStop.toFixed(1)}%</span>
+                      <span style={{ color: '#4ade80' }}>▲ +{dExit.toFixed(1)}%</span>
+                    </div>
+                  )}
+                  {smaE && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: dot, display: 'inline-block', flexShrink: 0 }} />
+                      <span style={{ fontFamily: mono, fontSize: 8, color: dot }}>200d {smaE.above ? 'over' : 'under'}</span>
+                    </div>
+                  )}
+                  <div style={{ fontFamily: mono, fontSize: 8, color: '#555555', marginTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 5 }}>{pos.invested.toLocaleString('da-DK')} DKK</div>
+                </div>
+              )
+            })}
           </div>
         </div>
 
