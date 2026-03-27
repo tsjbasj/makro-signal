@@ -755,10 +755,10 @@ export default function PortefoeljePage() {
             {positions.map(pos => {
               const _k = pos.category === 'Kerne'
               const _v = pos.category === 'Vækst'
-              const cc = _k ? '#4ade80' : _v ? '#60a5fa' : '#fbbf24'
-              const bg = _k ? 'rgba(74,222,128,0.07)' : _v ? 'rgba(96,165,250,0.07)' : 'rgba(251,191,36,0.07)'
+              const cc = _k ? '#34d399' : _v ? '#60a5fa' : '#fbbf24'
+              const bg = _k ? 'rgba(52,211,153,0.07)' : _v ? 'rgba(96,165,250,0.07)' : 'rgba(251,191,36,0.07)'
               const smaE = sma200Data?.find(d => d.ticker === pos.ticker) ?? null
-              const dot = smaE ? (smaE.above ? '#4ade80' : '#ef4444') : '#555'
+              const dot = smaE ? (smaE.above ? '#34d399' : '#ef4444') : '#555'
               const dStop = pos.currentPrice > 0 ? (pos.currentPrice - pos.stopLoss) / pos.currentPrice * 100 : null
               const dExit = pos.currentPrice > 0 ? (pos.exitTarget - pos.currentPrice) / pos.currentPrice * 100 : null
               return (
@@ -774,7 +774,7 @@ export default function PortefoeljePage() {
                   {dStop !== null && dExit !== null && (
                     <div style={{ fontFamily: mono, fontSize: 8, display: 'flex', gap: 8, marginBottom: 4 }}>
                       <span style={{ color: dStop < 12 ? '#ef4444' : '#888888' }}>▼ {dStop.toFixed(1)}%</span>
-                      <span style={{ color: '#4ade80' }}>▲ +{dExit.toFixed(1)}%</span>
+                      <span style={{ color: '#34d399' }}>▲ +{dExit.toFixed(1)}%</span>
                     </div>
                   )}
                   {smaE && (
@@ -807,7 +807,7 @@ export default function PortefoeljePage() {
 
           {/* Kerne */}
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontFamily: mono, fontSize: 9, color: '#4ade80', letterSpacing: '0.1em', marginBottom: 8 }}>KERNE</div>
+            <div style={{ fontFamily: mono, fontSize: 9, color: '#34d399', letterSpacing: '0.1em', marginBottom: 8 }}>KERNE</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
               {[
                 { ticker: 'NVDA', name: 'Nvidia', stop: 80, exit: 200 },
@@ -817,8 +817,8 @@ export default function PortefoeljePage() {
                 { ticker: 'EQIX', name: 'Equinix', stop: 650, exit: 1100 },
                 { ticker: 'SMSN', name: 'Samsung', stop: 55000, exit: 85000 },
               ].map(s => (
-                <div key={s.ticker} style={{ background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.20)', borderRadius: 8, padding: '10px 12px' }}>
-                  <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: '#4ade80', marginBottom: 2 }}>{s.ticker}</div>
+                <div key={s.ticker} style={{ background: 'rgba(52,211,153,0.07)', border: '1px solid rgba(52,211,153,0.20)', borderRadius: 8, padding: '10px 12px' }}>
+                  <div style={{ fontFamily: mono, fontSize: 11, fontWeight: 700, color: '#34d399', marginBottom: 2 }}>{s.ticker}</div>
                   <div style={{ fontFamily: mono, fontSize: 9, color: '#aaa', marginBottom: 6 }}>{s.name}</div>
                   <div style={{ fontFamily: mono, fontSize: 9, color: '#777' }}>▼ {s.stop} · ▲ {s.exit}</div>
                 </div>
