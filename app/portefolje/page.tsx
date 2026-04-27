@@ -126,6 +126,7 @@ function Nav() {
       <span style={{ color: '#999999' }}>◈</span>
       <Link href="/portefolje" style={{ color: '#111111', textDecoration: 'none', borderBottom: '1px solid #111111', paddingBottom: 2 }}>Min Portfolio</Link>
       <Link href="/krisekob" style={{ color: '#999999', textDecoration: 'none' }}>Krisekøb ETF</Link>
+      <Link href="/investeringer" style={{ color: '#999999', textDecoration: 'none' }}>Investeringsoversigt</Link>
     </nav>
   )
 }
