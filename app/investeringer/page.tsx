@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
@@ -119,23 +119,35 @@ const ASK_HINTS = ['ASK', 'ALDERSOPSPARING', 'PENSION', 'RATEPENSION']
 
 function guessSection(filename: string, positions: Position[]): SectionId {
   const fn = filename.toUpperCase()
+  // Most specific filename keywords win — but NEVER match on year alone (Nordnet
+  // includes 2026 in nearly every default export filename).
   if (ASK_HINTS.some(h => fn.includes(h))) return 'ask'
   if (CRYPTO_HINTS.some(h => fn.includes(h))) return 'krypto'
   if (ETF_HINTS.some(h => fn.includes(h))) return 'etf'
-  if (RUN_2026_TICKERS.some(t => fn.includes(t)) || fn.includes('2026') || fn.includes('RUN')) return 'run2026'
+  // Only call it the Run if the filename explicitly says "RUN" or includes
+  // at least 2 of the run tickers as whole tokens — not arbitrary substrings.
+  const runTickerWordHits = RUN_2026_TICKERS.filter(t =>
+    new RegExp(`(^|[^A-Z])${t}([^A-Z]|$)`).test(fn)
+  ).length
+  if (runTickerWordHits >= 2 || /\bRUN\b/.test(fn)) return 'run2026'
 
+  // Ticker-based scoring (only counts if positions actually have these tickers).
+  if (positions.length === 0) return 'enkeltaktier'
   let scoreRun = 0, scoreCrypto = 0, scoreEtf = 0
   for (const p of positions) {
     const t = (p.ticker || '').toUpperCase()
     const n = (p.name || '').toUpperCase()
-    if (RUN_2026_TICKERS.includes(t)) scoreRun += 2
-    if (CRYPTO_HINTS.some(h => t.includes(h) || n.includes(h))) scoreCrypto += 2
-    if (ETF_HINTS.some(h => t.includes(h) || n.includes(h))) scoreEtf += 1
+    if (RUN_2026_TICKERS.includes(t)) scoreRun++
+    if (CRYPTO_HINTS.some(h => t === h || n.includes(h))) scoreCrypto++
+    if (ETF_HINTS.some(h => t.includes(h) || n.includes(h))) scoreEtf++
   }
 
-  if (positions.length > 0 && scoreRun / 2 >= positions.length * 0.5) return 'run2026'
-  if (scoreCrypto > scoreEtf && scoreCrypto > 0) return 'krypto'
-  if (scoreEtf > 0) return 'etf'
+  // Run only wins if the file is small and ALL positions are run-tickers.
+  if (positions.length <= 4 && scoreRun === positions.length && scoreRun > 0) return 'run2026'
+  // Otherwise pick majority-sector by proportion (≥50%).
+  const half = positions.length / 2
+  if (scoreCrypto >= half && scoreCrypto >= scoreEtf) return 'krypto'
+  if (scoreEtf >= half) return 'etf'
 
   return 'enkeltaktier'
 }
@@ -247,6 +259,39 @@ const SECTION_DEFS: { id: SectionId; label: string; hint: string; accent: string
   { id: 'ask',         label: 'Aldersopsparing/ASK',   hint: 'Pension · langsigtet', accent: '#404040' },
 ]
 
+/* ─── Persistence ───────────────────────────────────────────────────── */
+const STORAGE_KEY = 'makro-signal:investeringer:v1'
+
+interface PersistedState {
+  sections: Record<SectionId, Position[]>
+  activeSection: SectionId
+  lastImport: string | null
+}
+
+function loadPersisted(): PersistedState | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Partial<PersistedState>
+    if (!parsed || typeof parsed !== 'object') return null
+    const s = parsed.sections ?? {}
+    return {
+      sections: {
+        run2026:      Array.isArray((s as Record<string, unknown>).run2026)      ? (s as Record<string, Position[]>).run2026      : [],
+        enkeltaktier: Array.isArray((s as Record<string, unknown>).enkeltaktier) ? (s as Record<string, Position[]>).enkeltaktier : [],
+        etf:          Array.isArray((s as Record<string, unknown>).etf)          ? (s as Record<string, Position[]>).etf          : [],
+        krypto:       Array.isArray((s as Record<string, unknown>).krypto)       ? (s as Record<string, Position[]>).krypto       : [],
+        ask:          Array.isArray((s as Record<string, unknown>).ask)          ? (s as Record<string, Position[]>).ask          : [],
+      },
+      activeSection: (parsed.activeSection ?? 'run2026') as SectionId,
+      lastImport: parsed.lastImport ?? null,
+    }
+  } catch {
+    return null
+  }
+}
+
 /* ─── Page ──────────────────────────────────────────────────────────── */
 export default function InvesteringerPage() {
   const [sections, setSections] = useState<Record<SectionId, Position[]>>({
@@ -260,6 +305,30 @@ export default function InvesteringerPage() {
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastImport, setLastImport] = useState<string | null>(null)
+  const [hydrated, setHydrated] = useState(false)
+
+  // Load persisted state on first client render
+  useEffect(() => {
+    const persisted = loadPersisted()
+    if (persisted) {
+      setSections(persisted.sections)
+      setActiveSection(persisted.activeSection)
+      setLastImport(persisted.lastImport)
+    }
+    setHydrated(true)
+  }, [])
+
+  // Save to localStorage whenever data changes (after hydration)
+  useEffect(() => {
+    if (!hydrated) return
+    if (typeof window === 'undefined') return
+    try {
+      const payload: PersistedState = { sections, activeSection, lastImport }
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+    } catch {
+      // ignore quota / private mode errors
+    }
+  }, [sections, activeSection, lastImport, hydrated])
 
   const handleFiles = useCallback(async (files: FileList | File[]) => {
     setError(null)
