@@ -14,6 +14,7 @@ interface Position {
   marketValueDkk: number
   returnPct: number
   returnDkk: number
+  kontonummer?: string
 }
 
 type SectionId = 'run2026' | 'enkeltaktier' | 'etf' | 'krypto' | 'ask'
@@ -116,6 +117,13 @@ const RUN_2026_TICKERS = ['OXY', 'PLTR', 'CELC', 'CELCG']
 const CRYPTO_HINTS = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK', 'BITCOIN', 'ETHEREUM', 'CRYPTO', 'KRYPTO', 'NBT', 'XBT', 'COINSHARES']
 const ETF_HINTS = ['ETF', 'IWDA', 'EUNL', 'VWCE', 'VUSA', 'CSPX', 'EIMI', 'INDEX', 'MSCI', 'SPDR', 'ISHARES', 'VANGUARD', 'XTRACKERS', 'AMUNDI', 'INVESCO']
 const ASK_HINTS = ['ASK', 'ALDERSOPSPARING', 'PENSION', 'RATEPENSION']
+
+/* Extract Nordnet account number from filename, e.g.
+   "Aktietabel, Nordnet kontonummer 61788469, 27.4.2026.csv" -> "61788469" */
+function extractKontonummer(filename: string): string | null {
+  const m = filename.match(/kontonummer[\s_-]*(\d[\d-]*)/i)
+  return m ? m[1] : null
+}
 
 function guessSection(filename: string, positions: Position[]): SectionId {
   const fn = filename.toUpperCase()
@@ -266,6 +274,7 @@ interface PersistedState {
   sections: Record<SectionId, Position[]>
   activeSection: SectionId
   lastImport: string | null
+  accountMap: Record<string, SectionId>
 }
 
 function loadPersisted(): PersistedState | null {
@@ -276,6 +285,7 @@ function loadPersisted(): PersistedState | null {
     const parsed = JSON.parse(raw) as Partial<PersistedState>
     if (!parsed || typeof parsed !== 'object') return null
     const s = parsed.sections ?? {}
+    const am = (parsed.accountMap ?? {}) as Record<string, SectionId>
     return {
       sections: {
         run2026:      Array.isArray((s as Record<string, unknown>).run2026)      ? (s as Record<string, Position[]>).run2026      : [],
@@ -286,6 +296,7 @@ function loadPersisted(): PersistedState | null {
       },
       activeSection: (parsed.activeSection ?? 'run2026') as SectionId,
       lastImport: parsed.lastImport ?? null,
+      accountMap: typeof am === 'object' && am ? am : {},
     }
   } catch {
     return null
@@ -305,6 +316,7 @@ export default function InvesteringerPage() {
   const [dragOver, setDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastImport, setLastImport] = useState<string | null>(null)
+  const [accountMap, setAccountMap] = useState<Record<string, SectionId>>({})
   const [hydrated, setHydrated] = useState(false)
 
   // Load persisted state on first client render
@@ -314,6 +326,7 @@ export default function InvesteringerPage() {
       setSections(persisted.sections)
       setActiveSection(persisted.activeSection)
       setLastImport(persisted.lastImport)
+      setAccountMap(persisted.accountMap)
     }
     setHydrated(true)
   }, [])
@@ -323,12 +336,12 @@ export default function InvesteringerPage() {
     if (!hydrated) return
     if (typeof window === 'undefined') return
     try {
-      const payload: PersistedState = { sections, activeSection, lastImport }
+      const payload: PersistedState = { sections, activeSection, lastImport, accountMap }
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
     } catch {
       // ignore quota / private mode errors
     }
-  }, [sections, activeSection, lastImport, hydrated])
+  }, [sections, activeSection, lastImport, accountMap, hydrated])
 
   const handleFiles = useCallback(async (files: FileList | File[]) => {
     setError(null)
@@ -342,6 +355,7 @@ export default function InvesteringerPage() {
     }
     let imported = 0
     let firstSection: SectionId | null = null
+    const newAccountMap: Record<string, SectionId> = { ...accountMap }
     for (const f of arr) {
       if (!/\.(csv|tsv|txt)$/i.test(f.name)) continue
       try {
@@ -352,7 +366,18 @@ export default function InvesteringerPage() {
         const data = rows.slice(1)
         const positions = rowsToPositions(header, data)
         if (positions.length === 0) continue
-        const sec = guessSection(f.name, positions)
+        const kontonummer = extractKontonummer(f.name)
+        // If we already know this account, route to its mapped section.
+        // Otherwise heuristic-guess and remember the mapping for future imports.
+        const sec: SectionId = kontonummer && newAccountMap[kontonummer]
+          ? newAccountMap[kontonummer]
+          : guessSection(f.name, positions)
+        if (kontonummer && !newAccountMap[kontonummer]) {
+          newAccountMap[kontonummer] = sec
+        }
+        if (kontonummer) {
+          for (const p of positions) p.kontonummer = kontonummer
+        }
         if (firstSection === null) firstSection = sec
         newSections[sec] = [...newSections[sec], ...positions]
         imported += positions.length
@@ -362,13 +387,14 @@ export default function InvesteringerPage() {
       }
     }
     setSections(newSections)
+    setAccountMap(newAccountMap)
     if (imported > 0) {
       setLastImport(`${imported} positioner importeret · ${new Date().toLocaleString('da-DK')}`)
       if (firstSection) setActiveSection(firstSection)
     } else if (!error) {
       setError('Ingen positioner kunne læses fra filen. Tjek at det er en gyldig Nordnet CSV.')
     }
-  }, [sections, error])
+  }, [sections, error, accountMap])
 
   const onDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -393,6 +419,32 @@ export default function InvesteringerPage() {
     if (!confirm('Ryd alle positioner i alle sektioner?')) return
     setSections({ run2026: [], enkeltaktier: [], etf: [], krypto: [], ask: [] })
     setLastImport(null)
+    setAccountMap({})
+  }, [])
+
+  /* Move all positions belonging to a kontonummer to a new section,
+     and remember the mapping so future imports of the same account go there. */
+  const moveAccount = useCallback((kontonummer: string, target: SectionId) => {
+    setSections(prev => {
+      const next: Record<SectionId, Position[]> = {
+        run2026: [], enkeltaktier: [], etf: [], krypto: [], ask: [],
+      }
+      for (const id of Object.keys(prev) as SectionId[]) next[id] = []
+      const moved: Position[] = []
+      for (const id of Object.keys(prev) as SectionId[]) {
+        for (const p of prev[id]) {
+          if (p.kontonummer === kontonummer) {
+            moved.push(p)
+          } else {
+            next[id].push(p)
+          }
+        }
+      }
+      next[target] = [...next[target], ...moved]
+      return next
+    })
+    setAccountMap(prev => ({ ...prev, [kontonummer]: target }))
+    setActiveSection(target)
   }, [])
 
   // Totals
@@ -634,6 +686,59 @@ export default function InvesteringerPage() {
                 )}
               </div>
             </div>
+
+            {/* ─── Account chips (move to other section) ─── */}
+            {(() => {
+              const accountStats = new Map<string, { count: number; value: number }>()
+              for (const p of activePositions) {
+                const key = p.kontonummer ?? ''
+                if (!key) continue
+                const cur = accountStats.get(key) ?? { count: 0, value: 0 }
+                cur.count++
+                cur.value += p.marketValueDkk
+                accountStats.set(key, cur)
+              }
+              if (accountStats.size === 0) return null
+              return (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
+                  {Array.from(accountStats.entries()).map(([konto, s]) => (
+                    <div key={konto} style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      background: 'rgba(255,255,255,0.45)',
+                      border: '1px solid rgba(0,0,0,0.10)',
+                      borderRadius: 999,
+                      padding: '5px 10px 5px 12px',
+                      fontFamily: mono, fontSize: 10, color: '#444444',
+                    }}>
+                      <span style={{ color: '#888888', letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 9 }}>Konto</span>
+                      <span style={{ color: '#111111', fontWeight: 500 }}>{konto}</span>
+                      <span style={{ color: '#aaaaaa' }}>·</span>
+                      <span>{s.count} pos</span>
+                      <span style={{ color: '#aaaaaa' }}>·</span>
+                      <span>{Math.round(s.value / 1000)}k</span>
+                      <span style={{ color: '#aaaaaa', marginLeft: 4 }}>→</span>
+                      <select
+                        value={activeSection}
+                        onChange={(e) => moveAccount(konto, e.target.value as SectionId)}
+                        style={{
+                          background: 'transparent',
+                          border: '1px solid rgba(0,0,0,0.15)',
+                          borderRadius: 999,
+                          fontFamily: mono, fontSize: 10,
+                          padding: '2px 6px',
+                          color: '#111111',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {SECTION_DEFS.map(def => (
+                          <option key={def.id} value={def.id}>{def.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
 
             {activePositions.length === 0 ? (
               <div style={{
