@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
@@ -318,29 +318,89 @@ export default function InvesteringerPage() {
   const [lastImport, setLastImport] = useState<string | null>(null)
   const [accountMap, setAccountMap] = useState<Record<string, SectionId>>({})
   const [hydrated, setHydrated] = useState(false)
+  // Server-sync status: 'unknown' before first fetch, 'on' if API returned data,
+  // 'off' if API says storage isn't configured, 'error' if request failed.
+  const [serverStatus, setServerStatus] = useState<'unknown' | 'on' | 'off' | 'error' | 'syncing' | 'synced'>('unknown')
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Load persisted state on first client render
+  // Load: prefer server if configured, fall back to localStorage cache
   useEffect(() => {
-    const persisted = loadPersisted()
-    if (persisted) {
-      setSections(persisted.sections)
-      setActiveSection(persisted.activeSection)
-      setLastImport(persisted.lastImport)
-      setAccountMap(persisted.accountMap)
+    let cancelled = false
+    const local = loadPersisted()
+    // Apply local first (instant UI, no flash)
+    if (local) {
+      setSections(local.sections)
+      setActiveSection(local.activeSection)
+      setLastImport(local.lastImport)
+      setAccountMap(local.accountMap)
     }
-    setHydrated(true)
+    // Then try server, which wins if configured + has data
+    ;(async () => {
+      try {
+        const res = await fetch('/api/investeringer-store', { cache: 'no-store' })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const json = await res.json() as { configured: boolean; data: PersistedState | null }
+        if (cancelled) return
+        if (!json.configured) {
+          setServerStatus('off')
+        } else {
+          setServerStatus('on')
+          if (json.data && typeof json.data === 'object') {
+            const d = json.data as PersistedState
+            if (d.sections) setSections({
+              run2026:      Array.isArray(d.sections.run2026)      ? d.sections.run2026      : [],
+              enkeltaktier: Array.isArray(d.sections.enkeltaktier) ? d.sections.enkeltaktier : [],
+              etf:          Array.isArray(d.sections.etf)          ? d.sections.etf          : [],
+              krypto:       Array.isArray(d.sections.krypto)       ? d.sections.krypto       : [],
+              ask:          Array.isArray(d.sections.ask)          ? d.sections.ask          : [],
+            })
+            if (d.activeSection) setActiveSection(d.activeSection)
+            if (d.lastImport !== undefined) setLastImport(d.lastImport)
+            if (d.accountMap) setAccountMap(d.accountMap)
+          }
+        }
+      } catch {
+        if (!cancelled) setServerStatus('error')
+      } finally {
+        if (!cancelled) setHydrated(true)
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
 
-  // Save to localStorage whenever data changes (after hydration)
+  // Track server status via ref so save effect doesn't loop on its own status updates
+  const serverStatusRef = useRef<typeof serverStatus>('unknown')
+  useEffect(() => { serverStatusRef.current = serverStatus }, [serverStatus])
+
+  // Save to localStorage immediately + debounced POST to server
   useEffect(() => {
     if (!hydrated) return
     if (typeof window === 'undefined') return
+    const payload: PersistedState = { sections, activeSection, lastImport, accountMap }
     try {
-      const payload: PersistedState = { sections, activeSection, lastImport, accountMap }
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
     } catch {
       // ignore quota / private mode errors
     }
+    // Skip server POST if we already know it isn't configured
+    if (serverStatusRef.current === 'off') return
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(async () => {
+      setServerStatus(prev => (prev === 'on' || prev === 'synced' ? 'syncing' : prev))
+      try {
+        const res = await fetch('/api/investeringer-store', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        const json = await res.json() as { configured?: boolean; ok?: boolean }
+        if (!json.configured) setServerStatus('off')
+        else if (json.ok) setServerStatus('synced')
+        else setServerStatus('error')
+      } catch {
+        setServerStatus('error')
+      }
+    }, 600)
   }, [sections, activeSection, lastImport, accountMap, hydrated])
 
   const handleFiles = useCallback(async (files: FileList | File[]) => {
@@ -578,6 +638,35 @@ export default function InvesteringerPage() {
             {error && (
               <div style={{ marginTop: 14, fontFamily: mono, fontSize: 10, color: '#8b1c1c' }}>
                 ● {error}
+              </div>
+            )}
+            {/* Sync status pill */}
+            {hydrated && (
+              <div style={{
+                marginTop: 14,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontFamily: mono,
+                fontSize: 9,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color:
+                  serverStatus === 'on' || serverStatus === 'synced' ? '#2d6a3f' :
+                  serverStatus === 'syncing' ? '#8a6a00' :
+                  serverStatus === 'off' ? '#999999' :
+                  serverStatus === 'error' ? '#8b1c1c' : '#999999',
+              }}>
+                <span style={{
+                  width: 6, height: 6, borderRadius: '50%',
+                  background: 'currentColor',
+                }} />
+                {serverStatus === 'on' && 'Server-sync aktiv'}
+                {serverStatus === 'synced' && 'Gemt på server'}
+                {serverStatus === 'syncing' && 'Synkroniserer …'}
+                {serverStatus === 'off' && 'Kun lokalt (Vercel KV ikke forbundet)'}
+                {serverStatus === 'error' && 'Server-fejl · gemmer lokalt'}
+                {serverStatus === 'unknown' && 'Tjekker server …'}
               </div>
             )}
           </div>
