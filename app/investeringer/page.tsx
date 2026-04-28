@@ -201,6 +201,98 @@ function rowsToPositions(header: string[], rows: string[][]): Position[] {
   return out
 }
 
+/* ─── Format detection ──────────────────────────────────────────────── */
+type CsvFormat = 'nordnet' | 'firi' | 'unknown'
+
+function detectFormat(header: string[]): CsvFormat {
+  const h = header.map(s => s.trim().toLowerCase())
+  // Firi crypto trades: has Market + Order Type + Executed columns
+  if (h.includes('market') && h.includes('order type') && h.includes('executed')) return 'firi'
+  // Nordnet: Danish column headers
+  if (h.some(s => /^v(æ|ae)rdipapir$|^navn$|^antal$|^gak$|^kursv(æ|ae)rdi/.test(s))) return 'nordnet'
+  return 'unknown'
+}
+
+/* ─── Firi crypto trades -> Positions ──────────────────────────────── */
+const CRYPTO_NAMES: Record<string, string> = {
+  BTC: 'Bitcoin', ETH: 'Ethereum', SOL: 'Solana', XRP: 'Ripple',
+  ADA: 'Cardano', DOGE: 'Dogecoin', AVAX: 'Avalanche', LINK: 'Chainlink',
+  DOT: 'Polkadot', MATIC: 'Polygon', LTC: 'Litecoin', TRX: 'Tron',
+  BCH: 'Bitcoin Cash', XLM: 'Stellar', ATOM: 'Cosmos', NEAR: 'Near',
+}
+const FIRI_QUOTE_PATTERN = /(DKK|EUR|USD|USDT|USDC|NOK|SEK|GBP)$/
+
+function parseFiriTrades(header: string[], rows: string[][]): Position[] {
+  const lower = header.map(s => s.trim().toLowerCase())
+  const ix = (name: string) => lower.indexOf(name)
+  const iMarket = ix('market')
+  const iPrice = ix('price')
+  const iVolume = ix('volume')
+  const iCost = ix('cost')
+  const iOrderType = ix('order type')
+  const iExecuted = ix('executed')
+  if (iMarket < 0 || iPrice < 0 || iVolume < 0) return []
+
+  type Agg = { qty: number; cost: number; lastPrice: number; lastTime: number }
+  const map = new Map<string, Agg>()
+
+  for (const r of rows) {
+    const market = (r[iMarket] ?? '').trim().toUpperCase()
+    if (!market) continue
+    const m = market.match(FIRI_QUOTE_PATTERN)
+    if (!m) continue
+    const base = market.slice(0, market.length - m[1].length)
+    if (!base) continue
+    const price = parseDanishNumber(r[iPrice])
+    // Firi 'Volume' = quote-currency amount before fees; 'Cost' = total incl. fees.
+    // Coin quantity = Volume / Price.
+    const volume = parseDanishNumber(r[iVolume] ?? '')
+    const cost = iCost >= 0 ? parseDanishNumber(r[iCost] ?? '') : volume
+    const orderType = (r[iOrderType] ?? '').trim().toLowerCase()
+    if (!price || price <= 0 || !volume) continue
+    const isBuy = orderType === 'bid' || orderType === 'buy' || orderType === 'b'
+    const qty = volume / price
+    const time = iExecuted >= 0 ? Date.parse(r[iExecuted] ?? '') : NaN
+
+    let agg = map.get(base)
+    if (!agg) { agg = { qty: 0, cost: 0, lastPrice: 0, lastTime: 0 }; map.set(base, agg) }
+    if (isBuy) {
+      agg.qty += qty
+      agg.cost += cost
+    } else if (agg.qty > 0) {
+      // Sell: reduce qty and proportionally reduce cost basis (avg-cost method)
+      const ratio = Math.min(1, qty / agg.qty)
+      agg.cost -= agg.cost * ratio
+      agg.qty = Math.max(0, agg.qty - qty)
+    }
+    if (!isNaN(time) && time > agg.lastTime) {
+      agg.lastTime = time
+      agg.lastPrice = price
+    }
+  }
+
+  const out: Position[] = []
+  for (const [ticker, a] of Array.from(map.entries())) {
+    if (a.qty <= 0.0000001) continue
+    const gak = a.cost / a.qty
+    const marketValueDkk = a.qty * a.lastPrice
+    const returnDkk = marketValueDkk - a.cost
+    const returnPct = a.cost > 0 ? (returnDkk / a.cost) * 100 : 0
+    out.push({
+      ticker,
+      name: CRYPTO_NAMES[ticker] ?? ticker,
+      quantity: a.qty,
+      gak,
+      lastPrice: a.lastPrice,
+      currency: 'DKK',
+      marketValueDkk,
+      returnPct,
+      returnDkk,
+    })
+  }
+  return out
+}
+
 /* ─── Formatters ────────────────────────────────────────────────────── */
 function fmtDkk(n: number): string {
   if (!isFinite(n)) return '—'
@@ -424,19 +516,29 @@ export default function InvesteringerPage() {
         if (rows.length < 2) continue
         const header = rows[0]
         const data = rows.slice(1)
-        const positions = rowsToPositions(header, data)
+        const format = detectFormat(header)
+        const positions = format === 'firi'
+          ? parseFiriTrades(header, data)
+          : rowsToPositions(header, data)
         if (positions.length === 0) continue
-        const kontonummer = extractKontonummer(f.name)
+        // Konto-id: Nordnet kontonummer from filename, or 'firi' for Firi exports
+        // (so reuploads of new Firi periods replace, not duplicate, existing crypto positions).
+        const kontonummer = extractKontonummer(f.name) ?? (format === 'firi' ? 'firi' : null)
         // If we already know this account, route to its mapped section.
-        // Otherwise heuristic-guess and remember the mapping for future imports.
+        // Otherwise: Firi defaults to krypto, Nordnet uses heuristic.
         const sec: SectionId = kontonummer && newAccountMap[kontonummer]
           ? newAccountMap[kontonummer]
-          : guessSection(f.name, positions)
+          : (format === 'firi' ? 'krypto' : guessSection(f.name, positions))
         if (kontonummer && !newAccountMap[kontonummer]) {
           newAccountMap[kontonummer] = sec
         }
         if (kontonummer) {
           for (const p of positions) p.kontonummer = kontonummer
+          // Replace-on-reupload: drop existing positions with same kontonummer
+          // across ALL sections before inserting fresh ones.
+          for (const sid of Object.keys(newSections) as SectionId[]) {
+            newSections[sid] = newSections[sid].filter(p => p.kontonummer !== kontonummer)
+          }
         }
         if (firstSection === null) firstSection = sec
         newSections[sec] = [...newSections[sec], ...positions]
@@ -452,7 +554,7 @@ export default function InvesteringerPage() {
       setLastImport(`${imported} positioner importeret · ${new Date().toLocaleString('da-DK')}`)
       if (firstSection) setActiveSection(firstSection)
     } else if (!error) {
-      setError('Ingen positioner kunne læses fra filen. Tjek at det er en gyldig Nordnet CSV.')
+      setError('Ingen positioner kunne læses fra filen. Understøttede formater: Nordnet CSV (beholdning) og Firi crypto trades.')
     }
   }, [sections, error, accountMap])
 
