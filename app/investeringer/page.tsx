@@ -175,8 +175,9 @@ function rowsToPositions(header: string[], rows: string[][]): Position[] {
     const lastPrice = parseDanishNumber(get('lastPrice'))
     const currency = (get('currency') || 'DKK').trim() || 'DKK'
     let marketValueDkk = parseDanishNumber(get('marketValueDkk'))
-    if (marketValueDkk === 0 && quantity && lastPrice && currency.toUpperCase() === 'DKK') {
-      marketValueDkk = quantity * lastPrice
+    if (marketValueDkk === 0 && quantity && lastPrice) {
+      const fxRate = currency.toUpperCase() === 'USD' ? 6.9 : currency.toUpperCase() === 'SEK' ? 0.65 : 1
+      marketValueDkk = quantity * lastPrice * fxRate
     }
     let returnPct = parseDanishNumber(get('returnPct'))
     let returnDkk = parseDanishNumber(get('returnDkk'))
@@ -641,7 +642,7 @@ export default function InvesteringerPage() {
   const gainColor = (n: number) => n > 0 ? '#2d6a3f' : n < 0 ? '#8b1c1c' : '#777777'
 
   return (
-    <div style={{ minHeight: '100vh', background: '#e9e5da' }}>
+    <div style={{ minHeight: '100vh', background: '#e9e5da', overflowX: 'hidden' }}>
       <Nav />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px 60px' }}>
