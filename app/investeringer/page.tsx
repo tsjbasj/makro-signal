@@ -99,12 +99,15 @@ const COL_PATTERNS: Record<string, RegExp[]> = {
 
 function findColumnIndices(header: string[]): Record<string, number> {
   const idx: Record<string, number> = {}
+  // Iterate patterns in priority order (most specific first), then find any
+  // column that matches. This ensures e.g. "Værdi DKK" wins over plain "Værdi"
+  // for the marketValueDkk slot, since the DKK-suffix pattern is listed first.
   for (const key of Object.keys(COL_PATTERNS)) {
     idx[key] = -1
-    for (let i = 0; i < header.length; i++) {
-      const h = header[i].trim()
-      if (COL_PATTERNS[key].some(re => re.test(h))) {
-        idx[key] = i
+    for (const re of COL_PATTERNS[key]) {
+      const found = header.findIndex(h => re.test(h.trim()))
+      if (found >= 0) {
+        idx[key] = found
         break
       }
     }
@@ -113,7 +116,7 @@ function findColumnIndices(header: string[]): Record<string, number> {
 }
 
 /* ─── Section guessing ──────────────────────────────────────────────── */
-const RUN_2026_TICKERS = ['OXY', 'PLTR', 'CELC', 'CELCG']
+const RUN_2026_TICKERS = ['CRWD', 'PLTR', 'CELC', 'CELCG']
 const CRYPTO_HINTS = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'LINK', 'BITCOIN', 'ETHEREUM', 'CRYPTO', 'KRYPTO', 'NBT', 'XBT', 'COINSHARES']
 const ETF_HINTS = ['ETF', 'IWDA', 'EUNL', 'VWCE', 'VUSA', 'CSPX', 'EIMI', 'INDEX', 'MSCI', 'SPDR', 'ISHARES', 'VANGUARD', 'XTRACKERS', 'AMUNDI', 'INVESCO']
 const ASK_HINTS = ['ASK', 'ALDERSOPSPARING', 'PENSION', 'RATEPENSION']
@@ -353,7 +356,7 @@ function Nav() {
 
 /* ─── Section definitions ───────────────────────────────────────────── */
 const SECTION_DEFS: { id: SectionId; label: string; hint: string; accent: string }[] = [
-  { id: 'run2026',     label: 'The 2026 Run',         hint: 'OXY · PLTR · CELC',    accent: '#8a6a00' },
+  { id: 'run2026',     label: 'The 2026 Run',         hint: 'CRWD · PLTR · CELC',   accent: '#8a6a00' },
   { id: 'enkeltaktier', label: 'Enkeltaktier',         hint: 'Individuelle aktier',  accent: '#1a1a1a' },
   { id: 'etf',         label: 'ETF Portefølje',        hint: 'Brede indeks-fonde',   accent: '#2d6a3f' },
   { id: 'krypto',      label: 'Krypto',                hint: 'BTC · ETH · alt',      accent: '#5a3a8a' },
