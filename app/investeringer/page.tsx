@@ -92,7 +92,10 @@ const COL_PATTERNS: Record<string, RegExp[]> = {
   gak:       [/^gak/i, /gns.*kurs/i, /gennemsnit.*kurs/i, /gennemsnit.*pris/i, /average.*price/i, /k(ø|oe)bskurs/i, /anskaffelse/i],
   lastPrice: [/^kurs$/i, /seneste.*kurs/i, /^aktuel.*kurs/i, /sidste.*kurs/i, /markedskurs/i, /last.*price/i, /^pris$/i],
   currency:  [/^valuta$/i, /currency/i, /^vlt$/i],
-  marketValueDkk: [/markedsv(æ|ae)rdi.*dkk/i, /v(æ|ae)rdi.*dkk/i, /kursv(æ|ae)rdi.*dkk/i, /^markedsv(æ|ae)rdi$/i, /^kursv(æ|ae)rdi$/i, /^v(æ|ae)rdi$/i, /total.*dkk/i],
+  // Specifically excludes 'Belåningsværdi DKK' (Nordnet's collateral value,
+  // ~70% of market value used for margin) by requiring column to START with
+  // 'markedsværdi', 'kursværdi', or 'værdi'.
+  marketValueDkk: [/^markedsv(æ|ae)rdi\s*dkk$/i, /^kursv(æ|ae)rdi\s*dkk$/i, /^v(æ|ae)rdi\s*dkk$/i, /^markedsv(æ|ae)rdi$/i, /^kursv(æ|ae)rdi$/i, /^v(æ|ae)rdi$/i, /^total\s*dkk$/i],
   returnPct: [/afkast.*%/i, /afkast.*pct/i, /^%$/, /^afkast pct/i, /urealiseret.*%/i, /return.*%/i],
   returnDkk: [/afkast.*dkk/i, /^afkast$/i, /urealiseret.*dkk/i, /urealiseret afkast/i, /^afkast kr/i, /return.*dkk/i, /resultat/i],
 }
@@ -163,8 +166,20 @@ function guessSection(filename: string, positions: Position[]): SectionId {
   return 'enkeltaktier'
 }
 
+/* ─── FX rates ──────────────────────────────────────────────────────── */
+// Live rates fetched from Frankfurter on mount; these are the fallback values
+// used until the API call returns (or if it fails).
+const DEFAULT_FX_RATES: Record<string, number> = {
+  USD: 6.90, EUR: 7.46, SEK: 0.65, NOK: 0.65, GBP: 8.70, CHF: 7.80,
+}
+function fxToDkk(currency: string, rates: Record<string, number>): number {
+  const cu = (currency || 'DKK').trim().toUpperCase()
+  if (cu === 'DKK') return 1
+  return rates[cu] ?? 1
+}
+
 /* ─── Row -> Position ───────────────────────────────────────────────── */
-function rowsToPositions(header: string[], rows: string[][]): Position[] {
+function rowsToPositions(header: string[], rows: string[][], fxRates: Record<string, number>): Position[] {
   const idx = findColumnIndices(header)
   const out: Position[] = []
   for (const r of rows) {
@@ -179,13 +194,12 @@ function rowsToPositions(header: string[], rows: string[][]): Position[] {
     const currency = (get('currency') || 'DKK').trim() || 'DKK'
     let marketValueDkk = parseDanishNumber(get('marketValueDkk'))
     if (marketValueDkk === 0 && quantity && lastPrice) {
-      const fxRate = currency.toUpperCase() === 'USD' ? 6.9 : currency.toUpperCase() === 'SEK' ? 0.65 : 1
-      marketValueDkk = quantity * lastPrice * fxRate
+      marketValueDkk = quantity * lastPrice * fxToDkk(currency, fxRates)
     }
     let returnPct = parseDanishNumber(get('returnPct'))
     let returnDkk = parseDanishNumber(get('returnDkk'))
-    if (returnDkk === 0 && quantity && gak && lastPrice && currency.toUpperCase() === 'DKK') {
-      returnDkk = (lastPrice - gak) * quantity
+    if (returnDkk === 0 && quantity && gak && lastPrice) {
+      returnDkk = (lastPrice - gak) * quantity * fxToDkk(currency, fxRates)
     }
     if (returnPct === 0 && gak && lastPrice) {
       returnPct = ((lastPrice - gak) / gak) * 100
@@ -414,6 +428,34 @@ export default function InvesteringerPage() {
   const [lastImport, setLastImport] = useState<string | null>(null)
   const [accountMap, setAccountMap] = useState<Record<string, SectionId>>({})
   const [hydrated, setHydrated] = useState(false)
+  const [fxRates, setFxRates] = useState<Record<string, number>>(DEFAULT_FX_RATES)
+  const [fxUpdatedAt, setFxUpdatedAt] = useState<Date | null>(null)
+  const fxRatesRef = useRef(DEFAULT_FX_RATES)
+  useEffect(() => { fxRatesRef.current = fxRates }, [fxRates])
+
+  // Fetch live FX rates from Frankfurter (free, no API key)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('https://api.frankfurter.app/latest?from=DKK&to=USD,EUR,SEK,NOK,GBP,CHF', { cache: 'no-store' })
+        if (!res.ok) return
+        const json = await res.json() as { rates: Record<string, number>; date: string }
+        if (cancelled || !json.rates) return
+        // Frankfurter returns "from DKK" rates (e.g. rates.USD = 0.157 USD per DKK).
+        // We want the inverse (DKK per unit of foreign currency).
+        const inverted: Record<string, number> = {}
+        for (const [code, rate] of Object.entries(json.rates)) {
+          if (rate > 0) inverted[code] = 1 / rate
+        }
+        setFxRates(inverted)
+        setFxUpdatedAt(new Date())
+      } catch {
+        // keep DEFAULT_FX_RATES
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
   // Server-sync status: 'unknown' before first fetch, 'on' if API returned data,
   // 'off' if API says storage isn't configured, 'error' if request failed.
   const [serverStatus, setServerStatus] = useState<'unknown' | 'on' | 'off' | 'error' | 'syncing' | 'synced'>('unknown')
@@ -523,7 +565,7 @@ export default function InvesteringerPage() {
         const format = detectFormat(header)
         const positions = format === 'firi'
           ? parseFiriTrades(header, data)
-          : rowsToPositions(header, data)
+          : rowsToPositions(header, data, fxRatesRef.current)
         if (positions.length === 0) continue
         // Konto-id: Nordnet kontonummer from filename, or 'firi' for Firi exports
         // (so reuploads of new Firi periods replace, not duplicate, existing crypto positions).
@@ -1046,7 +1088,19 @@ export default function InvesteringerPage() {
 
         {/* ─── Footer ─── */}
         <footer style={{ textAlign: 'center', fontFamily: mono, fontSize: 9, color: '#aaaaaa', lineHeight: 1.6, marginTop: 30 }}>
-          Lokal parsing · ingen data forlader din browser · Kun til informationsformål
+          <div>Lokal parsing · ingen data forlader din browser · Kun til informationsformål</div>
+          {fxRates.USD && (
+            <div style={{ marginTop: 4 }}>
+              USD/DKK {fxRates.USD.toLocaleString('da-DK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {' · '}
+              EUR/DKK {(fxRates.EUR ?? 0).toLocaleString('da-DK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {fxUpdatedAt ? (
+                <> {' · '} opdateret {fxUpdatedAt.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}</>
+              ) : (
+                <> {' · '} fallback-kurs</>
+              )}
+            </div>
+          )}
         </footer>
 
       </div>
