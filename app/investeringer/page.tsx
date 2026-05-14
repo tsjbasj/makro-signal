@@ -364,6 +364,7 @@ function Nav() {
       <Link href="/portefolje" style={linkBase}>Min Portefølje</Link>
       <Link href="/krisekob" style={linkBase}>Krisekøb ETF</Link>
       <Link href="/investeringer" style={linkActive}>Investeringsoversigt</Link>
+      <Link href="/regler" style={linkBase}>Regler</Link>
     </nav>
   )
 }
