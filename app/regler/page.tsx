@@ -203,41 +203,41 @@ function saveHistory(history: Record<string, AlarmHistoryEntry[]>) {
   }
 }
 
-/* ─── MA200 live data ───────────────────────────────────────────────── */
-interface Ma200Entry {
-  ticker: string
-  name: string
-  currentPrice: number
-  sma200: number
+/* ─── Live kurser + MA200 ──────────────────────────────────────────── */
+interface KurserEntry {
+  price: number
+  ma200: number
   above: boolean
+  currency: 'USD' | 'DKK'
+  name: string
 }
 
-const MA200_CACHE_KEY = 'ma200_data'
-const MA200_CACHE_TTL_MS = 30 * 60 * 1000 // 30 min
+const KURSER_CACHE_KEY = 'kurser_data'
+const KURSER_CACHE_TTL_MS = 30 * 60 * 1000 // 30 min
 
-interface Ma200Cache {
+interface KurserCache {
   fetchedAt: number
-  data: Record<string, Ma200Entry>
+  data: Record<string, KurserEntry>
 }
 
-function readMa200Cache(): Ma200Cache | null {
+function readKurserCache(): KurserCache | null {
   if (typeof window === 'undefined') return null
   try {
-    const raw = window.sessionStorage.getItem(MA200_CACHE_KEY)
+    const raw = window.sessionStorage.getItem(KURSER_CACHE_KEY)
     if (!raw) return null
-    const parsed = JSON.parse(raw) as Ma200Cache
+    const parsed = JSON.parse(raw) as KurserCache
     if (!parsed || typeof parsed !== 'object' || !parsed.data) return null
-    if (Date.now() - (parsed.fetchedAt ?? 0) > MA200_CACHE_TTL_MS) return null
+    if (Date.now() - (parsed.fetchedAt ?? 0) > KURSER_CACHE_TTL_MS) return null
     return parsed
   } catch {
     return null
   }
 }
 
-function writeMa200Cache(data: Record<string, Ma200Entry>) {
+function writeKurserCache(data: Record<string, KurserEntry>, fetchedAt: number) {
   if (typeof window === 'undefined') return
   try {
-    window.sessionStorage.setItem(MA200_CACHE_KEY, JSON.stringify({ fetchedAt: Date.now(), data }))
+    window.sessionStorage.setItem(KURSER_CACHE_KEY, JSON.stringify({ fetchedAt, data }))
   } catch {
     // quota / private mode
   }
@@ -669,7 +669,7 @@ function Ma200Badge({
   entry,
   state,
 }: {
-  entry: Ma200Entry | undefined
+  entry: KurserEntry | undefined
   state: 'idle' | 'loading' | 'ready' | 'error'
 }) {
   const mono = 'var(--font-dm-mono)'
@@ -704,7 +704,7 @@ function Ma200Badge({
       dotColor = '#c0392b'
       suffix = '↓'
     }
-    title = `Kurs ${entry.currentPrice} · MA200 ${entry.sma200}`
+    title = `Kurs ${entry.price} · MA200 ${entry.ma200}`
   }
 
   return (
@@ -752,45 +752,41 @@ function AlarmSection() {
   const [selected, setSelected] = useState<AlarmPosition | null>(null)
   const [history, setHistory] = useState<Record<string, AlarmHistoryEntry[]>>({})
   const [hydrated, setHydrated] = useState(false)
-  const [ma200, setMa200] = useState<Record<string, Ma200Entry>>({})
-  const [ma200State, setMa200State] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [kurser, setKurser] = useState<Record<string, KurserEntry>>({})
+  const [kurserState, setKurserState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [fetchedAt, setFetchedAt] = useState<number | null>(null)
+
+  const fetchKurser = useCallback(async () => {
+    setKurserState('loading')
+    try {
+      const res = await fetch('/api/kurser', { cache: 'no-store' })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const json = await res.json() as Record<string, KurserEntry>
+      const now = Date.now()
+      setKurser(json && typeof json === 'object' ? json : {})
+      setKurserState('ready')
+      setFetchedAt(now)
+      writeKurserCache(json ?? {}, now)
+    } catch {
+      setKurserState('error')
+    }
+  }, [])
 
   useEffect(() => {
     setHistory(loadHistory())
     setHydrated(true)
 
     // Try sessionStorage cache first (30 min TTL)
-    const cached = readMa200Cache()
+    const cached = readKurserCache()
     if (cached) {
-      setMa200(cached.data)
-      setMa200State('ready')
+      setKurser(cached.data)
+      setKurserState('ready')
+      setFetchedAt(cached.fetchedAt)
       return
     }
-    // Fall back to fetch
-    let cancelled = false
-    setMa200State('loading')
-    const tickers = ALARM_POSITIONS.map(p => p.ticker).join(',')
-    ;(async () => {
-      try {
-        const res = await fetch(`/api/sma200?tickers=${encodeURIComponent(tickers)}`)
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const list = await res.json() as Ma200Entry[]
-        if (cancelled) return
-        const map: Record<string, Ma200Entry> = {}
-        if (Array.isArray(list)) {
-          for (const entry of list) {
-            if (entry && entry.ticker) map[entry.ticker] = entry
-          }
-        }
-        setMa200(map)
-        setMa200State('ready')
-        writeMa200Cache(map)
-      } catch {
-        if (!cancelled) setMa200State('error')
-      }
-    })()
-    return () => { cancelled = true }
-  }, [])
+    // Cache miss → fetch live
+    void fetchKurser()
+  }, [fetchKurser])
 
   const handleSave = useCallback((ticker: string, entry: AlarmHistoryEntry) => {
     setHistory(prev => {
@@ -811,28 +807,88 @@ function AlarmSection() {
 
   return (
     <section style={{ marginTop: 44, marginBottom: 24 }}>
-      <style>{`@keyframes ma200pulse{0%,100%{opacity:1}50%{opacity:0.35}}`}</style>
+      <style>{`@keyframes ma200pulse{0%,100%{opacity:1}50%{opacity:0.35}}@keyframes kspin{to{transform:rotate(360deg)}}`}</style>
       <header style={{ marginBottom: 18 }}>
         <div style={{
-          fontFamily: mono, fontSize: 10, color: '#111111',
-          letterSpacing: '0.12em', marginBottom: 6,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+          gap: 16, flexWrap: 'wrap',
         }}>
-          ◈ INTERAKTIV
+          <div style={{ flex: 1, minWidth: 240 }}>
+            <div style={{
+              fontFamily: mono, fontSize: 10, color: '#111111',
+              letterSpacing: '0.12em', marginBottom: 6,
+            }}>
+              ◈ INTERAKTIV
+            </div>
+            <h2 style={{
+              fontFamily: corm, fontSize: 32, fontWeight: 600,
+              color: '#111111', margin: 0, lineHeight: 1.1,
+            }}>
+              Opdater <em style={{ fontStyle: 'italic', fontWeight: 500 }}>kursalarmer</em>
+            </h2>
+            <p style={{
+              fontFamily: mono, fontSize: 11, color: '#666666',
+              marginTop: 8, marginBottom: 0, letterSpacing: '0.02em',
+              maxWidth: 720, lineHeight: 1.55,
+            }}>
+              Klik på en aktie, indtast aktuel kurs — få nyt trailing stop, tag-stilling og
+              exit mål beregnet ud fra lagets regel.
+            </p>
+          </div>
+
+          {/* ─ Opdater kurser knap + sidst opdateret ─ */}
+          <div style={{
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'flex-end', gap: 6,
+            paddingTop: 4,
+          }}>
+            <button
+              onClick={fetchKurser}
+              disabled={kurserState === 'loading'}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: kurserState === 'loading' ? 'rgba(0,0,0,0.04)' : '#111111',
+                color: kurserState === 'loading' ? '#666666' : '#f2efe6',
+                border: '1px solid rgba(0,0,0,0.15)',
+                borderRadius: 6,
+                padding: '8px 14px',
+                fontFamily: mono, fontSize: 10,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                cursor: kurserState === 'loading' ? 'wait' : 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  display: 'inline-block', width: 11, height: 11,
+                  border: '1.5px solid currentColor',
+                  borderTopColor: 'transparent',
+                  borderRadius: '50%',
+                  animation: kurserState === 'loading' ? 'kspin 0.7s linear infinite' : undefined,
+                  opacity: kurserState === 'loading' ? 1 : 0.7,
+                }}
+              />
+              {kurserState === 'loading' ? 'Henter …' : 'Opdater kurser'}
+            </button>
+            <div style={{
+              fontFamily: mono, fontSize: 9, color: '#888888',
+              letterSpacing: '0.04em', minHeight: 12,
+            }}>
+              {kurserState === 'error' ? (
+                <span style={{ color: '#8b1c1c' }}>● Kunne ikke hente</span>
+              ) : fetchedAt ? (
+                <>Sidst opdateret {new Date(fetchedAt).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}</>
+              ) : kurserState === 'loading' ? (
+                'Henter live kurser …'
+              ) : (
+                ''
+              )}
+            </div>
+          </div>
         </div>
-        <h2 style={{
-          fontFamily: corm, fontSize: 32, fontWeight: 600,
-          color: '#111111', margin: 0, lineHeight: 1.1,
-        }}>
-          Opdater <em style={{ fontStyle: 'italic', fontWeight: 500 }}>kursalarmer</em>
-        </h2>
-        <p style={{
-          fontFamily: mono, fontSize: 11, color: '#666666',
-          marginTop: 8, marginBottom: 0, letterSpacing: '0.02em',
-          maxWidth: 720, lineHeight: 1.55,
-        }}>
-          Klik på en aktie, indtast aktuel kurs — få nyt trailing stop, tag-stilling og
-          exit mål beregnet ud fra lagets regel.
-        </p>
       </header>
 
       {groups.map(({ layer, positions }) => (
@@ -855,7 +911,7 @@ function AlarmSection() {
           }}>
             {positions.map(pos => {
               const last = hydrated ? history[pos.ticker]?.[0] : undefined
-              const ma = ma200[pos.ticker]
+              const ma = kurser[pos.ticker]
               return (
                 <button
                   key={pos.ticker}
@@ -881,7 +937,7 @@ function AlarmSection() {
                     e.currentTarget.style.transform = 'translateY(0)'
                   }}
                 >
-                  <Ma200Badge entry={ma} state={ma200State} />
+                  <Ma200Badge entry={ma} state={kurserState} />
                   <div style={{
                     fontFamily: mono, fontSize: 11, color: '#111111',
                     fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4,
@@ -895,7 +951,23 @@ function AlarmSection() {
                     {pos.name}
                   </div>
                   <div style={{
-                    marginTop: 8,
+                    marginTop: 4,
+                    fontFamily: mono, fontSize: 11, color: '#777777',
+                    letterSpacing: '0.02em',
+                    minHeight: 14,
+                  }}>
+                    {kurserState === 'loading' && !ma ? (
+                      <span style={{ color: '#aaaaaa' }}>henter …</span>
+                    ) : ma ? (
+                      <>Aktuel kurs <span style={{ color: '#333333', fontWeight: 500 }}>{fmtMoney(ma.price, pos.currency)}</span></>
+                    ) : kurserState === 'error' || kurserState === 'ready' ? (
+                      <span style={{ color: '#aaaaaa' }}>kurs –</span>
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                  <div style={{
+                    marginTop: 6,
                     fontFamily: mono, fontSize: 9, color: '#999999',
                     letterSpacing: '0.04em',
                   }}>
