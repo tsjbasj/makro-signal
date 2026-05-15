@@ -241,179 +241,6 @@ function Nav() {
   )
 }
 
-/* ─── Signal-blok (én sub-sektion: hård / blød / genovervej) ──────── */
-function SignalBlock({
-  kind,
-  items,
-}: {
-  kind: 'hard' | 'soft' | 'reconsider'
-  items: string[]
-}) {
-  if (items.length === 0) return null
-  const cfg = {
-    hard: {
-      label: 'Hård regel',
-      sub: 'udløser salg alene',
-      emoji: '🔴',
-      bg: 'rgba(192, 57, 43, 0.08)',
-      border: 'rgba(192, 57, 43, 0.25)',
-      accent: '#8b1c1c',
-      dot: '#c0392b',
-    },
-    soft: {
-      label: 'Blød signal',
-      sub: 'tæller mod tærsklen',
-      emoji: '🟠',
-      bg: 'rgba(245, 158, 11, 0.10)',
-      border: 'rgba(245, 158, 11, 0.30)',
-      accent: '#8a5a00',
-      dot: '#f59e0b',
-    },
-    reconsider: {
-      label: 'Genovervej',
-      sub: 'aktiv opfølgning, ingen handling',
-      emoji: '🟡',
-      bg: 'rgba(234, 179, 8, 0.10)',
-      border: 'rgba(234, 179, 8, 0.30)',
-      accent: '#7a5a00',
-      dot: '#eab308',
-    },
-  }[kind]
-  return (
-    <div style={{
-      background: cfg.bg,
-      border: `1px solid ${cfg.border}`,
-      borderRadius: 8,
-      padding: '14px 16px',
-      marginBottom: 10,
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'baseline',
-        gap: 8,
-        marginBottom: 10,
-      }}>
-        <span style={{ fontSize: 10, lineHeight: 1 }} aria-hidden>{cfg.emoji}</span>
-        <span style={{
-          fontFamily: 'var(--font-dm-mono)',
-          fontSize: 10,
-          letterSpacing: '0.10em',
-          textTransform: 'uppercase',
-          fontWeight: 600,
-          color: cfg.accent,
-        }}>
-          {cfg.label}
-        </span>
-        <span style={{
-          fontFamily: 'var(--font-dm-mono)',
-          fontSize: 9,
-          color: '#888888',
-          letterSpacing: '0.04em',
-        }}>
-          · {cfg.sub}
-        </span>
-      </div>
-      <ul style={{
-        margin: 0,
-        padding: 0,
-        listStyle: 'none',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 6,
-      }}>
-        {items.map((item, i) => (
-          <li key={i} style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 10,
-            fontFamily: 'var(--font-cormorant)',
-            fontSize: 16,
-            color: '#1a1a1a',
-            lineHeight: 1.4,
-          }}>
-            <span style={{
-              width: 5, height: 5, borderRadius: '50%',
-              background: cfg.dot,
-              marginTop: 8,
-              flexShrink: 0,
-            }} />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-/* ─── Lag-kort ──────────────────────────────────────────────────────── */
-function LayerCard({ layer }: { layer: Layer }) {
-  const mono = 'var(--font-dm-mono)'
-  const corm = 'var(--font-cormorant)'
-  return (
-    <article style={{
-      background: 'rgba(255,255,255,0.30)',
-      border: '1px solid rgba(0,0,0,0.10)',
-      borderRadius: 10,
-      overflow: 'hidden',
-      marginBottom: 22,
-    }}>
-      <div style={{ height: 3, background: layer.accent }} />
-      <div style={{ padding: '22px 24px 18px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 18 }}>
-          <div>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              marginBottom: 6,
-            }}>
-              <span style={{
-                width: 8, height: 8, borderRadius: '50%',
-                background: layer.accent,
-              }} />
-              <span style={{
-                fontFamily: mono,
-                fontSize: 9,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: '#777777',
-              }}>
-                Lag · {layer.id === 'run2026' ? 'Specielt' : layer.id}
-              </span>
-            </div>
-            <h2 style={{
-              fontFamily: corm,
-              fontSize: 30,
-              fontWeight: 600,
-              color: '#111111',
-              margin: 0,
-              lineHeight: 1.1,
-            }}>
-              {layer.label}
-            </h2>
-          </div>
-          <div style={{
-            fontFamily: mono,
-            fontSize: 10,
-            letterSpacing: '0.04em',
-            color: layer.accent,
-            background: 'rgba(0,0,0,0.04)',
-            border: `1px solid ${layer.accent}33`,
-            padding: '6px 10px',
-            borderRadius: 6,
-            maxWidth: 380,
-          }}>
-            {layer.rule}
-          </div>
-        </div>
-
-        <SignalBlock kind="hard" items={layer.hard} />
-        <SignalBlock kind="soft" items={layer.soft} />
-        <SignalBlock kind="reconsider" items={layer.reconsider} />
-      </div>
-    </article>
-  )
-}
 
 /* ─── Alarm modal ──────────────────────────────────────────────────── */
 function AlarmModal({
@@ -943,7 +770,6 @@ function AlarmSection() {
 /* ─── Page ──────────────────────────────────────────────────────────── */
 export default function ReglerPage() {
   const mono = 'var(--font-dm-mono)'
-  const corm = 'var(--font-cormorant)'
 
   return (
     <div style={{ minHeight: '100vh', background: '#e9e5da' }}>
@@ -952,74 +778,16 @@ export default function ReglerPage() {
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px 60px' }}>
 
         {/* ─── Page Header ─── */}
-        <header style={{ marginBottom: 36 }}>
+        <header style={{ marginBottom: 12 }}>
           <div style={{
             fontFamily: mono,
             fontSize: 10,
             color: '#111111',
             letterSpacing: '0.12em',
-            marginBottom: 8,
           }}>
             ◈ REGLER
           </div>
-          <h1 style={{
-            fontFamily: corm,
-            fontSize: 44,
-            fontWeight: 600,
-            color: '#111111',
-            margin: 0,
-            lineHeight: 1.05,
-          }}>
-            Salgs<em style={{ fontStyle: 'italic', fontWeight: 500 }}>regler</em>
-          </h1>
-          <p style={{
-            fontFamily: mono,
-            fontSize: 11,
-            color: '#666666',
-            marginTop: 8,
-            marginBottom: 0,
-            letterSpacing: '0.02em',
-            maxWidth: 720,
-            lineHeight: 1.55,
-          }}>
-            Framework for hvornår en position sælges — differentieret efter lag.
-          </p>
         </header>
-
-        {/* ─── Legend (visual key for signal kinds) ─── */}
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 10,
-          marginBottom: 28,
-        }}>
-          {([
-            { emoji: '🔴', label: 'Hård regel', sub: 'salg' },
-            { emoji: '🟠', label: 'Blød signal', sub: 'tæller' },
-            { emoji: '🟡', label: 'Genovervej', sub: 'opfølgning' },
-          ] as const).map((l) => (
-            <span key={l.label} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              fontFamily: mono, fontSize: 10,
-              padding: '5px 10px',
-              background: 'rgba(0,0,0,0.03)',
-              border: '1px solid rgba(0,0,0,0.08)',
-              borderRadius: 999,
-              color: '#444444',
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-            }}>
-              <span aria-hidden style={{ fontSize: 9 }}>{l.emoji}</span>
-              <span style={{ fontWeight: 500 }}>{l.label}</span>
-              <span style={{ color: '#aaaaaa' }}>· {l.sub}</span>
-            </span>
-          ))}
-        </div>
-
-        {/* ─── Lag-kort ─── */}
-        {LAYERS.map((layer) => (
-          <LayerCard key={layer.id} layer={layer} />
-        ))}
 
         {/* ─── Interaktiv alarm-opdatering ─── */}
         <AlarmSection />
