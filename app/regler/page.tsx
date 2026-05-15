@@ -203,6 +203,46 @@ function saveHistory(history: Record<string, AlarmHistoryEntry[]>) {
   }
 }
 
+/* ─── MA200 live data ───────────────────────────────────────────────── */
+interface Ma200Entry {
+  ticker: string
+  name: string
+  currentPrice: number
+  sma200: number
+  above: boolean
+}
+
+const MA200_CACHE_KEY = 'ma200_data'
+const MA200_CACHE_TTL_MS = 30 * 60 * 1000 // 30 min
+
+interface Ma200Cache {
+  fetchedAt: number
+  data: Record<string, Ma200Entry>
+}
+
+function readMa200Cache(): Ma200Cache | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.sessionStorage.getItem(MA200_CACHE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Ma200Cache
+    if (!parsed || typeof parsed !== 'object' || !parsed.data) return null
+    if (Date.now() - (parsed.fetchedAt ?? 0) > MA200_CACHE_TTL_MS) return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function writeMa200Cache(data: Record<string, Ma200Entry>) {
+  if (typeof window === 'undefined') return
+  try {
+    window.sessionStorage.setItem(MA200_CACHE_KEY, JSON.stringify({ fetchedAt: Date.now(), data }))
+  } catch {
+    // quota / private mode
+  }
+}
+
 /* ─── Navigation (matches øvrige sider) ────────────────────────────── */
 function Nav() {
   const linkBase: React.CSSProperties = {
@@ -624,6 +664,86 @@ function AlarmModal({
   )
 }
 
+/* ─── MA200 badge (vises i øverste højre hjørne af hvert aktie-kort) ─ */
+function Ma200Badge({
+  entry,
+  state,
+}: {
+  entry: Ma200Entry | undefined
+  state: 'idle' | 'loading' | 'ready' | 'error'
+}) {
+  const mono = 'var(--font-dm-mono)'
+
+  // Resolve visual config based on state + data
+  let bg = 'rgba(0,0,0,0.04)'
+  let border = 'rgba(0,0,0,0.10)'
+  let color = '#888888'
+  let dotColor = '#bbbbbb'
+  let dotPulse = false
+  let label = '200 D MA'
+  let suffix = '—'
+  let title: string | undefined
+
+  if (state === 'loading') {
+    dotPulse = true
+    suffix = '…'
+  } else if (state === 'error' || (state === 'ready' && !entry)) {
+    suffix = '—'
+    title = 'Kunne ikke hente 200-dages gennemsnit'
+  } else if (entry) {
+    if (entry.above) {
+      bg = 'rgba(74, 124, 89, 0.12)'
+      border = 'rgba(74, 124, 89, 0.35)'
+      color = '#2d6a3f'
+      dotColor = '#4a7c59'
+      suffix = '↑'
+    } else {
+      bg = 'rgba(192, 57, 43, 0.10)'
+      border = 'rgba(192, 57, 43, 0.30)'
+      color = '#8b1c1c'
+      dotColor = '#c0392b'
+      suffix = '↓'
+    }
+    title = `Kurs ${entry.currentPrice} · MA200 ${entry.sma200}`
+  }
+
+  return (
+    <span
+      title={title}
+      style={{
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: '3px 8px',
+        background: bg,
+        border: `1px solid ${border}`,
+        borderRadius: 999,
+        fontFamily: mono,
+        fontSize: 10,
+        letterSpacing: '0.04em',
+        color,
+        lineHeight: 1,
+      }}
+    >
+      <span
+        style={{
+          width: 5,
+          height: 5,
+          borderRadius: '50%',
+          background: dotColor,
+          animation: dotPulse ? 'ma200pulse 1.2s ease-in-out infinite' : undefined,
+        }}
+      />
+      <span>{label}</span>
+      <span style={{ color: '#aaaaaa' }}>·</span>
+      <span style={{ fontWeight: 500 }}>{suffix}</span>
+    </span>
+  )
+}
+
 /* ─── Alarm sektion ────────────────────────────────────────────────── */
 function AlarmSection() {
   const mono = 'var(--font-dm-mono)'
@@ -632,10 +752,44 @@ function AlarmSection() {
   const [selected, setSelected] = useState<AlarmPosition | null>(null)
   const [history, setHistory] = useState<Record<string, AlarmHistoryEntry[]>>({})
   const [hydrated, setHydrated] = useState(false)
+  const [ma200, setMa200] = useState<Record<string, Ma200Entry>>({})
+  const [ma200State, setMa200State] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
 
   useEffect(() => {
     setHistory(loadHistory())
     setHydrated(true)
+
+    // Try sessionStorage cache first (30 min TTL)
+    const cached = readMa200Cache()
+    if (cached) {
+      setMa200(cached.data)
+      setMa200State('ready')
+      return
+    }
+    // Fall back to fetch
+    let cancelled = false
+    setMa200State('loading')
+    const tickers = ALARM_POSITIONS.map(p => p.ticker).join(',')
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/sma200?tickers=${encodeURIComponent(tickers)}`)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const list = await res.json() as Ma200Entry[]
+        if (cancelled) return
+        const map: Record<string, Ma200Entry> = {}
+        if (Array.isArray(list)) {
+          for (const entry of list) {
+            if (entry && entry.ticker) map[entry.ticker] = entry
+          }
+        }
+        setMa200(map)
+        setMa200State('ready')
+        writeMa200Cache(map)
+      } catch {
+        if (!cancelled) setMa200State('error')
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
 
   const handleSave = useCallback((ticker: string, entry: AlarmHistoryEntry) => {
@@ -657,6 +811,7 @@ function AlarmSection() {
 
   return (
     <section style={{ marginTop: 44, marginBottom: 24 }}>
+      <style>{`@keyframes ma200pulse{0%,100%{opacity:1}50%{opacity:0.35}}`}</style>
       <header style={{ marginBottom: 18 }}>
         <div style={{
           fontFamily: mono, fontSize: 10, color: '#111111',
@@ -700,11 +855,13 @@ function AlarmSection() {
           }}>
             {positions.map(pos => {
               const last = hydrated ? history[pos.ticker]?.[0] : undefined
+              const ma = ma200[pos.ticker]
               return (
                 <button
                   key={pos.ticker}
                   onClick={() => setSelected(pos)}
                   style={{
+                    position: 'relative',
                     textAlign: 'left',
                     background: 'rgba(255,255,255,0.40)',
                     border: '1px solid rgba(0,0,0,0.10)',
@@ -724,9 +881,11 @@ function AlarmSection() {
                     e.currentTarget.style.transform = 'translateY(0)'
                   }}
                 >
+                  <Ma200Badge entry={ma} state={ma200State} />
                   <div style={{
                     fontFamily: mono, fontSize: 11, color: '#111111',
                     fontWeight: 600, letterSpacing: '0.04em', marginBottom: 4,
+                    paddingRight: 86,
                   }}>
                     {pos.ticker}
                   </div>

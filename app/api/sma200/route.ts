@@ -24,6 +24,9 @@ const TICKER_MAP: Record<string, { yahoo: string; name: string }> = {
   'CRDO':    { yahoo: 'CRDO',      name: 'Credo Technology' },
   'ETN':     { yahoo: 'ETN',       name: 'Eaton Corporation' },
   'IBN':     { yahoo: 'IBN',       name: 'ICICI Bank ADR' },
+  'PLTR':    { yahoo: 'PLTR',      name: 'Palantir' },
+  'CELC':    { yahoo: 'CELC',      name: 'Celcuity' },
+  'CRWD':    { yahoo: 'CRWD',      name: 'CrowdStrike' },
 }
 
 async function fetchSma200(ticker: string): Promise<Sma200Entry | null> {
