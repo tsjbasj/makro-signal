@@ -316,6 +316,35 @@ function parseFiriTrades(header: string[], rows: string[][]): Position[] {
   return out
 }
 
+/* Slå en position op i live-kurser. Prøver først direkte ticker-match,
+   så uppercase, så fuzzy match på navn (Nordnet's CSV har ofte ikke en
+   ticker-kolonne, så position.ticker kan være "CrowdStrike" i stedet for
+   "CRWD"). */
+function findLiveEntry(
+  ticker: string,
+  name: string,
+  kurser: Record<string, KurserEntry>,
+): KurserEntry | undefined {
+  if (!ticker && !name) return undefined
+  // 1. Direct match
+  if (ticker && kurser[ticker]) return kurser[ticker]
+  // 2. Uppercase
+  const upper = ticker.toUpperCase()
+  if (kurser[upper]) return kurser[upper]
+  // 3. Fuzzy: match by name (in either direction) or first-token alias
+  const posName = (name || ticker).toUpperCase().trim()
+  const posFirstWord = posName.split(/\s+/)[0]
+  if (!posName) return undefined
+  for (const entry of Object.values(kurser)) {
+    const apiName = (entry.name || '').toUpperCase().trim()
+    if (!apiName) continue
+    if (posName.includes(apiName)) return entry
+    if (apiName.includes(posName)) return entry
+    if (apiName.split(/\s+/)[0] === posFirstWord) return entry
+  }
+  return undefined
+}
+
 /* ─── MA200 pill (inline; matches design fra /regler-siden) ────────── */
 function Ma200Pill({
   entry,
@@ -771,7 +800,7 @@ export default function InvesteringerPage() {
   }
   for (const sid of Object.keys(sections) as SectionId[]) {
     effectiveSections[sid] = sections[sid].map(p => {
-      const live = kurser[p.ticker]
+      const live = findLiveEntry(p.ticker, p.name, kurser)
       if (!live || !live.price || live.price <= 0) return p
       const fx = fxToDkk(p.currency, fxRates)
       const marketValueDkk = p.quantity * live.price * fx
@@ -1193,7 +1222,7 @@ export default function InvesteringerPage() {
                   </thead>
                   <tbody>
                     {activePositions.map((p, i) => {
-                      const live = kurser[p.ticker]
+                      const live = findLiveEntry(p.ticker, p.name, kurser)
                       // Raw CSV-pris til diff-annotation (activePositions er allerede live-overlaid)
                       const csvOriginal = sections[activeSection].find(o => o.ticker === p.ticker && o.kontonummer === p.kontonummer)
                       const csvPrice = csvOriginal?.lastPrice ?? p.lastPrice
