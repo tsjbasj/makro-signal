@@ -2,6 +2,11 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import {
+  type KurserEntry,
+  readKurserCache,
+  writeKurserCache,
+} from '@/lib/kurser'
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
 interface Position {
@@ -311,6 +316,72 @@ function parseFiriTrades(header: string[], rows: string[][]): Position[] {
   return out
 }
 
+/* ─── MA200 pill (inline; matches design fra /regler-siden) ────────── */
+function Ma200Pill({
+  entry,
+  state,
+}: {
+  entry: KurserEntry | undefined
+  state: 'idle' | 'loading' | 'ready' | 'error'
+}) {
+  const mono = 'var(--font-dm-mono)'
+
+  let bg = 'rgba(0,0,0,0.04)'
+  let border = 'rgba(0,0,0,0.10)'
+  let color = '#888888'
+  let dotColor = '#bbbbbb'
+  let dotPulse = false
+  let suffix = '—'
+  let title: string | undefined
+
+  if (state === 'loading' && !entry) {
+    dotPulse = true
+    suffix = '…'
+  } else if (entry) {
+    if (entry.above) {
+      bg = 'rgba(74, 124, 89, 0.12)'
+      border = 'rgba(74, 124, 89, 0.35)'
+      color = '#2d6a3f'
+      dotColor = '#4a7c59'
+      suffix = '↑'
+    } else {
+      bg = 'rgba(192, 57, 43, 0.10)'
+      border = 'rgba(192, 57, 43, 0.30)'
+      color = '#8b1c1c'
+      dotColor = '#c0392b'
+      suffix = '↓'
+    }
+    title = `Kurs ${entry.price} · MA200 ${entry.ma200}`
+  } else if (state === 'error' || state === 'ready') {
+    suffix = '—'
+    title = 'Ingen live-data for denne ticker'
+  }
+
+  return (
+    <span
+      title={title}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 4,
+        padding: '2px 7px',
+        background: bg, border: `1px solid ${border}`,
+        borderRadius: 999,
+        fontFamily: mono, fontSize: 9, fontWeight: 400,
+        letterSpacing: '0.04em', color,
+        lineHeight: 1, whiteSpace: 'nowrap',
+      }}
+    >
+      <span style={{
+        width: 4, height: 4, borderRadius: '50%',
+        background: dotColor,
+        animation: dotPulse ? 'kpulse 1.2s ease-in-out infinite' : undefined,
+      }} />
+      <span>200D</span>
+      <span style={{ color: '#aaaaaa' }}>·</span>
+      <span style={{ fontWeight: 500 }}>{suffix}</span>
+    </span>
+  )
+}
+
 /* ─── Formatters ────────────────────────────────────────────────────── */
 function fmtDkk(n: number): string {
   if (!isFinite(n)) return '—'
@@ -433,6 +504,41 @@ export default function InvesteringerPage() {
   const [fxUpdatedAt, setFxUpdatedAt] = useState<Date | null>(null)
   const fxRatesRef = useRef(DEFAULT_FX_RATES)
   useEffect(() => { fxRatesRef.current = fxRates }, [fxRates])
+
+  // ─── Live kurser + MA200 (delt cache med /regler-siden) ───
+  const [kurser, setKurser] = useState<Record<string, KurserEntry>>({})
+  const [kurserState, setKurserState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [kurserFetchedAt, setKurserFetchedAt] = useState<number | null>(null)
+
+  const refreshKurser = useCallback(async () => {
+    setKurserState('loading')
+    try {
+      const res = await fetch('/api/kurser', { cache: 'no-store' })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const json = await res.json() as Record<string, KurserEntry>
+      const now = Date.now()
+      const data = json && typeof json === 'object' ? json : {}
+      setKurser(data)
+      setKurserState('ready')
+      setKurserFetchedAt(now)
+      writeKurserCache(data, now)
+    } catch {
+      setKurserState('error')
+    }
+  }, [])
+
+  // Hent fra cache ved mount (deler nøgle 'kurser_cache' med /regler).
+  // Hvis cache er tom eller udløbet, fetcher vi automatisk.
+  useEffect(() => {
+    const cached = readKurserCache()
+    if (cached) {
+      setKurser(cached.data)
+      setKurserState('ready')
+      setKurserFetchedAt(cached.fetchedAt)
+      return
+    }
+    void refreshKurser()
+  }, [refreshKurser])
 
   // Fetch live FX rates from Frankfurter (free, no API key)
   useEffect(() => {
@@ -689,6 +795,7 @@ export default function InvesteringerPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#e9e5da', overflowX: 'hidden' }}>
+      <style>{`@keyframes kspin{to{transform:rotate(360deg)}}@keyframes kpulse{0%,100%{opacity:1}50%{opacity:0.35}}`}</style>
       <Nav />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px 60px' }}>
@@ -722,6 +829,51 @@ export default function InvesteringerPage() {
                 {fmtSignedDkk(totalGain)} · {fmtPct(totalPct)}
               </div>
             )}
+            {/* ─ Opdater kurser knap (delt cache med /regler) ─ */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5, marginTop: 14 }}>
+              <button
+                onClick={refreshKurser}
+                disabled={kurserState === 'loading'}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 7,
+                  background: kurserState === 'loading' ? 'rgba(0,0,0,0.04)' : '#111111',
+                  color: kurserState === 'loading' ? '#666666' : '#f2efe6',
+                  border: '1px solid rgba(0,0,0,0.15)',
+                  borderRadius: 6,
+                  padding: '7px 12px',
+                  fontFamily: mono, fontSize: 9,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  cursor: kurserState === 'loading' ? 'wait' : 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span aria-hidden style={{
+                  display: 'inline-block', width: 10, height: 10,
+                  border: '1.5px solid currentColor',
+                  borderTopColor: 'transparent',
+                  borderRadius: '50%',
+                  animation: kurserState === 'loading' ? 'kspin 0.7s linear infinite' : undefined,
+                  opacity: kurserState === 'loading' ? 1 : 0.7,
+                }} />
+                {kurserState === 'loading' ? 'Henter …' : 'Opdater kurser'}
+              </button>
+              <div style={{
+                fontFamily: mono, fontSize: 9, color: '#888888',
+                letterSpacing: '0.04em', minHeight: 12,
+              }}>
+                {kurserState === 'error' ? (
+                  <span style={{ color: '#8b1c1c' }}>● Kunne ikke hente</span>
+                ) : kurserFetchedAt ? (
+                  <>Sidst opdateret {new Date(kurserFetchedAt).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}</>
+                ) : kurserState === 'loading' ? (
+                  'Henter live kurser …'
+                ) : (
+                  ''
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1014,10 +1166,15 @@ export default function InvesteringerPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {activePositions.map((p, i) => (
+                    {activePositions.map((p, i) => {
+                      const live = kurser[p.ticker]
+                      return (
                       <tr key={`${p.ticker}-${i}`}>
                         <td style={{ padding: '11px 12px 11px 0', borderBottom: '1px solid rgba(0,0,0,0.06)', color: '#111111', fontSize: 12, fontWeight: 500 }}>
-                          {p.ticker}
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                            <span>{p.ticker}</span>
+                            <Ma200Pill entry={live} state={kurserState} />
+                          </div>
                         </td>
                         <td style={{ padding: '11px 12px 11px 0', borderBottom: '1px solid rgba(0,0,0,0.06)', color: '#555555', fontFamily: corm, fontSize: 14 }}>
                           {p.name}
@@ -1030,6 +1187,11 @@ export default function InvesteringerPage() {
                         </td>
                         <td style={{ padding: '11px 12px 11px 0', borderBottom: '1px solid rgba(0,0,0,0.06)', color: '#444444', textAlign: 'right' }}>
                           {fmtNum(p.lastPrice)} <span style={{ color: '#aaaaaa', fontSize: 9 }}>{p.currency}</span>
+                          {live && Math.abs(live.price - p.lastPrice) > p.lastPrice * 0.001 && (
+                            <div style={{ fontSize: 9, color: '#888888', marginTop: 2 }}>
+                              live {fmtNum(live.price)} <span style={{ color: '#aaaaaa' }}>{live.currency}</span>
+                            </div>
+                          )}
                         </td>
                         <td style={{ padding: '11px 12px 11px 0', borderBottom: '1px solid rgba(0,0,0,0.06)', color: '#111111', textAlign: 'right', fontWeight: 500 }}>
                           {fmtDkk(p.marketValueDkk)}
@@ -1041,7 +1203,8 @@ export default function InvesteringerPage() {
                           {fmtSignedDkk(p.returnDkk)}
                         </td>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                   <tfoot>
                     <tr>

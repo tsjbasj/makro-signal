@@ -2,6 +2,11 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react'
+import {
+  type KurserEntry,
+  readKurserCache,
+  writeKurserCache,
+} from '@/lib/kurser'
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
 type LayerId = 'kerne' | 'vaekst' | 'spekulativ' | 'run2026'
@@ -203,45 +208,9 @@ function saveHistory(history: Record<string, AlarmHistoryEntry[]>) {
   }
 }
 
-/* ─── Live kurser + MA200 ──────────────────────────────────────────── */
-interface KurserEntry {
-  price: number
-  ma200: number
-  above: boolean
-  currency: 'USD' | 'DKK'
-  name: string
-}
-
-const KURSER_CACHE_KEY = 'kurser_data'
-const KURSER_CACHE_TTL_MS = 30 * 60 * 1000 // 30 min
-
-interface KurserCache {
-  fetchedAt: number
-  data: Record<string, KurserEntry>
-}
-
-function readKurserCache(): KurserCache | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = window.sessionStorage.getItem(KURSER_CACHE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as KurserCache
-    if (!parsed || typeof parsed !== 'object' || !parsed.data) return null
-    if (Date.now() - (parsed.fetchedAt ?? 0) > KURSER_CACHE_TTL_MS) return null
-    return parsed
-  } catch {
-    return null
-  }
-}
-
-function writeKurserCache(data: Record<string, KurserEntry>, fetchedAt: number) {
-  if (typeof window === 'undefined') return
-  try {
-    window.sessionStorage.setItem(KURSER_CACHE_KEY, JSON.stringify({ fetchedAt, data }))
-  } catch {
-    // quota / private mode
-  }
-}
+/* Live kurser-cache: typer + helpers er fælles for /regler og /investeringer.
+   Begge sider bruger sessionStorage-nøglen 'kurser_cache' (30 min TTL) så
+   en refresh ét sted også gælder den anden side. Se @/lib/kurser. */
 
 /* ─── Navigation (matches øvrige sider) ────────────────────────────── */
 function Nav() {
