@@ -762,7 +762,33 @@ export default function InvesteringerPage() {
     setActiveSection(target)
   }, [])
 
-  // Totals
+  // Overlay live kurser fra /api/kurser oven på CSV-data: når en ticker
+  // findes i `kurser`, genberegnes lastPrice + marketValueDkk + returnDkk +
+  // returnPct ud fra live-prisen og den aktuelle FX-rate. Ingen state-mutation
+  // - kun afledt visning, så de gemte data forbliver præcis som CSV'en sagde.
+  const effectiveSections: Record<SectionId, Position[]> = {
+    run2026: [], enkeltaktier: [], etf: [], krypto: [], ask: [],
+  }
+  for (const sid of Object.keys(sections) as SectionId[]) {
+    effectiveSections[sid] = sections[sid].map(p => {
+      const live = kurser[p.ticker]
+      if (!live || !live.price || live.price <= 0) return p
+      const fx = fxToDkk(p.currency, fxRates)
+      const marketValueDkk = p.quantity * live.price * fx
+      const returnDkk = (live.price - p.gak) * p.quantity * fx
+      const returnPct = p.gak > 0 ? ((live.price - p.gak) / p.gak) * 100 : 0
+      return {
+        ...p,
+        lastPrice: live.price,
+        marketValueDkk,
+        returnDkk,
+        returnPct,
+        currency: live.currency ?? p.currency,
+      }
+    })
+  }
+
+  // Totals (afledt af effective overlay - så de stemmer overens med række-visningen)
   const sectionTotals: Record<SectionId, { value: number; gain: number }> = {
     run2026:      { value: 0, gain: 0 },
     enkeltaktier: { value: 0, gain: 0 },
@@ -771,7 +797,7 @@ export default function InvesteringerPage() {
     ask:          { value: 0, gain: 0 },
   }
   for (const def of SECTION_DEFS) {
-    for (const p of sections[def.id]) {
+    for (const p of effectiveSections[def.id]) {
       sectionTotals[def.id].value += p.marketValueDkk
       sectionTotals[def.id].gain += p.returnDkk
     }
@@ -782,7 +808,7 @@ export default function InvesteringerPage() {
   const totalPct = totalCost > 0 ? (totalGain / totalCost) * 100 : 0
 
   const activeDef = SECTION_DEFS.find(d => d.id === activeSection)!
-  const activePositions = sections[activeSection]
+  const activePositions = effectiveSections[activeSection]
   const activeValue = sectionTotals[activeSection].value
   const activeGain = sectionTotals[activeSection].gain
   const activeCost = activeValue - activeGain
@@ -1168,6 +1194,10 @@ export default function InvesteringerPage() {
                   <tbody>
                     {activePositions.map((p, i) => {
                       const live = kurser[p.ticker]
+                      // Raw CSV-pris til diff-annotation (activePositions er allerede live-overlaid)
+                      const csvOriginal = sections[activeSection].find(o => o.ticker === p.ticker && o.kontonummer === p.kontonummer)
+                      const csvPrice = csvOriginal?.lastPrice ?? p.lastPrice
+                      const isOverridden = !!live && Math.abs(p.lastPrice - csvPrice) > Math.max(0.01, csvPrice * 0.001)
                       return (
                       <tr key={`${p.ticker}-${i}`}>
                         <td style={{ padding: '11px 12px 11px 0', borderBottom: '1px solid rgba(0,0,0,0.06)', color: '#111111', fontSize: 12, fontWeight: 500 }}>
@@ -1187,9 +1217,9 @@ export default function InvesteringerPage() {
                         </td>
                         <td style={{ padding: '11px 12px 11px 0', borderBottom: '1px solid rgba(0,0,0,0.06)', color: '#444444', textAlign: 'right' }}>
                           {fmtNum(p.lastPrice)} <span style={{ color: '#aaaaaa', fontSize: 9 }}>{p.currency}</span>
-                          {live && Math.abs(live.price - p.lastPrice) > p.lastPrice * 0.001 && (
-                            <div style={{ fontSize: 9, color: '#888888', marginTop: 2 }}>
-                              live {fmtNum(live.price)} <span style={{ color: '#aaaaaa' }}>{live.currency}</span>
+                          {isOverridden && (
+                            <div style={{ fontSize: 9, color: '#aaaaaa', marginTop: 2 }}>
+                              csv: {fmtNum(csvPrice)}
                             </div>
                           )}
                         </td>
